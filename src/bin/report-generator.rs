@@ -35,10 +35,11 @@ enum AlgorithmSource {
 struct GenerationConfig {
     #[serde(rename = "type")]
     gen_type: String,
-    algorithm: AlgorithmConfig,
+    #[serde(flatten)]
+    config_data: serde_json::Value,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 struct AlgorithmConfig {
     #[serde(rename = "type")]
     algo_type: String,
@@ -126,8 +127,40 @@ fn process_entry(
     
     // Get algorithm
     let algorithm_config = match &entry.algorithm_config {
-        AlgorithmSource::Generation { generation } => &generation.algorithm,
-        AlgorithmSource::Direct { algorithm } => algorithm,
+        AlgorithmSource::Generation { generation } => {
+            match generation.gen_type.as_str() {
+                "single" => {
+                    // Extract algorithm from config_data
+                    if let Ok(algo_config) = serde_json::from_value::<AlgorithmConfig>(generation.config_data["algorithm"].clone()) {
+                        algo_config
+                    } else {
+                        return Err("Failed to parse single algorithm config".into());
+                    }
+                }
+                "layered" | "pipeline" => {
+                    // For layered/pipeline, use the first algorithm as fallback
+                    if let Some(layers) = generation.config_data.get("layers").or_else(|| generation.config_data.get("steps")) {
+                        if let Some(first_layer) = layers.as_array().and_then(|arr| arr.first()) {
+                            if let Ok(algo_config) = serde_json::from_value::<AlgorithmConfig>(first_layer["algorithm"].clone()) {
+                                algo_config
+                            } else if let Ok(algo_config) = serde_json::from_value::<AlgorithmConfig>(first_layer.clone()) {
+                                algo_config
+                            } else {
+                                return Err("Failed to parse layered/pipeline algorithm config".into());
+                            }
+                        } else {
+                            return Err("No layers/steps found in layered/pipeline config".into());
+                        }
+                    } else {
+                        return Err("No layers/steps found in layered/pipeline config".into());
+                    }
+                }
+                _ => {
+                    return Err(format!("Unsupported generation type: {}", generation.gen_type).into());
+                }
+            }
+        }
+        AlgorithmSource::Direct { algorithm } => algorithm.clone(),
     };
     
     let algorithm = registry.get(&algorithm_config.algo_type)

@@ -1,251 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map Type Specializations - TerrainForge Report</title>
+    <title>Map Type Specializations</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #eee;
-            padding: 2rem;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #00d4ff;
-        }
-        .summary {
-            background: #16213e;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-around;
-        }
-        .summary-item { text-align: center; }
-        .summary-item .value { font-size: 2rem; color: #00d4ff; }
-        .summary-item .label { color: #888; }
-        .entries { display: grid; gap: 2rem; }
-        .entry {
-            background: #16213e;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .entry-header {
-            background: #0f3460;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .entry-header h2 { font-size: 1.2rem; }
-        .algorithm {
-            background: #00d4ff;
-            color: #000;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-        .entry-content {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 1.5rem;
-            padding: 1.5rem;
-        }
-        .image-container img {
-            border-radius: 4px;
-            max-width: 100%;
-            image-rendering: pixelated;
-        }
-        .stats table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1rem;
-        }
-        .stats td {
-            padding: 0.5rem;
-            border-bottom: 1px solid #333;
-        }
-        .stats td:first-child { color: #888; }
-        .stats td:last-child { text-align: right; font-family: monospace; }
-        .config h4 { color: #888; margin-bottom: 0.5rem; }
-        .config pre {
-            background: #0a0a15;
-            padding: 1rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            overflow-x: auto;
-        }
-        @media (max-width: 768px) {
-            .entry-content { grid-template-columns: 1fr; }
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #1a1a1a; color: #e0e0e0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2d3748, #4a5568); padding: 30px; border-radius: 10px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #fff; font-size: 2.5em; }
+        .header p { margin: 10px 0 0 0; color: #cbd5e0; font-size: 1.1em; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+        .entry { background: #2d3748; border-radius: 10px; padding: 20px; border: 1px solid #4a5568; }
+        .entry h3 { margin: 0 0 15px 0; color: #63b3ed; font-size: 1.3em; }
+        .entry img { width: 100%; height: auto; border-radius: 5px; border: 1px solid #4a5568; }
+        .metrics { margin-top: 15px; font-size: 0.9em; }
+        .metrics div { margin: 5px 0; }
+        .metric-label { color: #a0aec0; }
+        .metric-value { color: #e2e8f0; font-weight: bold; }
+        .summary { background: #2d3748; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+        .summary h2 { margin: 0 0 15px 0; color: #63b3ed; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #68d391; }
+        .stat-label { color: #a0aec0; }
     </style>
 </head>
 <body>
-    <h1>Map Type Specializations</h1>
-    <div class="summary">
-        <div class="summary-item">
-            <div class="value">6</div>
-            <div class="label">Generations</div>
+    <div class="container">
+        <div class="header">
+            <h1>Map Type Specializations</h1>
+            <p>TerrainForge Procedural Generation Report</p>
         </div>
-        <div class="summary-item">
-            <div class="value">6</div>
-            <div class="label">Algorithms</div>
-        </div>
-        <div class="summary-item">
-            <div class="value">59.11ms</div>
-            <div class="label">Avg Time</div>
-        </div>
-    </div>
-    <div class="entries">
         
-        <div class="entry">
-            <div class="entry-header">
-                <h2>Dungeon Layout</h2>
-                <span class="algorithm">BSP</span>
-            </div>
-            <div class="entry-content">
-                <div class="image-container">
-                    <img src="Dungeon_Layout_8001.png" alt="Dungeon Layout">
+        <div class="summary">
+            <h2>Summary</h2>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Total Entries</div>
                 </div>
-                <div class="stats">
-                    <table>
-                        <tr><td>Seed</td><td>8001</td></tr>
-                        <tr><td>Size</td><td>100×70</td></tr>
-                        <tr><td>Floor Tiles</td><td>2830 (40.4%)</td></tr>
-                        <tr><td>Regions</td><td>1</td></tr>
-                        <tr><td>Gen Time</td><td>0.40ms</td></tr>
-                    </table>
-                    <div class="config">
-                        <h4>Config</h4>
-                        <pre>min_room: 8, depth: 4</pre>
-                    </div>
+                <div class="stat">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Algorithms Used</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">0.75</div>
+                    <div class="stat-label">Avg Connectivity</div>
                 </div>
             </div>
         </div>
-        <div class="entry">
-            <div class="entry-header">
-                <h2>Cave System</h2>
-                <span class="algorithm">Cellular</span>
-            </div>
-            <div class="entry-content">
-                <div class="image-container">
-                    <img src="Cave_System_8002.png" alt="Cave System">
-                </div>
-                <div class="stats">
-                    <table>
-                        <tr><td>Seed</td><td>8002</td></tr>
-                        <tr><td>Size</td><td>120×80</td></tr>
-                        <tr><td>Floor Tiles</td><td>2248 (23.4%)</td></tr>
-                        <tr><td>Regions</td><td>57</td></tr>
-                        <tr><td>Gen Time</td><td>32.33ms</td></tr>
-                    </table>
-                    <div class="config">
-                        <h4>Config</h4>
-                        <pre>floor: 45%, iter: 5</pre>
-                    </div>
+        
+        <div class="grid">
+
+            <div class="entry">
+                <h3>Dungeon Layout</h3>
+                <img src="dungeon_layout.png" alt="Dungeon Layout">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">bsp</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">8001</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">100x70</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">0ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
-        </div>
-        <div class="entry">
-            <div class="entry-header">
-                <h2>Town Layout</h2>
-                <span class="algorithm">SimpleRooms</span>
-            </div>
-            <div class="entry-content">
-                <div class="image-container">
-                    <img src="Town_Layout_8003.png" alt="Town Layout">
-                </div>
-                <div class="stats">
-                    <table>
-                        <tr><td>Seed</td><td>8003</td></tr>
-                        <tr><td>Size</td><td>150×100</td></tr>
-                        <tr><td>Floor Tiles</td><td>1012 (6.7%)</td></tr>
-                        <tr><td>Regions</td><td>1</td></tr>
-                        <tr><td>Gen Time</td><td>0.10ms</td></tr>
-                    </table>
-                    <div class="config">
-                        <h4>Config</h4>
-                        <pre>min: 5, max: 10, rooms: 10</pre>
-                    </div>
+
+            <div class="entry">
+                <h3>Cave System</h3>
+                <img src="cave_system.png" alt="Cave System">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">cellular</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">8002</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">120x80</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">25ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
-        </div>
-        <div class="entry">
-            <div class="entry-header">
-                <h2>Overworld Terrain</h2>
-                <span class="algorithm">Voronoi</span>
-            </div>
-            <div class="entry-content">
-                <div class="image-container">
-                    <img src="Overworld_Terrain_8004.png" alt="Overworld Terrain">
-                </div>
-                <div class="stats">
-                    <table>
-                        <tr><td>Seed</td><td>8004</td></tr>
-                        <tr><td>Size</td><td>200×120</td></tr>
-                        <tr><td>Floor Tiles</td><td>10823 (45.1%)</td></tr>
-                        <tr><td>Regions</td><td>3</td></tr>
-                        <tr><td>Gen Time</td><td>13.79ms</td></tr>
-                    </table>
-                    <div class="config">
-                        <h4>Config</h4>
-                        <pre>points: 15, floor: 45%</pre>
-                    </div>
+
+            <div class="entry">
+                <h3>Town Layout</h3>
+                <img src="town_layout.png" alt="Town Layout">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">simple_rooms</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">8003</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">150x100</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">0ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
-        </div>
-        <div class="entry">
-            <div class="entry-header">
-                <h2>Combat Arena</h2>
-                <span class="algorithm">Maze</span>
-            </div>
-            <div class="entry-content">
-                <div class="image-container">
-                    <img src="Combat_Arena_8005.png" alt="Combat Arena">
-                </div>
-                <div class="stats">
-                    <table>
-                        <tr><td>Seed</td><td>8005</td></tr>
-                        <tr><td>Size</td><td>60×40</td></tr>
-                        <tr><td>Floor Tiles</td><td>1101 (45.9%)</td></tr>
-                        <tr><td>Regions</td><td>1</td></tr>
-                        <tr><td>Gen Time</td><td>0.62ms</td></tr>
-                    </table>
-                    <div class="config">
-                        <h4>Config</h4>
-                        <pre>corridor: 1</pre>
-                    </div>
+
+            <div class="entry">
+                <h3>Overworld Terrain</h3>
+                <img src="overworld_terrain.png" alt="Overworld Terrain">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">voronoi</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">8004</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">200x120</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">13ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
-        </div>
-        <div class="entry">
-            <div class="entry-header">
-                <h2>Organic Caverns</h2>
-                <span class="algorithm">Layered(DLA + Cellular)</span>
-            </div>
-            <div class="entry-content">
-                <div class="image-container">
-                    <img src="Organic_Caverns_8006.png" alt="Organic Caverns">
-                </div>
-                <div class="stats">
-                    <table>
-                        <tr><td>Seed</td><td>8006</td></tr>
-                        <tr><td>Size</td><td>100×80</td></tr>
-                        <tr><td>Floor Tiles</td><td>2068 (25.9%)</td></tr>
-                        <tr><td>Regions</td><td>49</td></tr>
-                        <tr><td>Gen Time</td><td>307.43ms</td></tr>
-                    </table>
-                    <div class="config">
-                        <h4>Config</h4>
-                        <pre>layered: 2 layers</pre>
-                    </div>
+
+            <div class="entry">
+                <h3>Combat Arena</h3>
+                <img src="combat_arena.png" alt="Combat Arena">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">maze</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">8005</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">60x40</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
+
+            <div class="entry">
+                <h3>Organic Caverns</h3>
+                <img src="organic_caverns.png" alt="Organic Caverns">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">dla</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">8006</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">100x80</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1327ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
+                </div>
+            </div>
+
         </div>
     </div>
 </body>

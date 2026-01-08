@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Maze & Pattern Algorithms</title>
+    <title>Hybrid Algorithm Combinations</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #1a1a1a; color: #e0e0e0; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
@@ -27,7 +27,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Maze & Pattern Algorithms</h1>
+            <h1>Hybrid Algorithm Combinations</h1>
             <p>TerrainForge Procedural Generation Report</p>
         </div>
         
@@ -39,7 +39,7 @@
                     <div class="stat-label">Total Entries</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value">4</div>
+                    <div class="stat-value">5</div>
                     <div class="stat-label">Algorithms Used</div>
                 </div>
                 <div class="stat">
@@ -52,73 +52,73 @@
         <div class="grid">
 
             <div class="entry">
-                <h3>Perfect Maze</h3>
-                <img src="perfect_maze.png" alt="Perfect Maze">
+                <h3>BSP + Cellular Automata</h3>
+                <img src="bsp_+_cellular_automata.png" alt="BSP + Cellular Automata">
                 <div class="metrics">
-                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">maze</span></div>
-                    <div><span class="metric-label">Seed:</span> <span class="metric-value">12345</span></div>
-                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">41x31</span></div>
-                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1ms</span></div>
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">bsp</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">5001</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">100x70</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">0ms</span></div>
                     <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
 
             <div class="entry">
-                <h3>WFC Default</h3>
-                <img src="wfc_default.png" alt="WFC Default">
-                <div class="metrics">
-                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">wfc</span></div>
-                    <div><span class="metric-label">Seed:</span> <span class="metric-value">12345</span></div>
-                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">40x30</span></div>
-                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">119ms</span></div>
-                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
-                </div>
-            </div>
-
-            <div class="entry">
-                <h3>WFC High Floor</h3>
-                <img src="wfc_high_floor.png" alt="WFC High Floor">
-                <div class="metrics">
-                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">wfc</span></div>
-                    <div><span class="metric-label">Seed:</span> <span class="metric-value">42</span></div>
-                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">40x30</span></div>
-                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">103ms</span></div>
-                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
-                </div>
-            </div>
-
-            <div class="entry">
-                <h3>Voronoi Sparse</h3>
-                <img src="voronoi_sparse.png" alt="Voronoi Sparse">
+                <h3>Voronoi + Drunkard Walk</h3>
+                <img src="voronoi_+_drunkard_walk.png" alt="Voronoi + Drunkard Walk">
                 <div class="metrics">
                     <div><span class="metric-label">Algorithm:</span> <span class="metric-value">voronoi</span></div>
-                    <div><span class="metric-label">Seed:</span> <span class="metric-value">12345</span></div>
-                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">60x40</span></div>
-                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1ms</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">5002</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">120x80</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">7ms</span></div>
                     <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>
 
             <div class="entry">
-                <h3>Voronoi Dense</h3>
-                <img src="voronoi_dense.png" alt="Voronoi Dense">
-                <div class="metrics">
-                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">voronoi</span></div>
-                    <div><span class="metric-label">Seed:</span> <span class="metric-value">42</span></div>
-                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">60x40</span></div>
-                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">2ms</span></div>
-                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
-                </div>
-            </div>
-
-            <div class="entry">
-                <h3>DLA Growth</h3>
-                <img src="dla_growth.png" alt="DLA Growth">
+                <h3>DLA + Fractal</h3>
+                <img src="dla_+_fractal.png" alt="DLA + Fractal">
                 <div class="metrics">
                     <div><span class="metric-label">Algorithm:</span> <span class="metric-value">dla</span></div>
-                    <div><span class="metric-label">Seed:</span> <span class="metric-value">12345</span></div>
-                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">50x50</span></div>
-                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1115ms</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">5003</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">100x100</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1117ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
+                </div>
+            </div>
+
+            <div class="entry">
+                <h3>Maze + Percolation</h3>
+                <img src="maze_+_percolation.png" alt="Maze + Percolation">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">maze</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">5004</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">90x60</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">4ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
+                </div>
+            </div>
+
+            <div class="entry">
+                <h3>WFC + Simple Rooms</h3>
+                <img src="wfc_+_simple_rooms.png" alt="WFC + Simple Rooms">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">wave_function_collapse</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">5005</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">80x60</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">1635ms</span></div>
+                    <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
+                </div>
+            </div>
+
+            <div class="entry">
+                <h3>Complex Multi-Algorithm</h3>
+                <img src="complex_multi-algorithm.png" alt="Complex Multi-Algorithm">
+                <div class="metrics">
+                    <div><span class="metric-label">Algorithm:</span> <span class="metric-value">bsp</span></div>
+                    <div><span class="metric-label">Seed:</span> <span class="metric-value">5006</span></div>
+                    <div><span class="metric-label">Dimensions:</span> <span class="metric-value">150x100</span></div>
+                    <div><span class="metric-label">Generation Time:</span> <span class="metric-value">0ms</span></div>
                     <div><span class="metric-label">Connectivity:</span> <span class="metric-value">0.75</span></div>
                 </div>
             </div>

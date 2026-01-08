@@ -1,10 +1,26 @@
 pub mod bsp;
 pub mod cellular_automata;
 pub mod glass_seam_bridging;
+pub mod maze;
+pub mod simple_rooms;
+pub mod drunkard;
+pub mod voronoi;
+pub mod dla;
+pub mod percolation;
+pub mod fractal;
+pub mod wfc;
 
 pub use bsp::*;
 pub use cellular_automata::*;
 pub use glass_seam_bridging::*;
+pub use maze::*;
+pub use simple_rooms::*;
+pub use drunkard::*;
+pub use voronoi::*;
+pub use dla::*;
+pub use percolation::*;
+pub use fractal::*;
+pub use wfc::*;
 
 use crate::grid::{Grid, GridCell, CellType};
 use rand_chacha::ChaCha8Rng;
@@ -15,6 +31,14 @@ pub enum Algorithm {
     Bsp,
     CellularAutomata,
     GlassSeamBridging,
+    Maze,
+    SimpleRooms,
+    Drunkard,
+    Voronoi,
+    Dla,
+    Percolation,
+    Fractal,
+    Wfc,
 }
 
 impl Algorithm {
@@ -23,6 +47,14 @@ impl Algorithm {
             Algorithm::Bsp => generate_bsp(grid, rng),
             Algorithm::CellularAutomata => generate_cellular_automata(grid, rng),
             Algorithm::GlassSeamBridging => generate_glass_seam_bridging(grid, rng),
+            Algorithm::Maze => generate_maze(grid, rng),
+            Algorithm::SimpleRooms => generate_simple_rooms(grid, rng),
+            Algorithm::Drunkard => generate_drunkard(grid, rng),
+            Algorithm::Voronoi => generate_voronoi(grid, rng),
+            Algorithm::Dla => generate_dla(grid, rng),
+            Algorithm::Percolation => generate_percolation(grid, rng),
+            Algorithm::Fractal => generate_fractal(grid, rng),
+            Algorithm::Wfc => generate_wfc(grid, rng),
         }
     }
     
@@ -31,6 +63,14 @@ impl Algorithm {
             Algorithm::Bsp => "bsp",
             Algorithm::CellularAutomata => "cellular_automata",
             Algorithm::GlassSeamBridging => "glass_seam_bridging",
+            Algorithm::Maze => "maze",
+            Algorithm::SimpleRooms => "simple_rooms",
+            Algorithm::Drunkard => "drunkard",
+            Algorithm::Voronoi => "voronoi",
+            Algorithm::Dla => "dla",
+            Algorithm::Percolation => "percolation",
+            Algorithm::Fractal => "fractal",
+            Algorithm::Wfc => "wave_function_collapse",
         }
     }
 }
@@ -51,6 +91,15 @@ impl AlgorithmRegistry {
         registry.register("cellular_automata", Algorithm::CellularAutomata);
         registry.register("glass_seam_bridging", Algorithm::GlassSeamBridging);
         registry.register("gsb", Algorithm::GlassSeamBridging);
+        registry.register("maze", Algorithm::Maze);
+        registry.register("simple_rooms", Algorithm::SimpleRooms);
+        registry.register("drunkard", Algorithm::Drunkard);
+        registry.register("voronoi", Algorithm::Voronoi);
+        registry.register("dla", Algorithm::Dla);
+        registry.register("percolation", Algorithm::Percolation);
+        registry.register("fractal", Algorithm::Fractal);
+        registry.register("wave_function_collapse", Algorithm::Wfc);
+        registry.register("wfc", Algorithm::Wfc);
         
         registry
     }
