@@ -1,26 +1,18 @@
-# Rust
+# Build artifacts
 /target/
-**/*.rs.bk
-*.pdb
 Cargo.lock
 
-# IDE
+# Test results
+/test_results/
+
+# IDE files
 .vscode/
 .idea/
-*.swp
-*.swo
-.kiro
-*~
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Test outputs
-*.png
-test-suite/pngs/
-test-suite/text/
-test-suite/evaluations/
-
-# Previous implementation
-previous_implementation/
+# Temporary files
+*.tmp
+*.temp

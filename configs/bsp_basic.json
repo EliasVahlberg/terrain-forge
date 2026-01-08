@@ -1,0 +1,10 @@
+{
+  "name": "BSP Basic Test",
+  "seed": 1001,
+  "width": 100,
+  "height": 60,
+  "algorithm": "bsp",
+  "parameters": {},
+  "constraints": ["connectivity"],
+  "output_formats": ["html", "png"]
+}

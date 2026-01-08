@@ -1,0 +1,60 @@
+{
+  "title": "Layered Generation Examples",
+  "output_dir": "test_reports/layered",
+  "cell_size": 6,
+  "entries": [
+    {
+      "name": "BSP + Drunkard Union",
+      "seed": 12345,
+      "width": 60,
+      "height": 40,
+      "generation": {
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "bsp" }, "blend": "replace" },
+          { "algorithm": { "type": "drunkard", "floor_percent": 0.2 }, "blend": "union" }
+        ]
+      }
+    },
+    {
+      "name": "Cellular + Voronoi Intersect",
+      "seed": 42,
+      "width": 60,
+      "height": 40,
+      "generation": {
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "cellular", "initial_floor_chance": 0.5 }, "blend": "replace" },
+          { "algorithm": { "type": "voronoi", "num_points": 20, "floor_chance": 0.6 }, "blend": "intersect" }
+        ]
+      }
+    },
+    {
+      "name": "Triple Layer Dungeon",
+      "seed": 99,
+      "width": 70,
+      "height": 50,
+      "generation": {
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "bsp", "max_depth": 5 }, "blend": "replace" },
+          { "algorithm": { "type": "cellular", "iterations": 3 }, "blend": "union" },
+          { "algorithm": { "type": "drunkard", "floor_percent": 0.15 }, "blend": "union" }
+        ]
+      }
+    },
+    {
+      "name": "Voronoi Masked by Cellular",
+      "seed": 777,
+      "width": 60,
+      "height": 40,
+      "generation": {
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "voronoi", "num_points": 12, "floor_chance": 0.7 }, "blend": "replace" },
+          { "algorithm": { "type": "cellular", "initial_floor_chance": 0.4 }, "blend": "mask" }
+        ]
+      }
+    }
+  ]
+}

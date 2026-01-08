@@ -1,0 +1,84 @@
+{
+  "title": "All Algorithm Showcase",
+  "output_dir": "test_reports/all_algorithms",
+  "cell_size": 4,
+  "entries": [
+    {
+      "name": "BSP Algorithm",
+      "seed": 7001,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "bsp" } }
+    },
+    {
+      "name": "Cellular Automata",
+      "seed": 7002,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "cellular" } }
+    },
+    {
+      "name": "DLA Growth",
+      "seed": 7003,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "dla" } }
+    },
+    {
+      "name": "Drunkard Walk",
+      "seed": 7004,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "drunkard" } }
+    },
+    {
+      "name": "Fractal Generation",
+      "seed": 7005,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "fractal" } }
+    },
+    {
+      "name": "Maze Generation",
+      "seed": 7006,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "maze" } }
+    },
+    {
+      "name": "Percolation",
+      "seed": 7007,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "percolation" } }
+    },
+    {
+      "name": "Simple Rooms",
+      "seed": 7008,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "simple_rooms" } }
+    },
+    {
+      "name": "Voronoi Diagrams",
+      "seed": 7009,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "voronoi" } }
+    },
+    {
+      "name": "Wave Function Collapse",
+      "seed": 7010,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "wave_function_collapse" } }
+    },
+    {
+      "name": "Glass Seam Bridging",
+      "seed": 7011,
+      "width": 80,
+      "height": 60,
+      "generation": { "type": "single", "algorithm": { "type": "glass_seam_bridging" } }
+    }
+  ]
+}

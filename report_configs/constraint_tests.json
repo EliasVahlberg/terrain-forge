@@ -1,0 +1,91 @@
+{
+  "title": "Constraint Validation Tests",
+  "output_dir": "test_reports/constraint_tests",
+  "cell_size": 5,
+  "entries": [
+    {
+      "name": "Tactical Constraints",
+      "seed": 4001,
+      "width": 80,
+      "height": 60,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { "type": "bsp" },
+        "constraints": [
+          {
+            "type": "tactical",
+            "min_chokepoints": 3,
+            "max_open_area_ratio": 0.7
+          }
+        ]
+      }
+    },
+    {
+      "name": "Safe Zone Coverage",
+      "seed": 4002,
+      "width": 100,
+      "height": 70,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { "type": "cellular" },
+        "constraints": [
+          {
+            "type": "safe_zone",
+            "coverage_threshold": 0.3,
+            "min_safe_distance": 5
+          }
+        ]
+      }
+    },
+    {
+      "name": "Escape Route Analysis",
+      "seed": 4003,
+      "width": 90,
+      "height": 60,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { "type": "maze" },
+        "constraints": [
+          {
+            "type": "escape_route",
+            "min_exit_routes": 2,
+            "max_dead_end_depth": 8
+          }
+        ]
+      }
+    },
+    {
+      "name": "Objective Accessibility",
+      "seed": 4004,
+      "width": 120,
+      "height": 80,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { "type": "simple_rooms" },
+        "constraints": [
+          {
+            "type": "objective_accessibility",
+            "objective_count": 3,
+            "max_path_complexity": 15
+          }
+        ]
+      }
+    },
+    {
+      "name": "All Constraints Combined",
+      "seed": 4005,
+      "width": 150,
+      "height": 100,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { "type": "bsp" },
+        "constraints": [
+          { "type": "tactical", "min_chokepoints": 2 },
+          { "type": "safe_zone", "coverage_threshold": 0.25 },
+          { "type": "escape_route", "min_exit_routes": 2 },
+          { "type": "objective_accessibility", "objective_count": 2 }
+        ]
+      }
+    }
+  ]
+}

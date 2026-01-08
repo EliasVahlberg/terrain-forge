@@ -1,0 +1,21 @@
+[package]
+name = "terrain-forge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8"
+rand_chacha = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+image = "0.24"
+bracket-noise = "0.8"
+clap = "4.0"
+
+[[bin]]
+name = "tilegen-test-tool"
+path = "src/bin/tilegen-test-tool.rs"
+
+[[bin]]
+name = "constraint-test-tool"
+path = "src/bin/constraint-test-tool.rs"

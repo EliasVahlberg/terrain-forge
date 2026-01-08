@@ -1,0 +1,49 @@
+{
+  "title": "Single Algorithm Comparison",
+  "output_dir": "test_reports/single_algo",
+  "cell_size": 6,
+  "entries": [
+    {
+      "name": "BSP Default",
+      "seed": 12345,
+      "width": 60,
+      "height": 40,
+      "generation": { "type": "single", "algorithm": { "type": "bsp" } }
+    },
+    {
+      "name": "BSP Deep",
+      "seed": 42,
+      "width": 60,
+      "height": 40,
+      "generation": { "type": "single", "algorithm": { "type": "bsp", "min_room_size": 4, "max_depth": 6 } }
+    },
+    {
+      "name": "Cellular Default",
+      "seed": 12345,
+      "width": 60,
+      "height": 40,
+      "generation": { "type": "single", "algorithm": { "type": "cellular" } }
+    },
+    {
+      "name": "Cellular Dense",
+      "seed": 99,
+      "width": 60,
+      "height": 40,
+      "generation": { "type": "single", "algorithm": { "type": "cellular", "initial_floor_chance": 0.55, "iterations": 6 } }
+    },
+    {
+      "name": "Simple Rooms",
+      "seed": 12345,
+      "width": 60,
+      "height": 40,
+      "generation": { "type": "single", "algorithm": { "type": "simple_rooms" } }
+    },
+    {
+      "name": "Drunkard Walk",
+      "seed": 12345,
+      "width": 60,
+      "height": 40,
+      "generation": { "type": "single", "algorithm": { "type": "drunkard", "floor_percent": 0.35 } }
+    }
+  ]
+}

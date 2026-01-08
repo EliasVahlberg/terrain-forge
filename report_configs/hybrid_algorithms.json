@@ -1,0 +1,87 @@
+{
+  "title": "Hybrid Algorithm Combinations",
+  "output_dir": "test_reports/hybrid_algorithms",
+  "cell_size": 4,
+  "entries": [
+    {
+      "name": "BSP + Cellular Automata",
+      "seed": 5001,
+      "width": 100,
+      "height": 70,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "bsp" }, "weight": 0.6 },
+          { "algorithm": { "type": "cellular" }, "weight": 0.4 }
+        ]
+      }
+    },
+    {
+      "name": "Voronoi + Drunkard Walk",
+      "seed": 5002,
+      "width": 120,
+      "height": 80,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "voronoi", "seed_count": 12 }, "weight": 0.7 },
+          { "algorithm": { "type": "drunkard", "walker_count": 6 }, "weight": 0.3 }
+        ]
+      }
+    },
+    {
+      "name": "DLA + Fractal",
+      "seed": 5003,
+      "width": 100,
+      "height": 100,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "dla", "particle_count": 1000 }, "weight": 0.5 },
+          { "algorithm": { "type": "fractal", "fractal_type": "mandelbrot" }, "weight": 0.5 }
+        ]
+      }
+    },
+    {
+      "name": "Maze + Percolation",
+      "seed": 5004,
+      "width": 90,
+      "height": 60,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "maze", "maze_type": "recursive_backtrack" }, "weight": 0.6 },
+          { "algorithm": { "type": "percolation", "probability": 0.593 }, "weight": 0.4 }
+        ]
+      }
+    },
+    {
+      "name": "WFC + Simple Rooms",
+      "seed": 5005,
+      "width": 80,
+      "height": 60,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "wave_function_collapse", "pattern_size": 3 }, "weight": 0.5 },
+          { "algorithm": { "type": "simple_rooms", "room_count": 8 }, "weight": 0.5 }
+        ]
+      }
+    },
+    {
+      "name": "Complex Multi-Algorithm",
+      "seed": 5006,
+      "width": 150,
+      "height": 100,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "bsp" }, "weight": 0.4 },
+          { "algorithm": { "type": "cellular" }, "weight": 0.3 },
+          { "algorithm": { "type": "glass_seam_bridging" }, "weight": 0.2 },
+          { "algorithm": { "type": "drunkard" }, "weight": 0.1 }
+        ]
+      }
+    }
+  ]
+}

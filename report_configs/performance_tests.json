@@ -1,0 +1,69 @@
+{
+  "title": "Performance Benchmarks",
+  "output_dir": "test_reports/performance_tests",
+  "cell_size": 3,
+  "entries": [
+    {
+      "name": "Small Scale BSP",
+      "seed": 6001,
+      "width": 50,
+      "height": 30,
+      "generation": { "type": "single", "algorithm": { "type": "bsp" } }
+    },
+    {
+      "name": "Medium Scale BSP",
+      "seed": 6002,
+      "width": 150,
+      "height": 100,
+      "generation": { "type": "single", "algorithm": { "type": "bsp" } }
+    },
+    {
+      "name": "Large Scale BSP",
+      "seed": 6003,
+      "width": 300,
+      "height": 200,
+      "generation": { "type": "single", "algorithm": { "type": "bsp" } }
+    },
+    {
+      "name": "Cellular Automata Performance",
+      "seed": 6004,
+      "width": 200,
+      "height": 150,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { 
+          "type": "cellular",
+          "iterations": 10
+        } 
+      }
+    },
+    {
+      "name": "GSB Large Scale",
+      "seed": 6005,
+      "width": 250,
+      "height": 180,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { 
+          "type": "glass_seam_bridging",
+          "connectivity_threshold": 0.75
+        } 
+      }
+    },
+    {
+      "name": "Complex Hybrid Performance",
+      "seed": 6006,
+      "width": 200,
+      "height": 120,
+      "generation": { 
+        "type": "layered",
+        "layers": [
+          { "algorithm": { "type": "bsp" }, "weight": 0.3 },
+          { "algorithm": { "type": "cellular" }, "weight": 0.3 },
+          { "algorithm": { "type": "voronoi" }, "weight": 0.2 },
+          { "algorithm": { "type": "glass_seam_bridging" }, "weight": 0.2 }
+        ]
+      }
+    }
+  ]
+}

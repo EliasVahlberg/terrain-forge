@@ -1,0 +1,66 @@
+{
+  "config": {
+    "algorithm": null,
+    "algorithm_params": null,
+    "biome": null,
+    "constraints": null,
+    "enable_evaluation": null,
+    "height": 40,
+    "output_dir": "test_reports/single_algo",
+    "output_format": null,
+    "output_layers": null,
+    "pipeline_stages": null,
+    "poi": null,
+    "seed": 12345,
+    "terrain_type": null,
+    "test_suite": null,
+    "use_bracket_noise": null,
+    "width": 80
+  },
+  "evaluation": {
+    "connectivity": {
+      "clearings_found": 11549,
+      "connectivity_ratio": 0.26991150442477874,
+      "total_floor_tiles": 6344
+    },
+    "constraints": [
+      {
+        "actual_value": 0.26991150442477874,
+        "constraint_type": "connectivity",
+        "expected_value": 0.8,
+        "message": "Connectivity ratio 0.27 below minimum 0.80",
+        "passed": false
+      },
+      {
+        "actual_value": 0.23069090909090909,
+        "constraint_type": "floor_density",
+        "expected_value": 0.3,
+        "message": "Floor density 0.23 below minimum 0.30",
+        "passed": false
+      }
+    ],
+    "distribution": {
+      "counts": {
+        "floor": 6344,
+        "glass": 17160,
+        "other": 0,
+        "wall": 3996
+      },
+      "total": 27500
+    },
+    "quality_score": 0.2503012067578439
+  },
+  "metrics": {
+    "complexity": 0.624,
+    "height": 110,
+    "openness": 0.23069090909090909,
+    "tile_counts": {
+      "floor": 6344,
+      "glass": 17160,
+      "wall": 3996
+    },
+    "total_tiles": 27500,
+    "width": 250
+  },
+  "timestamp": "2026-01-08T20:13:13.923892302+00:00"
+}

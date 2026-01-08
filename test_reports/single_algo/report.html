@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Algorithm Comparison - TerrainForge Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #00d4ff;
+        }
+        .summary {
+            background: #16213e;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-around;
+        }
+        .summary-item { text-align: center; }
+        .summary-item .value { font-size: 2rem; color: #00d4ff; }
+        .summary-item .label { color: #888; }
+        .entries { display: grid; gap: 2rem; }
+        .entry {
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .entry-header {
+            background: #0f3460;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .entry-header h2 { font-size: 1.2rem; }
+        .algorithm {
+            background: #00d4ff;
+            color: #000;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .entry-content {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+        .image-container img {
+            border-radius: 4px;
+            max-width: 100%;
+            image-rendering: pixelated;
+        }
+        .stats table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        .stats td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #333;
+        }
+        .stats td:first-child { color: #888; }
+        .stats td:last-child { text-align: right; font-family: monospace; }
+        .config h4 { color: #888; margin-bottom: 0.5rem; }
+        .config pre {
+            background: #0a0a15;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+        @media (max-width: 768px) {
+            .entry-content { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Single Algorithm Comparison</h1>
+    <div class="summary">
+        <div class="summary-item">
+            <div class="value">6</div>
+            <div class="label">Generations</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">4</div>
+            <div class="label">Algorithms</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">2.98ms</div>
+            <div class="label">Avg Time</div>
+        </div>
+    </div>
+    <div class="entries">
+        
+        <div class="entry">
+            <div class="entry-header">
+                <h2>BSP Default</h2>
+                <span class="algorithm">BSP</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="BSP_Default_12345.png" alt="BSP Default">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>12345</td></tr>
+                        <tr><td>Size</td><td>60×40</td></tr>
+                        <tr><td>Floor Tiles</td><td>698 (29.1%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>0.33ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>min_room: 5, depth: 4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>BSP Deep</h2>
+                <span class="algorithm">BSP</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="BSP_Deep_42.png" alt="BSP Deep">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>42</td></tr>
+                        <tr><td>Size</td><td>60×40</td></tr>
+                        <tr><td>Floor Tiles</td><td>691 (28.8%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>0.16ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>min_room: 4, depth: 6</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Cellular Default</h2>
+                <span class="algorithm">Cellular</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Cellular_Default_12345.png" alt="Cellular Default">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>12345</td></tr>
+                        <tr><td>Size</td><td>60×40</td></tr>
+                        <tr><td>Floor Tiles</td><td>660 (27.5%)</td></tr>
+                        <tr><td>Regions</td><td>13</td></tr>
+                        <tr><td>Gen Time</td><td>5.39ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>floor: 45%, iter: 4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Cellular Dense</h2>
+                <span class="algorithm">Cellular</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Cellular_Dense_99.png" alt="Cellular Dense">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>99</td></tr>
+                        <tr><td>Size</td><td>60×40</td></tr>
+                        <tr><td>Floor Tiles</td><td>1459 (60.8%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>10.23ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>floor: 55%, iter: 6</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Simple Rooms</h2>
+                <span class="algorithm">SimpleRooms</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Simple_Rooms_12345.png" alt="Simple Rooms">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>12345</td></tr>
+                        <tr><td>Size</td><td>60×40</td></tr>
+                        <tr><td>Floor Tiles</td><td>562 (23.4%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>0.12ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>min: 5, max: 10, rooms: 10</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Drunkard Walk</h2>
+                <span class="algorithm">Drunkard</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Drunkard_Walk_12345.png" alt="Drunkard Walk">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>12345</td></tr>
+                        <tr><td>Size</td><td>60×40</td></tr>
+                        <tr><td>Floor Tiles</td><td>840 (35.0%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>1.65ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>floor: 35%</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

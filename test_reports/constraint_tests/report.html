@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constraint Validation Tests - TerrainForge Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #00d4ff;
+        }
+        .summary {
+            background: #16213e;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-around;
+        }
+        .summary-item { text-align: center; }
+        .summary-item .value { font-size: 2rem; color: #00d4ff; }
+        .summary-item .label { color: #888; }
+        .entries { display: grid; gap: 2rem; }
+        .entry {
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .entry-header {
+            background: #0f3460;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .entry-header h2 { font-size: 1.2rem; }
+        .algorithm {
+            background: #00d4ff;
+            color: #000;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .entry-content {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+        .image-container img {
+            border-radius: 4px;
+            max-width: 100%;
+            image-rendering: pixelated;
+        }
+        .stats table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        .stats td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #333;
+        }
+        .stats td:first-child { color: #888; }
+        .stats td:last-child { text-align: right; font-family: monospace; }
+        .config h4 { color: #888; margin-bottom: 0.5rem; }
+        .config pre {
+            background: #0a0a15;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+        @media (max-width: 768px) {
+            .entry-content { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Constraint Validation Tests</h1>
+    <div class="summary">
+        <div class="summary-item">
+            <div class="value">5</div>
+            <div class="label">Generations</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">4</div>
+            <div class="label">Algorithms</div>
+        </div>
+        <div class="summary-item">
+            <div class="value">3.56ms</div>
+            <div class="label">Avg Time</div>
+        </div>
+    </div>
+    <div class="entries">
+        
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Tactical Constraints</h2>
+                <span class="algorithm">BSP</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Tactical_Constraints_4001.png" alt="Tactical Constraints">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>4001</td></tr>
+                        <tr><td>Size</td><td>80×60</td></tr>
+                        <tr><td>Floor Tiles</td><td>1080 (22.5%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>0.20ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>min_room: 5, depth: 4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Safe Zone Coverage</h2>
+                <span class="algorithm">Cellular</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Safe_Zone_Coverage_4002.png" alt="Safe Zone Coverage">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>4002</td></tr>
+                        <tr><td>Size</td><td>100×70</td></tr>
+                        <tr><td>Floor Tiles</td><td>1730 (24.7%)</td></tr>
+                        <tr><td>Regions</td><td>43</td></tr>
+                        <tr><td>Gen Time</td><td>16.00ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>floor: 45%, iter: 4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Escape Route Analysis</h2>
+                <span class="algorithm">Maze</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Escape_Route_Analysis_4003.png" alt="Escape Route Analysis">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>4003</td></tr>
+                        <tr><td>Size</td><td>90×60</td></tr>
+                        <tr><td>Floor Tiles</td><td>2551 (47.2%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>1.34ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>corridor: 1</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>Objective Accessibility</h2>
+                <span class="algorithm">SimpleRooms</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="Objective_Accessibility_4004.png" alt="Objective Accessibility">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>4004</td></tr>
+                        <tr><td>Size</td><td>120×80</td></tr>
+                        <tr><td>Floor Tiles</td><td>764 (8.0%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>0.09ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>min: 5, max: 10, rooms: 10</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="entry">
+            <div class="entry-header">
+                <h2>All Constraints Combined</h2>
+                <span class="algorithm">BSP</span>
+            </div>
+            <div class="entry-content">
+                <div class="image-container">
+                    <img src="All_Constraints_Combined_4005.png" alt="All Constraints Combined">
+                </div>
+                <div class="stats">
+                    <table>
+                        <tr><td>Seed</td><td>4005</td></tr>
+                        <tr><td>Size</td><td>150×100</td></tr>
+                        <tr><td>Floor Tiles</td><td>2370 (15.8%)</td></tr>
+                        <tr><td>Regions</td><td>1</td></tr>
+                        <tr><td>Gen Time</td><td>0.18ms</td></tr>
+                    </table>
+                    <div class="config">
+                        <h4>Config</h4>
+                        <pre>min_room: 5, depth: 4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

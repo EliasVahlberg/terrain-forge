@@ -1,0 +1,66 @@
+{
+  "title": "Glass Seam Bridging Algorithm Tests",
+  "output_dir": "test_reports/gsb_tests",
+  "cell_size": 4,
+  "entries": [
+    {
+      "name": "GSB Basic Connectivity",
+      "seed": 3001,
+      "width": 80,
+      "height": 60,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { 
+          "type": "glass_seam_bridging",
+          "connectivity_threshold": 0.75,
+          "use_pgd": true
+        } 
+      }
+    },
+    {
+      "name": "GSB Multi-Terminal",
+      "seed": 3002,
+      "width": 100,
+      "height": 70,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { 
+          "type": "glass_seam_bridging",
+          "connectivity_threshold": 0.80,
+          "required_terminals": ["spawn", "exit"],
+          "use_frr": true
+        } 
+      }
+    },
+    {
+      "name": "GSB High Coverage",
+      "seed": 3003,
+      "width": 120,
+      "height": 80,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { 
+          "type": "glass_seam_bridging",
+          "connectivity_threshold": 0.90,
+          "use_pgd": true,
+          "pgd_skew": 3
+        } 
+      }
+    },
+    {
+      "name": "GSB Performance Test",
+      "seed": 3004,
+      "width": 200,
+      "height": 150,
+      "generation": { 
+        "type": "single", 
+        "algorithm": { 
+          "type": "glass_seam_bridging",
+          "connectivity_threshold": 0.75,
+          "use_delaunay": true,
+          "angular_sectors": 8
+        } 
+      }
+    }
+  ]
+}
