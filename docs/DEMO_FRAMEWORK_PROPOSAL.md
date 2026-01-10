@@ -1,172 +1,235 @@
-# TerrainForge Demo Framework Proposal
+# TerrainForge Demo Framework
 
 ## Overview
 
-A standalone CLI tool for visualizing, testing, and comparing procedural generation approaches. Lives in a separate `demo/` directory, uses TerrainForge as a dependency (not part of the library).
+A standalone CLI tool for visualizing and comparing procedural generation. Separate crate in `demo/`, uses TerrainForge as a dependency like any end user would.
 
 ## Goals
 
-1. **Visual indication** - Quick PNG output of any algorithm/composition
-2. **Game testing** - Test configurations for Saltglass Steppe integration
-3. **Compare approaches** - Save/load configs, generate comparison grids
+1. Visual indication of algorithms and compositions
+2. Test configurations for Saltglass Steppe
+3. Save/load and compare approaches
 
 ## Design Principles
 
-- **Detached**: Separate crate in `demo/`, depends on `terrain-forge` like any user would
-- **Mimics end-user**: If it's hard to use here, it's hard for users
-- **Minimal**: Single binary, simple JSON configs, basic PNG output
-
-## Structure
-
-```
-terrain-forge/
-├── src/           # Library (unchanged)
-├── demo/          # Demo framework (separate crate)
-│   ├── Cargo.toml
-│   ├── src/
-│   │   └── main.rs
-│   └── configs/   # Saved configurations
-└── Cargo.toml     # Workspace
-```
+- **Detached**: Separate crate, not part of library
+- **Mimics end-user**: Uses public API only
+- **Minimal**: CLI + JSON configs + PNG output
 
 ## Usage
 
 ### Quick Generation
 ```bash
-cd demo
-cargo run -- gen bsp                     # Generate with defaults
-cargo run -- gen cellular -s 42          # Custom seed
-cargo run -- gen maze -o maze.png        # Custom output
+cargo run -- gen bsp                    # Single algorithm, random seed
+cargo run -- gen cellular -s 42         # Custom seed
+cargo run -- gen bsp -o dungeon.png     # Custom output
 ```
 
-### Compositions
+### Compositions (CLI shorthand)
 ```bash
-cargo run -- gen "bsp + cellular"        # Pipeline
-cargo run -- gen "bsp | drunkard"        # Union blend
+cargo run -- gen "bsp > cellular"       # Pipeline: bsp then cellular
+cargo run -- gen "bsp | drunkard"       # Layer: union blend
+cargo run -- gen "voronoi & cellular"   # Layer: intersect blend
 ```
 
-### Save/Load Configs
+### Config Files
 ```bash
-cargo run -- save dungeon_v1             # Save current to configs/dungeon_v1.json
-cargo run -- load dungeon_v1             # Load and generate
-cargo run -- list                        # List saved configs
+cargo run -- run configs/cave.json      # Run saved config
+cargo run -- run configs/cave.json -s 99  # Override seed
+cargo run -- list                       # List saved configs
 ```
 
 ### Compare
 ```bash
-cargo run -- compare bsp cellular maze   # Side-by-side grid
-cargo run -- compare --configs a b c     # Compare saved configs
+cargo run -- compare bsp cellular maze  # Side-by-side grid
+cargo run -- compare -c cave dungeon    # Compare saved configs
 ```
 
 ## Config Format
 
-```json
-{
-  "name": "cave_system_v2",
-  "width": 80,
-  "height": 60,
-  "seed": 12345,
-  "generation": {
-    "type": "pipeline",
-    "steps": ["cellular", "erode", "connect"]
-  }
-}
-```
-
-Or simple single algorithm:
+### Simple (single algorithm)
 ```json
 {
   "name": "basic_bsp",
   "width": 80,
   "height": 60,
-  "seed": null,
-  "generation": "bsp"
+  "seed": 12345,
+  "algorithm": "bsp"
+}
+```
+
+### With Parameters
+```json
+{
+  "name": "dense_caves",
+  "width": 80,
+  "height": 60,
+  "algorithm": {
+    "type": "cellular",
+    "initial_floor_chance": 0.55,
+    "iterations": 6
+  }
+}
+```
+
+### Pipeline
+```json
+{
+  "name": "smoothed_rooms",
+  "width": 80,
+  "height": 60,
+  "pipeline": [
+    "rooms",
+    { "type": "cellular", "iterations": 2 }
+  ]
+}
+```
+
+### Layered
+```json
+{
+  "name": "connected_caves",
+  "width": 80,
+  "height": 60,
+  "layers": [
+    { "algorithm": "cellular", "blend": "replace" },
+    { "algorithm": "drunkard", "blend": "union" },
+    { "algorithm": "glass_seam", "blend": "replace" }
+  ]
+}
+```
+
+### With Effects
+```json
+{
+  "name": "eroded_dungeon",
+  "width": 80,
+  "height": 60,
+  "algorithm": "bsp",
+  "effects": ["erode", "erode", "bridge_gaps"]
+}
+```
+
+### Full Example (moderately complex)
+```json
+{
+  "name": "saltglass_overworld",
+  "width": 120,
+  "height": 80,
+  "seed": 42,
+  "layers": [
+    { "algorithm": { "type": "voronoi", "num_points": 20 }, "blend": "replace" },
+    { "algorithm": "drunkard", "blend": "union" }
+  ],
+  "effects": ["dilate", "bridge_gaps"],
+  "validate": {
+    "connectivity": 0.8,
+    "density": [0.3, 0.6]
+  }
 }
 ```
 
 ## Output
 
 ### Single Generation
-- `output.png` - Grayscale map (floor=light, wall=dark)
-- Terminal: seed used, floor %, connectivity score, generation time
+- PNG file (grayscale: floor=light, wall=dark)
+- Terminal metrics: seed, floor%, connectivity, time
 
 ### Comparison Grid
-- `compare.png` - Tiled grid with labels
-- Terminal: metrics table for each
+- Single PNG with labeled tiles
+- Metrics table in terminal
 
-## Implementation Sketch
+## Implementation
+
+```
+demo/
+├── Cargo.toml
+├── src/
+│   ├── main.rs       # CLI entry point
+│   ├── config.rs     # JSON parsing
+│   ├── generate.rs   # Generation logic
+│   ├── render.rs     # PNG output
+│   └── compare.rs    # Comparison grid
+└── configs/          # Saved configurations
+```
+
+### Config Parsing Strategy
+
+The config parser maps JSON to library calls:
 
 ```rust
-// demo/src/main.rs
-use terrain_forge::{Grid, Tile, algorithms, constraints};
-use clap::{Parser, Subcommand};
-
-#[derive(Parser)]
-struct Cli {
-    #[command(subcommand)]
-    cmd: Cmd,
-}
-
-#[derive(Subcommand)]
-enum Cmd {
-    Gen {
-        algo: String,
-        #[arg(short, long)]
-        seed: Option<u64>,
-        #[arg(short, long, default_value = "output.png")]
-        output: String,
-    },
-    Save { name: String },
-    Load { name: String },
-    List,
-    Compare { items: Vec<String> },
-}
-
-fn main() {
-    let cli = Cli::parse();
-    match cli.cmd {
-        Cmd::Gen { algo, seed, output } => {
-            let seed = seed.unwrap_or_else(random_seed);
-            let mut grid = Grid::new(80, 60);
-            
-            // Parse algo string (handles "bsp + cellular" etc)
-            generate(&mut grid, &algo, seed);
-            
-            save_png(&grid, &output);
-            print_metrics(&grid, seed);
+// config.rs
+fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
+    match spec {
+        AlgorithmSpec::Name(name) => algorithms::get(name).unwrap(),
+        AlgorithmSpec::WithParams { type_name, params } => {
+            match type_name.as_str() {
+                "cellular" => Box::new(CellularAutomata::new(CellularConfig {
+                    initial_floor_chance: params.get("initial_floor_chance")
+                        .and_then(|v| v.as_f64()).unwrap_or(0.45),
+                    iterations: params.get("iterations")
+                        .and_then(|v| v.as_u64()).unwrap_or(4) as usize,
+                    ..Default::default()
+                })),
+                // ... other algorithms
+            }
         }
-        // ... other commands
+    }
+}
+
+fn build_generator(config: &Config) -> Box<dyn Algorithm<Tile>> {
+    if let Some(pipeline) = &config.pipeline {
+        let mut p = Pipeline::new();
+        for step in pipeline {
+            p = p.add(build_algorithm(step));
+        }
+        Box::new(p)
+    } else if let Some(layers) = &config.layers {
+        let mut gen = LayeredGenerator::new();
+        for layer in layers {
+            let algo = build_algorithm(&layer.algorithm);
+            gen = gen.add(algo, parse_blend(&layer.blend));
+        }
+        Box::new(gen)
+    } else {
+        build_algorithm(&config.algorithm)
     }
 }
 ```
 
-## Why This Approach
+### Effects Application
 
-1. **Separate crate** = No library bloat, clear dependency direction
-2. **CLI-first** = Fast iteration, scriptable, no GUI complexity
-3. **JSON configs** = Human-readable, version-controllable, shareable
-4. **Composition strings** = Quick experimentation without editing files
-5. **Comparison output** = Visual A/B testing in one image
+```rust
+fn apply_effects(grid: &mut Grid<Tile>, effects: &[String]) {
+    for effect in effects {
+        match effect.as_str() {
+            "erode" => effects::erode(grid),
+            "dilate" => effects::dilate(grid),
+            "bridge_gaps" => effects::bridge_gaps(grid, 5),
+            // ... other effects
+        }
+    }
+}
+```
 
-## What It Tests
+## Complexity Boundaries
 
-- Algorithm registry API (`algorithms::get`)
-- Grid creation and manipulation
+**Supported (moderately complex):**
+- Single algorithms with parameters
+- Pipelines (sequential)
+- Layers with blend modes
+- Post-processing effects
 - Constraint validation
-- Composition (pipeline, blending)
-- Real-world usage patterns
 
-## Not Included (Intentionally)
+**Not Supported (keeps it simple):**
+- Nested pipelines within layers
+- Conditional logic
+- Custom cell types
+- Runtime algorithm parameters (use saved configs)
 
-- GUI/TUI - Adds complexity, PNG output is sufficient
-- Live preview - Out of scope, use external image viewer
-- Algorithm parameters - Use saved configs for complex setups
-- Multiple cell types - Focus on `Tile` for simplicity
+## Why This Works
 
-## Next Steps
-
-1. Create `demo/` crate with workspace setup
-2. Implement `gen` command with basic algo support
-3. Add composition string parsing
-4. Implement save/load
-5. Add compare command
+1. **JSON mirrors API**: Config structure matches `Pipeline`, `LayeredGenerator`, effects
+2. **Defaults everywhere**: Omit parameters to use library defaults
+3. **Progressive complexity**: Start simple, add layers/effects as needed
+4. **No new abstractions**: Just serialization of existing library concepts

@@ -10,3 +10,13 @@ pub trait Algorithm<C: Cell = crate::Tile> {
     /// Algorithm name for identification
     fn name(&self) -> &'static str;
 }
+
+impl<C: Cell> Algorithm<C> for Box<dyn Algorithm<C>> {
+    fn generate(&self, grid: &mut Grid<C>, seed: u64) {
+        (**self).generate(grid, seed)
+    }
+    
+    fn name(&self) -> &'static str {
+        (**self).name()
+    }
+}

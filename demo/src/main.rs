@@ -1,0 +1,193 @@
+//! TerrainForge Demo CLI
+
+mod config;
+mod render;
+
+use clap::{Parser, Subcommand};
+use terrain_forge::{Grid, Tile, algorithms, constraints};
+use std::time::Instant;
+
+#[derive(Parser)]
+#[command(name = "terrain-forge-demo")]
+#[command(about = "Visualize and compare procedural generation")]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Generate from algorithm name or shorthand
+    Gen {
+        /// Algorithm name or composition (e.g., "bsp", "bsp > cellular", "bsp | drunkard")
+        spec: String,
+        #[arg(short, long)]
+        seed: Option<u64>,
+        #[arg(short, long, default_value = "output.png")]
+        output: String,
+        #[arg(short, long, default_value = "80")]
+        width: usize,
+        #[arg(short = 'H', long, default_value = "60")]
+        height: usize,
+        #[arg(short, long)]
+        text: bool,
+    },
+    /// Run a saved config file
+    Run {
+        /// Path to config JSON
+        config: String,
+        #[arg(short, long)]
+        seed: Option<u64>,
+        #[arg(short, long, default_value = "output.png")]
+        output: String,
+        #[arg(short, long)]
+        text: bool,
+    },
+    /// Compare multiple algorithms or configs
+    Compare {
+        /// Algorithm names or config paths
+        items: Vec<String>,
+        #[arg(short, long)]
+        seed: Option<u64>,
+        #[arg(short, long, default_value = "compare.png")]
+        output: String,
+        #[arg(short, long)]
+        configs: bool,
+    },
+    /// List available algorithms
+    List,
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let cli = Cli::parse();
+    
+    match cli.command {
+        Command::Gen { spec, seed, output, width, height, text } => {
+            let seed = seed.unwrap_or_else(random_seed);
+            let mut cfg = config::parse_shorthand(&spec);
+            cfg.width = width;
+            cfg.height = height;
+            cfg.seed = Some(seed);
+            
+            let (grid, elapsed) = generate(&cfg, seed);
+            
+            if text {
+                let txt_path = output.replace(".png", ".txt");
+                render::save_text(&render::render_text(&grid), &txt_path)?;
+                println!("Saved to {}", txt_path);
+            } else {
+                render::save_png(&render::render_grid(&grid), &output)?;
+                println!("Saved to {}", output);
+            }
+            print_metrics(&spec, &grid, seed, elapsed);
+        }
+        
+        Command::Run { config: path, seed, output, text } => {
+            let cfg = config::Config::load(&path)?;
+            let seed = seed.or(cfg.seed).unwrap_or_else(random_seed);
+            
+            let (grid, elapsed) = generate(&cfg, seed);
+            
+            // Validation
+            if let Some(validate) = &cfg.validate {
+                let conn = constraints::validate_connectivity(&grid);
+                if let Some(min_conn) = validate.connectivity {
+                    if conn < min_conn {
+                        eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
+                    }
+                }
+                if let Some((min, max)) = validate.density {
+                    if !constraints::validate_density(&grid, min, max) {
+                        eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
+                    }
+                }
+            }
+            
+            if text {
+                let txt_path = output.replace(".png", ".txt");
+                render::save_text(&render::render_text(&grid), &txt_path)?;
+                println!("Saved to {}", txt_path);
+            } else {
+                render::save_png(&render::render_grid(&grid), &output)?;
+                println!("Saved to {}", output);
+            }
+            print_metrics(cfg.name.as_deref().unwrap_or(&path), &grid, seed, elapsed);
+        }
+        
+        Command::Compare { items, seed, output, configs } => {
+            let seed = seed.unwrap_or_else(random_seed);
+            let mut grids: Vec<(String, Grid<Tile>)> = Vec::new();
+            
+            for item in &items {
+                let (name, grid) = if configs || item.ends_with(".json") {
+                    let cfg = config::Config::load(item)?;
+                    let name = cfg.name.clone().unwrap_or_else(|| item.clone());
+                    let (grid, _) = generate(&cfg, seed);
+                    (name, grid)
+                } else {
+                    let cfg = config::parse_shorthand(item);
+                    let (grid, _) = generate(&cfg, seed);
+                    (item.clone(), grid)
+                };
+                grids.push((name, grid));
+            }
+            
+            let refs: Vec<(&str, &Grid<Tile>)> = grids.iter()
+                .map(|(n, g)| (n.as_str(), g))
+                .collect();
+            
+            let cols = (grids.len() as f64).sqrt().ceil() as usize;
+            render::save_png(&render::render_comparison(&refs, cols), &output)?;
+            
+            println!("Comparison (seed: {}):", seed);
+            println!("{:<20} {:>8} {:>12}", "Name", "Floors", "Connectivity");
+            for (name, grid) in &grids {
+                let floors = grid.count(|t| t.is_floor());
+                let conn = constraints::validate_connectivity(grid);
+                println!("{:<20} {:>8} {:>12.2}", name, floors, conn);
+            }
+            println!("Saved to {}", output);
+        }
+        
+        Command::List => {
+            println!("Available algorithms:");
+            for name in algorithms::list() {
+                println!("  {}", name);
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+fn generate(cfg: &config::Config, seed: u64) -> (Grid<Tile>, std::time::Duration) {
+    let mut grid = Grid::new(cfg.width, cfg.height);
+    let generator = config::build_generator(cfg);
+    
+    let start = Instant::now();
+    generator.generate(&mut grid, seed);
+    config::apply_effects(&mut grid, &cfg.effects);
+    let elapsed = start.elapsed();
+    
+    (grid, elapsed)
+}
+
+fn print_metrics(name: &str, grid: &Grid<Tile>, seed: u64, elapsed: std::time::Duration) {
+    let total = grid.width() * grid.height();
+    let floors = grid.count(|t| t.is_floor());
+    let conn = constraints::validate_connectivity(grid);
+    
+    println!("{}", name);
+    println!("  Seed: {}", seed);
+    println!("  Size: {}x{}", grid.width(), grid.height());
+    println!("  Floors: {} ({:.1}%)", floors, floors as f64 / total as f64 * 100.0);
+    println!("  Connectivity: {:.2}", conn);
+    println!("  Time: {:?}", elapsed);
+}
+
+fn random_seed() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos() as u64
+}

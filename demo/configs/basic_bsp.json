@@ -1,0 +1,7 @@
+{
+  "name": "basic_bsp",
+  "width": 80,
+  "height": 60,
+  "seed": 12345,
+  "algorithm": "bsp"
+}

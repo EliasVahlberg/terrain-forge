@@ -1,0 +1,15 @@
+{
+  "name": "saltglass_overworld",
+  "width": 120,
+  "height": 80,
+  "seed": 42,
+  "layers": [
+    { "algorithm": { "type": "voronoi", "num_points": 25 }, "blend": "replace" },
+    { "algorithm": { "type": "drunkard", "floor_percent": 0.3 }, "blend": "union" }
+  ],
+  "effects": ["dilate", "bridge_gaps"],
+  "validate": {
+    "connectivity": 0.8,
+    "density": [0.3, 0.6]
+  }
+}
