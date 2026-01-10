@@ -46,7 +46,7 @@ pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
         "percolation" => Some(Box::new(Percolation::default())),
         "diamond_square" => Some(Box::new(DiamondSquare::default())),
         "agent" => Some(Box::new(AgentBased::default())),
-        "fractal" => Some(Box::new(Fractal::default())),
+        "fractal" => Some(Box::new(Fractal)),
         "glass_seam" | "gsb" => Some(Box::new(GlassSeam::default())),
         _ => None,
     }

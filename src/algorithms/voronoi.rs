@@ -40,8 +40,8 @@ impl Algorithm<Tile> for Voronoi {
                 let mut min_dist = usize::MAX;
                 let mut closest = 0;
                 for (i, &(px, py)) in points.iter().enumerate() {
-                    let dist = (x as i32 - px as i32).abs() as usize 
-                             + (y as i32 - py as i32).abs() as usize;
+                    let dist = (x as i32 - px as i32).unsigned_abs() as usize 
+                             + (y as i32 - py as i32).unsigned_abs() as usize;
                     if dist < min_dist {
                         min_dist = dist;
                         closest = i;

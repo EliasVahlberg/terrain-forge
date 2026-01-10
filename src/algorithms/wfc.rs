@@ -30,13 +30,15 @@ impl Algorithm<Tile> for Wfc {
         let mut possibilities: Vec<Vec<[bool; 2]>> = vec![vec![[true, true]; w]; h];
 
         // Border must be walls
-        for x in 0..w {
-            possibilities[0][x] = [true, false];
-            possibilities[h - 1][x] = [true, false];
+        for cell in possibilities[0].iter_mut() {
+            *cell = [true, false];
         }
-        for y in 0..h {
-            possibilities[y][0] = [true, false];
-            possibilities[y][w - 1] = [true, false];
+        for cell in possibilities[h - 1].iter_mut() {
+            *cell = [true, false];
+        }
+        for row in possibilities.iter_mut() {
+            row[0] = [true, false];
+            row[w - 1] = [true, false];
         }
 
         // Collapse cells
@@ -45,9 +47,9 @@ impl Algorithm<Tile> for Wfc {
             let mut min_entropy = 3;
             let mut candidates = Vec::new();
 
-            for y in 0..h {
-                for x in 0..w {
-                    let entropy = possibilities[y][x].iter().filter(|&&b| b).count();
+            for (y, row) in possibilities.iter().enumerate() {
+                for (x, cell) in row.iter().enumerate() {
+                    let entropy = cell.iter().filter(|&&b| b).count();
                     if entropy > 1 {
                         if entropy < min_entropy {
                             min_entropy = entropy;
@@ -66,14 +68,13 @@ impl Algorithm<Tile> for Wfc {
             let choose_floor = rng.chance(self.config.floor_weight) && possibilities[cy][cx][1];
             possibilities[cy][cx] = if choose_floor { [false, true] } else { [true, false] };
 
-            // Simple propagation
-            propagate(&mut possibilities, w, h);
+            propagate(&mut possibilities);
         }
 
         // Apply to grid
-        for y in 0..h {
-            for x in 0..w {
-                if possibilities[y][x][1] {
+        for (y, row) in possibilities.iter().enumerate() {
+            for (x, cell) in row.iter().enumerate() {
+                if cell[1] {
                     grid.set(x as i32, y as i32, Tile::Floor);
                 }
             }
@@ -83,17 +84,14 @@ impl Algorithm<Tile> for Wfc {
     fn name(&self) -> &'static str { "WFC" }
 }
 
-fn propagate(poss: &mut Vec<Vec<[bool; 2]>>, w: usize, h: usize) {
+fn propagate(poss: &mut [Vec<[bool; 2]>]) {
     let mut changed = true;
     while changed {
         changed = false;
-        for y in 1..h - 1 {
-            for x in 1..w - 1 {
-                if poss[y][x].iter().filter(|&&b| b).count() != 1 { continue; }
-                
-                // If this is definitely floor, neighbors can be floor
-                // If this is definitely wall, no constraint
-                // This is a simplified version
+        for row in poss.iter_mut() {
+            for cell in row.iter_mut() {
+                if cell.iter().filter(|&&b| b).count() != 1 { continue; }
+                // Simplified propagation - no actual constraints applied
             }
         }
     }

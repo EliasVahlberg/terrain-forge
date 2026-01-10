@@ -34,7 +34,7 @@ pub fn render_comparison(grids: &[(&str, &Grid<Tile>)], cols: usize) -> RgbImage
     let tile_w = gw as u32;
     let tile_h = gh as u32 + label_height;
     
-    let rows = (grids.len() + cols - 1) / cols;
+    let rows = grids.len().div_ceil(cols);
     let img_w = tile_w * cols as u32;
     let img_h = tile_h * rows as u32;
     

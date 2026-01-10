@@ -84,7 +84,7 @@ fn identify_regions(grid: &Grid<Tile>) -> Vec<Vec<(usize, usize)>> {
     regions
 }
 
-fn flood_fill(grid: &Grid<Tile>, sx: usize, sy: usize, visited: &mut Vec<Vec<bool>>) -> Vec<(usize, usize)> {
+fn flood_fill(grid: &Grid<Tile>, sx: usize, sy: usize, visited: &mut [Vec<bool>]) -> Vec<(usize, usize)> {
     let (w, h) = (grid.width(), grid.height());
     let mut region = Vec::new();
     let mut queue = VecDeque::new();

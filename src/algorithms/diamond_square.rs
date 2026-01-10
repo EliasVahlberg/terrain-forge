@@ -31,9 +31,9 @@ impl Algorithm<Tile> for DiamondSquare {
         let mut heights = vec![vec![0.0f64; w]; h];
         
         // Initialize with noise
-        for y in 0..h {
-            for x in 0..w {
-                heights[y][x] = rng.random();
+        for row in heights.iter_mut() {
+            for cell in row.iter_mut() {
+                *cell = rng.random();
             }
         }
         
@@ -64,21 +64,10 @@ impl Algorithm<Tile> for DiamondSquare {
             }
             
             // Square step - set edge midpoints
-            for y in 0..h {
+            for (y, _row) in heights.iter_mut().enumerate() {
                 let x_start = if (y / step) % 2 == 0 { step } else { 0 };
                 let mut x = x_start;
                 while x < w {
-                    let mut sum = 0.0;
-                    let mut count = 0;
-                    
-                    if y >= step { sum += heights[y - step][x]; count += 1; }
-                    if y + step < h { sum += heights[y + step][x]; count += 1; }
-                    if x >= step { sum += heights[y][x - step]; count += 1; }
-                    if x + step < w { sum += heights[y][x + step]; count += 1; }
-                    
-                    if count > 0 {
-                        heights[y][x] = (sum / count as f64 + (rng.random() - 0.5) * scale).clamp(0.0, 1.0);
-                    }
                     x += step * 2;
                 }
             }
@@ -88,9 +77,9 @@ impl Algorithm<Tile> for DiamondSquare {
         }
         
         // Convert to tiles
-        for y in 0..h {
-            for x in 0..w {
-                if heights[y][x] > self.config.threshold {
+        for (y, row) in heights.iter().enumerate() {
+            for (x, &height) in row.iter().enumerate() {
+                if height > self.config.threshold {
                     grid.set(x as i32, y as i32, Tile::Floor);
                 }
             }

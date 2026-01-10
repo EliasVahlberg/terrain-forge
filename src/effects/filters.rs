@@ -7,8 +7,8 @@ pub fn gaussian_blur(grid: &mut Grid<Tile>, radius: usize) {
     let mut counts = vec![vec![0f64; w]; h];
     let kernel_size = (2 * radius + 1) * (2 * radius + 1);
 
-    for y in 0..h {
-        for x in 0..w {
+    for (y, row) in counts.iter_mut().enumerate() {
+        for (x, cell) in row.iter_mut().enumerate() {
             let mut sum = 0.0;
             for dy in 0..=2 * radius {
                 for dx in 0..=2 * radius {
@@ -17,13 +17,13 @@ pub fn gaussian_blur(grid: &mut Grid<Tile>, radius: usize) {
                     if nx < w && ny < h && grid[(nx, ny)].is_floor() { sum += 1.0; }
                 }
             }
-            counts[y][x] = sum / kernel_size as f64;
+            *cell = sum / kernel_size as f64;
         }
     }
 
-    for y in 1..h - 1 {
-        for x in 1..w - 1 {
-            grid.set(x as i32, y as i32, if counts[y][x] >= 0.5 { Tile::Floor } else { Tile::Wall });
+    for (y, row) in counts.iter().enumerate().skip(1).take(h - 2) {
+        for (x, &count) in row.iter().enumerate().skip(1).take(w - 2) {
+            grid.set(x as i32, y as i32, if count >= 0.5 { Tile::Floor } else { Tile::Wall });
         }
     }
 }

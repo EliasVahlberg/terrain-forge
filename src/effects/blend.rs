@@ -6,9 +6,9 @@ pub fn threshold(values: &[Vec<f64>], grid: &mut Grid<Tile>, thresh: f64) {
     let h = values.len().min(grid.height());
     let w = values.first().map(|r| r.len()).unwrap_or(0).min(grid.width());
 
-    for y in 0..h {
-        for x in 0..w {
-            grid.set(x as i32, y as i32, if values[y][x] > thresh { Tile::Floor } else { Tile::Wall });
+    for (y, row) in values.iter().enumerate().take(h) {
+        for (x, &val) in row.iter().enumerate().take(w) {
+            grid.set(x as i32, y as i32, if val > thresh { Tile::Floor } else { Tile::Wall });
         }
     }
 }

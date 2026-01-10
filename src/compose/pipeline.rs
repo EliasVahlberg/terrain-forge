@@ -9,9 +9,15 @@ pub struct Pipeline<C: Cell> {
 impl<C: Cell> Pipeline<C> {
     pub fn new() -> Self { Self { steps: Vec::new() } }
 
-    pub fn add<A: Algorithm<C> + 'static>(mut self, algorithm: A) -> Self {
+    pub fn then<A: Algorithm<C> + 'static>(mut self, algorithm: A) -> Self {
         self.steps.push(Box::new(algorithm));
         self
+    }
+
+    /// Alias for `then` - adds an algorithm to the pipeline
+    #[allow(clippy::should_implement_trait)]
+    pub fn add<A: Algorithm<C> + 'static>(self, algorithm: A) -> Self {
+        self.then(algorithm)
     }
 
     pub fn execute(&self, grid: &mut Grid<C>, seed: u64) {

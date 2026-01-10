@@ -2,6 +2,14 @@
 name = "terrain-forge"
 version = "0.1.0"
 edition = "2021"
+authors = ["Elias Vahlberg <elias.vahlberg.2@gmail.com>"]
+license = "MIT"
+description = "A modular procedural generation engine for terrain, dungeons, and maps"
+repository = "https://github.com/EliasVahlberg/terrain-forge"
+documentation = "https://docs.rs/terrain-forge"
+readme = "README.md"
+keywords = ["procedural-generation", "terrain", "dungeon", "roguelike", "gamedev"]
+categories = ["game-development", "algorithms"]
 
 [workspace]
 members = [".", "demo"]
