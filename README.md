@@ -130,16 +130,28 @@ let grid = Grid::<MyCell>::new(50, 50);
 
 ## CLI Tool
 
-```bash
-# Generate and visualize a map
-cargo run --bin tilegen-test-tool -- -a bsp -s 12345 -o output.png
+The demo framework provides visualization and testing:
 
-# Options
-#   -a, --algorithm  Algorithm name (default: bsp)
-#   -s, --seed       RNG seed (default: 12345)
-#   -w, --width      Grid width (default: 80)
-#   -h, --height     Grid height (default: 60)
-#   -o, --output     Output PNG path (default: output.png)
+```bash
+cd demo
+
+# Generate single algorithm
+cargo run -- gen bsp -s 12345 -o output.png
+
+# Pipeline composition
+cargo run -- gen "bsp > cellular" -s 42
+
+# Layer composition  
+cargo run -- gen "bsp | drunkard" -s 99
+
+# Run config file
+cargo run -- run configs/saltglass_overworld.json
+
+# Compare algorithms
+cargo run -- compare bsp cellular maze -s 12345
+
+# List available algorithms
+cargo run -- list
 ```
 
 ## Documentation
