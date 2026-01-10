@@ -1,63 +1,118 @@
-use serde::{Deserialize, Serialize};
+//! Core grid and cell types for terrain generation
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum CellType {
+use std::ops::{Index, IndexMut};
+
+/// Trait for grid cells
+pub trait Cell: Clone + Default {
+    fn is_passable(&self) -> bool;
+}
+
+/// Basic tile type for dungeon/terrain generation
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Tile {
+    #[default]
     Wall,
     Floor,
-    Glass,
 }
 
-impl Default for CellType {
-    fn default() -> Self {
-        CellType::Wall
-    }
+impl Tile {
+    pub fn is_wall(&self) -> bool { matches!(self, Tile::Wall) }
+    pub fn is_floor(&self) -> bool { matches!(self, Tile::Floor) }
 }
 
-pub trait GridCell: Clone + Default + PartialEq {
-    type CellType;
-    fn cell_type(&self) -> Self::CellType;
-    fn set_cell_type(&mut self, cell_type: Self::CellType);
+impl Cell for Tile {
+    fn is_passable(&self) -> bool { self.is_floor() }
 }
 
-impl GridCell for CellType {
-    type CellType = CellType;
-    
-    fn cell_type(&self) -> Self::CellType {
-        self.clone()
-    }
-    
-    fn set_cell_type(&mut self, cell_type: Self::CellType) {
-        *self = cell_type;
-    }
-}
-
+/// 2D grid of cells
 #[derive(Debug, Clone)]
-pub struct Grid<T: GridCell> {
-    pub width: usize,
-    pub height: usize,
-    pub cells: Vec<T>,
+pub struct Grid<C: Cell = Tile> {
+    width: usize,
+    height: usize,
+    cells: Vec<C>,
 }
 
-impl<T: GridCell> Grid<T> {
+impl<C: Cell> Grid<C> {
     pub fn new(width: usize, height: usize) -> Self {
         Self {
             width,
             height,
-            cells: vec![T::default(); width * height],
+            cells: vec![C::default(); width * height],
         }
     }
-    
-    pub fn get(&self, x: usize, y: usize) -> Option<&T> {
-        if x < self.width && y < self.height {
-            self.cells.get(y * self.width + x)
+
+    pub fn width(&self) -> usize { self.width }
+    pub fn height(&self) -> usize { self.height }
+
+    pub fn in_bounds(&self, x: i32, y: i32) -> bool {
+        x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height
+    }
+
+    pub fn get(&self, x: i32, y: i32) -> Option<&C> {
+        if self.in_bounds(x, y) {
+            Some(&self.cells[y as usize * self.width + x as usize])
         } else {
             None
         }
     }
-    
-    pub fn set(&mut self, x: usize, y: usize, cell: T) {
-        if x < self.width && y < self.height {
-            self.cells[y * self.width + x] = cell;
+
+    pub fn get_mut(&mut self, x: i32, y: i32) -> Option<&mut C> {
+        if self.in_bounds(x, y) {
+            Some(&mut self.cells[y as usize * self.width + x as usize])
+        } else {
+            None
         }
     }
+
+    pub fn set(&mut self, x: i32, y: i32, cell: C) -> bool {
+        if self.in_bounds(x, y) {
+            self.cells[y as usize * self.width + x as usize] = cell;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn fill(&mut self, cell: C) {
+        self.cells.fill(cell);
+    }
+
+    pub fn fill_rect(&mut self, x: i32, y: i32, w: usize, h: usize, cell: C) {
+        for dy in 0..h {
+            for dx in 0..w {
+                self.set(x + dx as i32, y + dy as i32, cell.clone());
+            }
+        }
+    }
+
+    pub fn count<F: Fn(&C) -> bool>(&self, predicate: F) -> usize {
+        self.cells.iter().filter(|c| predicate(c)).count()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (usize, usize, &C)> {
+        self.cells.iter().enumerate().map(move |(i, c)| {
+            (i % self.width, i / self.width, c)
+        })
+    }
 }
+
+impl<C: Cell> Index<(usize, usize)> for Grid<C> {
+    type Output = C;
+    fn index(&self, (x, y): (usize, usize)) -> &Self::Output {
+        &self.cells[y * self.width + x]
+    }
+}
+
+impl<C: Cell> IndexMut<(usize, usize)> for Grid<C> {
+    fn index_mut(&mut self, (x, y): (usize, usize)) -> &mut Self::Output {
+        &mut self.cells[y * self.width + x]
+    }
+}
+
+impl<C: Cell + PartialEq> PartialEq for Grid<C> {
+    fn eq(&self, other: &Self) -> bool {
+        self.width == other.width && self.height == other.height && self.cells == other.cells
+    }
+}
+
+impl<C: Cell + Eq> Eq for Grid<C> {}

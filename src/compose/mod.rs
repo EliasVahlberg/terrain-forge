@@ -4,4 +4,4 @@ mod pipeline;
 mod layer;
 
 pub use pipeline::Pipeline;
-pub use layer::{Layer, BlendMode, LayeredGenerator};
+pub use layer::{LayeredGenerator, BlendMode};

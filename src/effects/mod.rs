@@ -13,5 +13,5 @@ pub use spatial::{distance_transform, dijkstra_map};
 pub use filters::{gaussian_blur, median_filter};
 pub use warp::{edge_detect, domain_warp};
 pub use blend::{threshold, gradient_blend, radial_blend};
-pub use transform::{mirror, rotate, scatter, poisson_scatter};
+pub use transform::{mirror, rotate, scatter};
 pub use connectivity::{bridge_gaps, remove_dead_ends, find_chokepoints};

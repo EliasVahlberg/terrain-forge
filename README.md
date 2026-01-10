@@ -1,28 +1,32 @@
 # TerrainForge
 
-A modular procedural generation engine for creating terrain, dungeons, and maps in Rust.
+A modular procedural generation engine for terrain, dungeons, and maps in Rust.
 
 ## Features
 
-- **8 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Simple Rooms, Voronoi, Wave Function Collapse
-- **Noise Generation**: Perlin, Value noise with FBM and composable modifiers
-- **Composition System**: Pipeline chaining and layered generation with blend modes
+- **13 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Rooms, Voronoi, WFC, Percolation, Diamond Square, Fractal, Agent-based, Glass Seam
+- **Noise Generation**: Perlin, Simplex, Value, Worley with FBM, Ridged, and modifiers
+- **Effects**: Morphology, spatial analysis, filters, connectivity
+- **Composition**: Pipeline chaining and layered generation
 - **Deterministic**: Seeded RNG for reproducible results
 - **Generic**: Works with custom cell types via traits
 
 ## Quick Start
 
 ```rust
-use terrain_forge::{Grid, TileCell, Algorithm};
-use terrain_forge::structures::SimpleRooms;
+use terrain_forge::{Grid, Tile, algorithms};
 
-let mut grid: Grid<TileCell> = Grid::new(50, 50);
-SimpleRooms::default().generate(&mut grid, 12345);
+fn main() {
+    let mut grid = Grid::new(80, 60);
+    
+    let algo = algorithms::get("bsp").unwrap();
+    algo.generate(&mut grid, 12345);
+    
+    println!("Generated {} floor tiles", grid.count(|t| t.is_floor()));
+}
 ```
 
 ## Installation
-
-Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
@@ -31,112 +35,88 @@ terrain-forge = "0.1"
 
 ## Algorithms
 
-### Structure Generators
-
-| Algorithm | Description | Best For |
-|-----------|-------------|----------|
-| `SimpleRooms` | Random room placement with corridors | Traditional dungeons |
-| `Bsp` | Binary Space Partitioning | Structured room layouts |
-| `CellularAutomata` | Conway-style evolution | Organic caves |
-| `DrunkardWalk` | Random walk carving | Winding tunnels |
-| `Maze` | Recursive backtracker | Perfect mazes |
-| `Wfc` | Wave Function Collapse | Pattern-based generation |
-| `Voronoi` | Nearest-point regions | Territory division |
-| `Dla` | Diffusion-Limited Aggregation | Organic growth patterns |
-
-### Noise Generators
-
-| Generator | Description |
+| Algorithm | Description |
 |-----------|-------------|
-| `Perlin` | Classic gradient noise |
-| `Value` | Interpolated random values |
-| `Fbm` | Fractal Brownian Motion layering |
+| `bsp` | Binary Space Partitioning - structured rooms |
+| `cellular` | Cellular Automata - organic caves |
+| `drunkard` | Drunkard's Walk - winding corridors |
+| `maze` | Perfect maze generation |
+| `rooms` | Simple rectangular rooms |
+| `voronoi` | Voronoi-based regions |
+| `dla` | Diffusion-Limited Aggregation |
+| `wfc` | Wave Function Collapse |
+| `percolation` | Connected cluster generation |
+| `diamond_square` | Heightmap terrain |
+| `fractal` | Fractal terrain |
+| `agent` | Agent-based carving |
+| `glass_seam` | Connects disconnected regions |
 
-## Usage Examples
+## Usage
 
-### Basic Dungeon
+### Registry API
 
 ```rust
-use terrain_forge::{Grid, TileCell, Algorithm};
-use terrain_forge::structures::Bsp;
+use terrain_forge::{Grid, algorithms};
 
-let mut grid: Grid<TileCell> = Grid::new(80, 50);
-Bsp::default().generate(&mut grid, 42);
+let mut grid = Grid::new(80, 60);
+
+// Get by name
+let algo = algorithms::get("cellular").unwrap();
+algo.generate(&mut grid, 42);
+
+// List all
+for name in algorithms::list() {
+    println!("{}", name);
+}
 ```
 
-### Cave System
+### Direct Instantiation
 
 ```rust
-use terrain_forge::{Grid, TileCell, Algorithm};
-use terrain_forge::structures::{CellularAutomata, CellularConfig};
+use terrain_forge::{Grid, Algorithm};
+use terrain_forge::algorithms::{Bsp, BspConfig};
 
-let config = CellularConfig {
-    initial_floor_chance: 0.45,
-    iterations: 5,
-    birth_limit: 5,
-    death_limit: 4,
+let config = BspConfig {
+    min_room_size: 6,
+    max_room_size: 15,
+    min_depth: 3,
+    max_depth: 5,
 };
 
-let mut grid: Grid<TileCell> = Grid::new(60, 60);
-CellularAutomata::new(config).generate(&mut grid, 12345);
+let mut grid = Grid::new(80, 60);
+Bsp::new(config).generate(&mut grid, 12345);
 ```
 
-### Pipeline Composition
+### Noise
 
 ```rust
-use terrain_forge::{Grid, TileCell, Algorithm};
-use terrain_forge::structures::{SimpleRooms, CellularAutomata};
-use terrain_forge::compose::Pipeline;
+use terrain_forge::noise::{Perlin, Fbm};
 
-let pipeline = Pipeline::new()
-    .add(SimpleRooms::default())
-    .add(CellularAutomata::default());
+let noise = Perlin::new(42);
+let value = noise.get(10.5, 20.3);  // -1.0 to 1.0
 
-let mut grid: Grid<TileCell> = Grid::new(50, 50);
-pipeline.generate(&mut grid, 99);
+let fbm = Fbm::new(noise, 4, 2.0, 0.5);
+let layered = fbm.get(10.5, 20.3);
 ```
 
-### Layered Generation
+### Constraints
 
 ```rust
-use terrain_forge::{Grid, TileCell, Algorithm};
-use terrain_forge::structures::{Bsp, DrunkardWalk};
-use terrain_forge::compose::{LayeredGenerator, BlendMode};
+use terrain_forge::constraints;
 
-let generator = LayeredGenerator::new()
-    .base(Bsp::default())
-    .union(DrunkardWalk::default());
-
-let mut grid: Grid<TileCell> = Grid::new(50, 50);
-generator.generate(&mut grid, 42);
-```
-
-### Noise-Based Terrain
-
-```rust
-use terrain_forge::noise::{Perlin, NoiseSource, NoiseExt};
-
-let noise = Perlin::new(42)
-    .with_frequency(0.1)
-    .fbm(4, 2.0, 0.5)
-    .scale(0.5)
-    .offset(0.5)
-    .clamp(0.0, 1.0);
-
-let value = noise.sample(10.0, 20.0);
+let connectivity = constraints::validate_connectivity(&grid);
+let density = constraints::validate_density(&grid);
+let border_ok = constraints::validate_border(&grid);
 ```
 
 ## Custom Cell Types
 
-Implement the `Cell` trait for custom cell types:
-
 ```rust
-use terrain_forge::Cell;
+use terrain_forge::{Grid, Cell};
 
 #[derive(Clone, Default)]
 struct MyCell {
     terrain: u8,
-    elevation: f32,
 }
 
 impl Cell for MyCell {
@@ -144,11 +124,27 @@ impl Cell for MyCell {
         self.terrain != 0
     }
 }
+
+let grid = Grid::<MyCell>::new(50, 50);
 ```
 
-## API Reference
+## CLI Tool
 
-See [API Documentation](docs/API.md) for detailed reference.
+```bash
+# Generate and visualize a map
+cargo run --bin tilegen-test-tool -- -a bsp -s 12345 -o output.png
+
+# Options
+#   -a, --algorithm  Algorithm name (default: bsp)
+#   -s, --seed       RNG seed (default: 12345)
+#   -w, --width      Grid width (default: 80)
+#   -h, --height     Grid height (default: 60)
+#   -o, --output     Output PNG path (default: output.png)
+```
+
+## Documentation
+
+See [docs/API.md](docs/API.md) for full API reference.
 
 ## License
 

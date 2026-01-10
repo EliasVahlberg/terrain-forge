@@ -1,113 +1,99 @@
-use crate::grid::{Grid, GridCell, CellType};
-use rand_chacha::ChaCha8Rng;
-use rand::Rng;
+use crate::{Algorithm, Grid, Rng, Tile};
 
-pub fn generate_wfc<T: GridCell<CellType = CellType>>(
-    grid: &mut Grid<T>,
-    rng: &mut ChaCha8Rng,
-) {
-    // Simplified WFC: use pattern-based generation
-    let floor_weight = 0.4;
-    
-    // Initialize with superposition (all possibilities)
-    let mut possibilities = vec![vec![vec![true; 2]; grid.height]; grid.width];
-    let mut collapsed = vec![vec![false; grid.height]; grid.width];
-    
-    // Collapse cells one by one
-    let total_cells = grid.width * grid.height;
-    for _ in 0..total_cells {
-        // Find cell with minimum entropy (fewest possibilities)
-        if let Some((x, y)) = find_min_entropy_cell(&possibilities, &collapsed) {
-            // Collapse this cell
-            let cell_type = if rng.gen::<f32>() < floor_weight {
-                CellType::Floor
-            } else {
-                CellType::Wall
-            };
-            
-            let mut cell = T::default();
-            cell.set_cell_type(cell_type.clone());
-            grid.set(x, y, cell);
-            collapsed[x][y] = true;
-            
-            // Propagate constraints to neighbors
-            propagate_constraints(&mut possibilities, &collapsed, x, y, cell_type, grid);
-        } else {
-            break; // All cells collapsed
+#[derive(Debug, Clone)]
+pub struct WfcConfig {
+    pub floor_weight: f64,
+}
+
+impl Default for WfcConfig {
+    fn default() -> Self { Self { floor_weight: 0.4 } }
+}
+
+pub struct Wfc {
+    config: WfcConfig,
+}
+
+impl Wfc {
+    pub fn new(config: WfcConfig) -> Self { Self { config } }
+}
+
+impl Default for Wfc {
+    fn default() -> Self { Self::new(WfcConfig::default()) }
+}
+
+impl Algorithm<Tile> for Wfc {
+    fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
+        let mut rng = Rng::new(seed);
+        let (w, h) = (grid.width(), grid.height());
+
+        // Simplified WFC: propagate constraints from random initial state
+        let mut possibilities: Vec<Vec<[bool; 2]>> = vec![vec![[true, true]; w]; h];
+
+        // Border must be walls
+        for x in 0..w {
+            possibilities[0][x] = [true, false];
+            possibilities[h - 1][x] = [true, false];
+        }
+        for y in 0..h {
+            possibilities[y][0] = [true, false];
+            possibilities[y][w - 1] = [true, false];
+        }
+
+        // Collapse cells
+        loop {
+            // Find cell with lowest entropy > 1
+            let mut min_entropy = 3;
+            let mut candidates = Vec::new();
+
+            for y in 0..h {
+                for x in 0..w {
+                    let entropy = possibilities[y][x].iter().filter(|&&b| b).count();
+                    if entropy > 1 {
+                        if entropy < min_entropy {
+                            min_entropy = entropy;
+                            candidates.clear();
+                        }
+                        if entropy == min_entropy {
+                            candidates.push((x, y));
+                        }
+                    }
+                }
+            }
+
+            if candidates.is_empty() { break; }
+
+            let &(cx, cy) = rng.pick(&candidates).unwrap();
+            let choose_floor = rng.chance(self.config.floor_weight) && possibilities[cy][cx][1];
+            possibilities[cy][cx] = if choose_floor { [false, true] } else { [true, false] };
+
+            // Simple propagation
+            propagate(&mut possibilities, w, h);
+        }
+
+        // Apply to grid
+        for y in 0..h {
+            for x in 0..w {
+                if possibilities[y][x][1] {
+                    grid.set(x as i32, y as i32, Tile::Floor);
+                }
+            }
         }
     }
-    
-    // Fill any remaining uncollapsed cells
-    for x in 0..grid.width {
-        for y in 0..grid.height {
-            if !collapsed[x][y] {
-                let cell_type = if rng.gen::<f32>() < floor_weight {
-                    CellType::Floor
-                } else {
-                    CellType::Wall
-                };
+
+    fn name(&self) -> &'static str { "WFC" }
+}
+
+fn propagate(poss: &mut Vec<Vec<[bool; 2]>>, w: usize, h: usize) {
+    let mut changed = true;
+    while changed {
+        changed = false;
+        for y in 1..h - 1 {
+            for x in 1..w - 1 {
+                if poss[y][x].iter().filter(|&&b| b).count() != 1 { continue; }
                 
-                let mut cell = T::default();
-                cell.set_cell_type(cell_type);
-                grid.set(x, y, cell);
-            }
-        }
-    }
-}
-
-fn find_min_entropy_cell(
-    possibilities: &[Vec<Vec<bool>>],
-    collapsed: &[Vec<bool>],
-) -> Option<(usize, usize)> {
-    let mut min_entropy = usize::MAX;
-    let mut best_cell = None;
-    
-    for x in 0..possibilities.len() {
-        for y in 0..possibilities[x].len() {
-            if !collapsed[x][y] {
-                let entropy = possibilities[x][y].iter().filter(|&&p| p).count();
-                if entropy > 0 && entropy < min_entropy {
-                    min_entropy = entropy;
-                    best_cell = Some((x, y));
-                }
-            }
-        }
-    }
-    
-    best_cell
-}
-
-fn propagate_constraints<T: GridCell<CellType = CellType>>(
-    possibilities: &mut [Vec<Vec<bool>>],
-    collapsed: &[Vec<bool>],
-    x: usize,
-    y: usize,
-    cell_type: CellType,
-    grid: &Grid<T>,
-) {
-    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
-    
-    for (dx, dy) in directions {
-        let nx = x as i32 + dx;
-        let ny = y as i32 + dy;
-        
-        if nx >= 0 && ny >= 0 && (nx as usize) < grid.width && (ny as usize) < grid.height {
-            let (nx, ny) = (nx as usize, ny as usize);
-            
-            if !collapsed[nx][ny] {
-                // Apply simple adjacency rules
-                match cell_type {
-                    CellType::Floor => {
-                        // Floor cells prefer floor neighbors
-                        possibilities[nx][ny][0] = true; // Floor is more likely
-                    }
-                    CellType::Wall => {
-                        // Wall cells can have any neighbors
-                        possibilities[nx][ny][0] = true;
-                        possibilities[nx][ny][1] = true;
-                    }
-                    _ => {}
-                }
+                // If this is definitely floor, neighbors can be floor
+                // If this is definitely wall, no constraint
+                // This is a simplified version
             }
         }
     }

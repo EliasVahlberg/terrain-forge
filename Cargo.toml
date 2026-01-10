@@ -15,7 +15,3 @@ clap = "4.0"
 [[bin]]
 name = "tilegen-test-tool"
 path = "src/bin/tilegen-test-tool.rs"
-
-[[bin]]
-name = "constraint-test-tool"
-path = "src/bin/constraint-test-tool.rs"

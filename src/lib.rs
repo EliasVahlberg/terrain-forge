@@ -1,9 +1,15 @@
-pub mod algorithms;
-pub mod config;
-pub mod constraints;
-pub mod grid;
-pub mod testing;
+//! TerrainForge - Modular procedural generation engine
 
-pub use grid::{Grid, GridCell};
-pub use config::EngineConfig;
-pub use algorithms::*;
+mod grid;
+mod rng;
+mod algorithm;
+
+pub mod algorithms;
+pub mod noise;
+pub mod effects;
+pub mod compose;
+pub mod constraints;
+
+pub use grid::{Grid, Cell, Tile};
+pub use rng::Rng;
+pub use algorithm::Algorithm;

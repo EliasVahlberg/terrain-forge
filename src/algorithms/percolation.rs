@@ -1,97 +1,89 @@
-use crate::grid::{Grid, GridCell, CellType};
-use rand_chacha::ChaCha8Rng;
-use rand::Rng;
+use crate::{Algorithm, Grid, Rng, Tile};
 
-pub fn generate_percolation<T: GridCell<CellType = CellType>>(
-    grid: &mut Grid<T>,
-    rng: &mut ChaCha8Rng,
-) {
-    let probability = 0.593; // Near percolation threshold
-    
-    // Initialize with random floor/wall based on probability
-    for y in 0..grid.height {
-        for x in 0..grid.width {
-            let cell_type = if rng.gen::<f32>() < probability {
-                CellType::Floor
-            } else {
-                CellType::Wall
-            };
-            
-            let mut cell = T::default();
-            cell.set_cell_type(cell_type);
-            grid.set(x, y, cell);
+#[derive(Debug, Clone)]
+pub struct PercolationConfig {
+    pub fill_probability: f64,
+    pub keep_largest: bool,
+}
+
+impl Default for PercolationConfig {
+    fn default() -> Self { Self { fill_probability: 0.45, keep_largest: true } }
+}
+
+pub struct Percolation {
+    config: PercolationConfig,
+}
+
+impl Percolation {
+    pub fn new(config: PercolationConfig) -> Self { Self { config } }
+}
+
+impl Default for Percolation {
+    fn default() -> Self { Self::new(PercolationConfig::default()) }
+}
+
+impl Algorithm<Tile> for Percolation {
+    fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
+        let mut rng = Rng::new(seed);
+        let (w, h) = (grid.width(), grid.height());
+
+        for y in 1..h - 1 {
+            for x in 1..w - 1 {
+                if rng.chance(self.config.fill_probability) {
+                    grid.set(x as i32, y as i32, Tile::Floor);
+                }
+            }
         }
-    }
-    
-    // Find and keep only the largest connected component
-    let components = find_connected_components(grid);
-    if let Some(largest) = find_largest_component(&components) {
-        // Clear everything except the largest component
-        for y in 0..grid.height {
-            for x in 0..grid.width {
-                if !largest.contains(&(x, y)) {
-                    let mut cell = T::default();
-                    cell.set_cell_type(CellType::Wall);
-                    grid.set(x, y, cell);
+
+        if !self.config.keep_largest { return; }
+
+        // Find and keep largest region
+        let mut labels = vec![0u32; w * h];
+        let mut label = 0u32;
+        let mut sizes = vec![0usize];
+
+        for y in 0..h {
+            for x in 0..w {
+                if grid[(x, y)].is_floor() && labels[y * w + x] == 0 {
+                    label += 1;
+                    let size = flood_fill(grid, &mut labels, x, y, label, w, h);
+                    sizes.push(size);
+                }
+            }
+        }
+
+        if label > 0 {
+            let largest = sizes.iter().enumerate().skip(1)
+                .max_by_key(|&(_, &s)| s).map(|(i, _)| i as u32).unwrap_or(1);
+
+            for y in 0..h {
+                for x in 0..w {
+                    if labels[y * w + x] != largest && labels[y * w + x] != 0 {
+                        grid.set(x as i32, y as i32, Tile::Wall);
+                    }
                 }
             }
         }
     }
+
+    fn name(&self) -> &'static str { "Percolation" }
 }
 
-fn find_connected_components<T: GridCell<CellType = CellType>>(
-    grid: &Grid<T>,
-) -> Vec<Vec<(usize, usize)>> {
-    let mut visited = vec![vec![false; grid.height]; grid.width];
-    let mut components = Vec::new();
-    
-    for x in 0..grid.width {
-        for y in 0..grid.height {
-            if !visited[x][y] && is_floor(grid, x, y) {
-                let component = flood_fill_component(grid, x, y, &mut visited);
-                if !component.is_empty() {
-                    components.push(component);
-                }
-            }
-        }
-    }
-    
-    components
-}
+fn flood_fill(grid: &Grid<Tile>, labels: &mut [u32], sx: usize, sy: usize, label: u32, w: usize, h: usize) -> usize {
+    let mut stack = vec![(sx, sy)];
+    let mut count = 0;
 
-fn flood_fill_component<T: GridCell<CellType = CellType>>(
-    grid: &Grid<T>,
-    start_x: usize,
-    start_y: usize,
-    visited: &mut Vec<Vec<bool>>,
-) -> Vec<(usize, usize)> {
-    let mut component = Vec::new();
-    let mut stack = vec![(start_x, start_y)];
-    
     while let Some((x, y)) = stack.pop() {
-        if x >= grid.width || y >= grid.height || visited[x][y] || !is_floor(grid, x, y) {
-            continue;
-        }
-        
-        visited[x][y] = true;
-        component.push((x, y));
-        
-        // Add neighbors
+        let idx = y * w + x;
+        if labels[idx] != 0 || !grid[(x, y)].is_floor() { continue; }
+
+        labels[idx] = label;
+        count += 1;
+
         if x > 0 { stack.push((x - 1, y)); }
-        if x + 1 < grid.width { stack.push((x + 1, y)); }
+        if x + 1 < w { stack.push((x + 1, y)); }
         if y > 0 { stack.push((x, y - 1)); }
-        if y + 1 < grid.height { stack.push((x, y + 1)); }
+        if y + 1 < h { stack.push((x, y + 1)); }
     }
-    
-    component
-}
-
-fn find_largest_component(components: &[Vec<(usize, usize)>]) -> Option<&Vec<(usize, usize)>> {
-    components.iter().max_by_key(|c| c.len())
-}
-
-fn is_floor<T: GridCell<CellType = CellType>>(grid: &Grid<T>, x: usize, y: usize) -> bool {
-    grid.get(x, y)
-        .map(|cell| matches!(cell.cell_type(), CellType::Floor))
-        .unwrap_or(false)
+    count
 }

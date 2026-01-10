@@ -1,72 +1,84 @@
-use crate::grid::{Grid, GridCell, CellType};
-use rand_chacha::ChaCha8Rng;
-use rand::Rng;
+use crate::{Algorithm, Grid, Rng, Tile};
 
-pub fn generate_maze<T: GridCell<CellType = CellType>>(
-    grid: &mut Grid<T>,
-    rng: &mut ChaCha8Rng,
-) {
-    // Initialize all as walls
-    for y in 0..grid.height {
-        for x in 0..grid.width {
-            let mut cell = T::default();
-            cell.set_cell_type(CellType::Wall);
-            grid.set(x, y, cell);
-        }
-    }
-    
-    // Recursive backtracking maze generation
-    let start_x = 1;
-    let start_y = 1;
-    
-    // Set starting cell as floor
-    let mut cell = T::default();
-    cell.set_cell_type(CellType::Floor);
-    grid.set(start_x, start_y, cell);
-    
-    // Generate maze using recursive backtracking
-    recursive_backtrack(grid, start_x, start_y, rng);
+#[derive(Debug, Clone)]
+pub struct MazeConfig {
+    pub corridor_width: usize,
 }
 
-fn recursive_backtrack<T: GridCell<CellType = CellType>>(
-    grid: &mut Grid<T>,
-    x: usize,
-    y: usize,
-    rng: &mut ChaCha8Rng,
-) {
-    let directions = [(0, 2), (2, 0), (0, -2), (-2, 0)];
-    let mut dirs: Vec<_> = directions.iter().collect();
-    
-    // Shuffle directions
-    for i in (1..dirs.len()).rev() {
-        let j = rng.gen_range(0..=i);
-        dirs.swap(i, j);
+impl Default for MazeConfig {
+    fn default() -> Self { Self { corridor_width: 1 } }
+}
+
+pub struct Maze {
+    config: MazeConfig,
+}
+
+impl Maze {
+    pub fn new(config: MazeConfig) -> Self { Self { config } }
+}
+
+impl Default for Maze {
+    fn default() -> Self { Self::new(MazeConfig::default()) }
+}
+
+impl Algorithm<Tile> for Maze {
+    fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
+        let mut rng = Rng::new(seed);
+        let step = self.config.corridor_width + 1;
+        let (w, h) = (grid.width(), grid.height());
+
+        let maze_w = (w - 1) / step;
+        let maze_h = (h - 1) / step;
+        if maze_w < 2 || maze_h < 2 { return; }
+
+        let mut visited = vec![vec![false; maze_h]; maze_w];
+        let mut stack = vec![(0usize, 0usize)];
+        visited[0][0] = true;
+
+        while let Some(&(cx, cy)) = stack.last() {
+            let mut neighbors = Vec::new();
+            if cx > 0 && !visited[cx - 1][cy] { neighbors.push((cx - 1, cy)); }
+            if cx + 1 < maze_w && !visited[cx + 1][cy] { neighbors.push((cx + 1, cy)); }
+            if cy > 0 && !visited[cx][cy - 1] { neighbors.push((cx, cy - 1)); }
+            if cy + 1 < maze_h && !visited[cx][cy + 1] { neighbors.push((cx, cy + 1)); }
+
+            if neighbors.is_empty() {
+                stack.pop();
+            } else {
+                let &(nx, ny) = rng.pick(&neighbors).unwrap();
+                visited[nx][ny] = true;
+
+                let (gx, gy) = (1 + cx * step, 1 + cy * step);
+                let (gnx, gny) = (1 + nx * step, 1 + ny * step);
+
+                carve_cell(grid, gx, gy, self.config.corridor_width);
+                carve_cell(grid, gnx, gny, self.config.corridor_width);
+                carve_between(grid, gx, gy, gnx, gny, self.config.corridor_width);
+
+                stack.push((nx, ny));
+            }
+        }
     }
-    
-    for &(dx, dy) in dirs {
-        let nx = x as i32 + dx;
-        let ny = y as i32 + dy;
-        
-        if nx >= 0 && ny >= 0 && (nx as usize) < grid.width && (ny as usize) < grid.height {
-            let (nx, ny) = (nx as usize, ny as usize);
-            
-            // Check if the cell is unvisited (wall)
-            if let Some(cell) = grid.get(nx, ny) {
-                if matches!(cell.cell_type(), CellType::Wall) {
-                    // Carve path to this cell
-                    let mut floor_cell = T::default();
-                    floor_cell.set_cell_type(CellType::Floor);
-                    
-                    // Carve the wall between current and next cell
-                    let wall_x = x as i32 + dx / 2;
-                    let wall_y = y as i32 + dy / 2;
-                    grid.set(wall_x as usize, wall_y as usize, floor_cell.clone());
-                    
-                    // Carve the destination cell
-                    grid.set(nx, ny, floor_cell);
-                    
-                    // Recursively continue from this cell
-                    recursive_backtrack(grid, nx, ny, rng);
+
+    fn name(&self) -> &'static str { "Maze" }
+}
+
+fn carve_cell(grid: &mut Grid<Tile>, x: usize, y: usize, size: usize) {
+    for dy in 0..size {
+        for dx in 0..size {
+            grid.set((x + dx) as i32, (y + dy) as i32, Tile::Floor);
+        }
+    }
+}
+
+fn carve_between(grid: &mut Grid<Tile>, x1: usize, y1: usize, x2: usize, y2: usize, size: usize) {
+    let (min_x, max_x) = (x1.min(x2), x1.max(x2));
+    let (min_y, max_y) = (y1.min(y2), y1.max(y2));
+    for y in min_y..=max_y {
+        for x in min_x..=max_x {
+            for dy in 0..size {
+                for dx in 0..size {
+                    grid.set((x + dx) as i32, (y + dy) as i32, Tile::Floor);
                 }
             }
         }

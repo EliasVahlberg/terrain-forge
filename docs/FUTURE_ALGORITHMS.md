@@ -1,28 +1,25 @@
 # Future Algorithms and Effects
 
-This document catalogs procedural generation algorithms and post-processing effects not yet implemented in TerrainForge, serving as a roadmap for future development.
+Roadmap for procedural generation algorithms and effects not yet implemented in TerrainForge.
 
 ## Currently Implemented
 
-For reference, TerrainForge currently includes:
+**Algorithms (13):**
+- BSP, Cellular Automata, Drunkard Walk, Maze, Simple Rooms
+- Voronoi, DLA, WFC, Percolation
+- Diamond Square, Fractal, Agent-based, Glass Seam
 
-**Algorithms:**
-- Perlin Noise
-- Value Noise
-- FBM (Fractal Brownian Motion)
-- SimpleRooms
-- BSP (Binary Space Partitioning)
-- Cellular Automata
-- Drunkard Walk
-- Maze (recursive backtracker)
-- WFC (Wave Function Collapse)
-- Voronoi
-- DLA (Diffusion-Limited Aggregation)
+**Noise (6):**
+- Perlin, Simplex, Value, Worley
+- FBM, Ridged
 
-**Modifiers/Effects:**
-- Scale, Offset, Clamp, Abs, Blend (noise)
-- Pipeline (sequential composition)
-- LayeredGenerator (Replace, Union, Intersect, Mask)
+**Effects:**
+- Morphology (erode, dilate)
+- Spatial (distance transform, Dijkstra map)
+- Filters (Gaussian blur, median)
+- Connectivity (flood fill, region detection)
+- Transform (rotate, mirror)
+- Blend (union, intersect, mask)
 
 **Constraints:**
 - Connectivity, Density, Border
@@ -30,24 +27,6 @@ For reference, TerrainForge currently includes:
 ---
 
 ## Part 1: Unimplemented Algorithms
-
-### Noise Functions
-
-| Algorithm | Description | Use Cases |
-|-----------|-------------|-----------|
-| **Simplex Noise** | Improved Perlin with fewer artifacts, better performance in higher dimensions | Terrain, clouds, organic textures |
-| **Worley Noise** | Distance to nearest seed points; produces cellular patterns | Stone, scales, cracked earth, alien cells |
-| **Ridged Noise** | Absolute value of noise inverted to create ridges | Mountain ranges, veins, cracks |
-| **Billow Noise** | Absolute value of noise creating puffy, cloud-like shapes | Clouds, smoke, soft terrain |
-| **Turbulence** | Sum of absolute values across octaves | Fire, marble, chaotic patterns |
-
-### Heightmap Generation
-
-| Algorithm | Description | Use Cases |
-|-----------|-------------|-----------|
-| **Diamond-Square** | Recursive midpoint displacement on 2D grid | Terrain heightmaps, landscapes |
-| **Midpoint Displacement** | 1D/2D recursive subdivision with random offsets | Coastlines, mountain profiles |
-| **Fault Formation** | Repeated random line splits raising/lowering sides | Geological terrain, tectonic features |
 | **Particle Deposition** | Drop particles that accumulate into terrain | Mountains, dunes, volcanic cones |
 | **Hydraulic Erosion** | Simulate water flow carving terrain | Realistic terrain with rivers/valleys |
 | **Thermal Erosion** | Simulate material sliding down steep slopes | Weathered cliffs, talus slopes |

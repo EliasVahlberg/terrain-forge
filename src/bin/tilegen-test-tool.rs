@@ -1,99 +1,49 @@
-use terrain_forge::{Grid, EngineConfig, algorithms, constraints, testing};
-use terrain_forge::grid::CellType;
-use rand_chacha::ChaCha8Rng;
-use rand::SeedableRng;
-use std::path::Path;
+use terrain_forge::{Grid, Tile, algorithms, constraints};
 use clap::{Arg, Command};
+use image::{ImageBuffer, Rgb};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("tilegen-test-tool")
         .version("0.1.0")
         .about("TerrainForge tile generation test tool")
-        .arg(
-            Arg::new("config")
-                .long("config")
-                .value_name("FILE")
-                .help("Configuration file path")
-                .required(true),
-        )
-        .arg(
-            Arg::new("profile")
-                .long("profile")
-                .help("Enable performance profiling")
-                .action(clap::ArgAction::SetTrue),
-        )
+        .arg(Arg::new("algorithm").long("algorithm").short('a').default_value("bsp"))
+        .arg(Arg::new("seed").long("seed").short('s').default_value("12345"))
+        .arg(Arg::new("width").long("width").short('w').default_value("80"))
+        .arg(Arg::new("height").long("height").short('h').default_value("60"))
+        .arg(Arg::new("output").long("output").short('o').default_value("output.png"))
         .get_matches();
 
-    let config_path = matches.get_one::<String>("config").unwrap();
-    let profile = matches.get_flag("profile");
+    let algo_name = matches.get_one::<String>("algorithm").unwrap();
+    let seed: u64 = matches.get_one::<String>("seed").unwrap().parse()?;
+    let width: usize = matches.get_one::<String>("width").unwrap().parse()?;
+    let height: usize = matches.get_one::<String>("height").unwrap().parse()?;
+    let output = matches.get_one::<String>("output").unwrap();
 
-    // Load configuration
-    let config_str = std::fs::read_to_string(config_path)?;
-    let config: EngineConfig = serde_json::from_str(&config_str)?;
+    println!("Generating with {} (seed: {}, {}x{})", algo_name, seed, width, height);
 
-    println!("Running test: {}", config.name);
-    println!("Algorithm: {}", config.algorithm);
-    println!("Dimensions: {}x{}", config.width, config.height);
+    let algo = algorithms::get(algo_name)
+        .ok_or_else(|| format!("Unknown algorithm: {}", algo_name))?;
 
-    let start_time = std::time::Instant::now();
+    let mut grid = Grid::<Tile>::new(width, height);
+    let start = std::time::Instant::now();
+    algo.generate(&mut grid, seed);
+    let elapsed = start.elapsed();
 
-    // Initialize RNG
-    let mut rng = ChaCha8Rng::seed_from_u64(config.seed);
+    let connectivity = constraints::validate_connectivity(&grid);
+    let floor_count = grid.count(|t| t.is_floor());
 
-    // Create grid
-    let mut grid = Grid::<CellType>::new(config.width, config.height);
+    println!("Generated in {:?}", elapsed);
+    println!("Floor tiles: {} ({:.1}%)", floor_count, floor_count as f64 / (width * height) as f64 * 100.0);
+    println!("Connectivity: {:.2}", connectivity);
 
-    // Generate terrain based on algorithm
-    match config.algorithm.as_str() {
-        "bsp" => algorithms::generate_bsp(&mut grid, &mut rng),
-        "cellular_automata" => algorithms::generate_cellular_automata(&mut grid, &mut rng),
-        _ => {
-            eprintln!("Unknown algorithm: {}", config.algorithm);
-            std::process::exit(1);
-        }
+    // Save PNG
+    let mut img = ImageBuffer::new(width as u32, height as u32);
+    for (x, y, tile) in grid.iter() {
+        let color = if tile.is_floor() { Rgb([200u8, 200, 200]) } else { Rgb([40u8, 40, 40]) };
+        img.put_pixel(x as u32, y as u32, color);
     }
+    img.save(output)?;
+    println!("Saved to {}", output);
 
-    let generation_time = start_time.elapsed();
-
-    // Validate constraints
-    let connectivity_score = constraints::validate_connectivity(&grid);
-
-    // Create output directory
-    let output_dir = Path::new("test_results");
-    std::fs::create_dir_all(output_dir)?;
-
-    // Generate outputs
-    let base_name = config.name.replace(" ", "_").to_lowercase();
-    
-    if config.output_formats.contains(&"png".to_string()) {
-        let png_path = output_dir.join(format!("{}.png", base_name));
-        testing::generate_png(&grid, &png_path)?;
-        println!("Generated PNG: {}", png_path.display());
-    }
-
-    if config.output_formats.contains(&"html".to_string()) {
-        let html_path = output_dir.join(format!("{}.html", base_name));
-        let png_name = format!("{}.png", base_name);
-        
-        let metrics = serde_json::json!({
-            "algorithm": config.algorithm,
-            "seed": config.seed,
-            "dimensions": format!("{}x{}", config.width, config.height),
-            "generation_time_ms": generation_time.as_millis(),
-            "connectivity_score": connectivity_score,
-            "parameters": config.parameters
-        });
-
-        testing::generate_html_report(&config.name, &png_name, &metrics, &html_path)?;
-        println!("Generated HTML report: {}", html_path.display());
-    }
-
-    if profile {
-        println!("Performance metrics:");
-        println!("  Generation time: {:?}", generation_time);
-        println!("  Connectivity score: {:.2}", connectivity_score);
-    }
-
-    println!("Test completed successfully!");
     Ok(())
 }
