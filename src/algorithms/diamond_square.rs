@@ -7,7 +7,7 @@ pub struct DiamondSquareConfig {
 }
 
 impl Default for DiamondSquareConfig {
-    fn default() -> Self { Self { roughness: 0.5, threshold: 0.5 } }
+    fn default() -> Self { Self { roughness: 0.6, threshold: 0.4 } }
 }
 
 pub struct DiamondSquare {
@@ -25,53 +25,72 @@ impl Default for DiamondSquare {
 impl Algorithm<Tile> for DiamondSquare {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
         let mut rng = Rng::new(seed);
-        let size = grid.width().max(grid.height());
-        let power = (size as f64).log2().ceil() as u32;
-        let map_size = (1 << power) + 1;
-
-        let mut heights = vec![vec![0.5f64; map_size]; map_size];
-
-        heights[0][0] = rng.random();
-        heights[0][map_size - 1] = rng.random();
-        heights[map_size - 1][0] = rng.random();
-        heights[map_size - 1][map_size - 1] = rng.random();
-
-        let mut step = map_size - 1;
-        let mut scale = self.config.roughness;
-
-        while step > 1 {
-            let half = step / 2;
-
-            // Diamond
-            for y in (0..map_size - 1).step_by(step) {
-                for x in (0..map_size - 1).step_by(step) {
-                    let avg = (heights[y][x] + heights[y][x + step]
-                        + heights[y + step][x] + heights[y + step][x + step]) / 4.0;
-                    heights[y + half][x + half] = (avg + (rng.random() - 0.5) * scale).clamp(0.0, 1.0);
-                }
+        let (w, h) = (grid.width(), grid.height());
+        
+        // Create heightmap
+        let mut heights = vec![vec![0.0f64; w]; h];
+        
+        // Initialize with noise
+        for y in 0..h {
+            for x in 0..w {
+                heights[y][x] = rng.random();
             }
-
-            // Square
-            for y in (0..map_size).step_by(half) {
-                let start = if (y / half) % 2 == 0 { half } else { 0 };
-                for x in (start..map_size).step_by(step) {
-                    let mut sum = 0.0;
-                    let mut count = 0.0;
-                    if y >= half { sum += heights[y - half][x]; count += 1.0; }
-                    if y + half < map_size { sum += heights[y + half][x]; count += 1.0; }
-                    if x >= half { sum += heights[y][x - half]; count += 1.0; }
-                    if x + half < map_size { sum += heights[y][x + half]; count += 1.0; }
-                    heights[y][x] = (sum / count + (rng.random() - 0.5) * scale).clamp(0.0, 1.0);
-                }
-            }
-
-            step = half;
-            scale *= self.config.roughness;
         }
-
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                if heights[y.min(map_size - 1)][x.min(map_size - 1)] > self.config.threshold {
+        
+        // Diamond-square iterations to smooth
+        let mut step = w.max(h) / 2;
+        let mut scale = self.config.roughness;
+        
+        while step > 0 {
+            // Diamond step - set center of each square
+            let mut y = step;
+            while y < h {
+                let mut x = step;
+                while x < w {
+                    let mut sum = 0.0;
+                    let mut count = 0;
+                    
+                    if y >= step && x >= step { sum += heights[y - step][x - step]; count += 1; }
+                    if y >= step && x + step < w { sum += heights[y - step][x + step]; count += 1; }
+                    if y + step < h && x >= step { sum += heights[y + step][x - step]; count += 1; }
+                    if y + step < h && x + step < w { sum += heights[y + step][x + step]; count += 1; }
+                    
+                    if count > 0 {
+                        heights[y][x] = (sum / count as f64 + (rng.random() - 0.5) * scale).clamp(0.0, 1.0);
+                    }
+                    x += step * 2;
+                }
+                y += step * 2;
+            }
+            
+            // Square step - set edge midpoints
+            for y in 0..h {
+                let x_start = if (y / step) % 2 == 0 { step } else { 0 };
+                let mut x = x_start;
+                while x < w {
+                    let mut sum = 0.0;
+                    let mut count = 0;
+                    
+                    if y >= step { sum += heights[y - step][x]; count += 1; }
+                    if y + step < h { sum += heights[y + step][x]; count += 1; }
+                    if x >= step { sum += heights[y][x - step]; count += 1; }
+                    if x + step < w { sum += heights[y][x + step]; count += 1; }
+                    
+                    if count > 0 {
+                        heights[y][x] = (sum / count as f64 + (rng.random() - 0.5) * scale).clamp(0.0, 1.0);
+                    }
+                    x += step * 2;
+                }
+            }
+            
+            step /= 2;
+            scale *= 0.5;
+        }
+        
+        // Convert to tiles
+        for y in 0..h {
+            for x in 0..w {
+                if heights[y][x] > self.config.threshold {
                     grid.set(x as i32, y as i32, Tile::Floor);
                 }
             }
