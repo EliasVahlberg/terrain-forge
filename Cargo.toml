@@ -8,7 +8,7 @@ description = "A modular procedural generation engine for terrain, dungeons, and
 repository = "https://github.com/EliasVahlberg/terrain-forge"
 documentation = "https://docs.rs/terrain-forge"
 readme = "README.md"
-keywords = ["procedural-generation", "terrain", "dungeon", "roguelike", "gamedev"]
+keywords = ["procgen", "terrain", "dungeon", "roguelike", "gamedev"]
 categories = ["game-development", "algorithms"]
 
 [workspace]
