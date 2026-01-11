@@ -253,7 +253,7 @@ pub fn render_grid_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLa
     if let Some(semantic) = semantic {
         // Overlay markers
         for marker in &semantic.markers {
-            let color = match marker.tag.as_str() {
+            let color = match marker.tag().as_str() {
                 "loot_slot" => LOOT_COLOR,
                 "boss_spawn" => BOSS_COLOR,
                 "light_anchor" => LIGHT_COLOR,
@@ -276,7 +276,7 @@ pub fn render_text_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLa
         // Create marker lookup
         let mut marker_map = std::collections::HashMap::new();
         for marker in &semantic.markers {
-            marker_map.insert((marker.x, marker.y), &marker.tag);
+            marker_map.insert((marker.x, marker.y), marker.tag());
         }
 
         for y in 0..grid.height() {

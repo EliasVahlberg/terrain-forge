@@ -87,9 +87,9 @@ pub mod algorithms;
 pub mod compose;
 pub mod constraints;
 pub mod effects;
-pub mod semantic;
 pub mod noise;
 pub mod pipeline;
+pub mod semantic;
 
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};
@@ -185,7 +185,7 @@ pub fn generate_with_requirements(
     base_seed: u64,
 ) -> Result<(Grid<Tile>, semantic::SemanticLayers), String> {
     let max_attempts = max_attempts.unwrap_or(10);
-    
+
     for attempt in 0..max_attempts {
         let seed = base_seed.wrapping_add(attempt as u64);
         let mut grid = Grid::new(width, height);

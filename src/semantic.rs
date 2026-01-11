@@ -212,21 +212,27 @@ pub enum MarkerType {
     /// Basic spawn points
     Spawn,
     Exit,
-    
+
     /// Quest-related markers
-    QuestObjective { priority: u8 },
+    QuestObjective {
+        priority: u8,
+    },
     QuestStart,
     QuestEnd,
-    
+
     /// Loot and rewards
-    LootTier { tier: u8 },
+    LootTier {
+        tier: u8,
+    },
     Treasure,
-    
+
     /// Encounter zones
-    EncounterZone { difficulty: u8 },
+    EncounterZone {
+        difficulty: u8,
+    },
     BossRoom,
     SafeZone,
-    
+
     /// Custom marker with string tag (backward compatibility)
     Custom(String),
 }
@@ -236,9 +242,13 @@ impl MarkerType {
     pub fn category(&self) -> &'static str {
         match self {
             MarkerType::Spawn | MarkerType::Exit => "spawn",
-            MarkerType::QuestObjective { .. } | MarkerType::QuestStart | MarkerType::QuestEnd => "quest",
+            MarkerType::QuestObjective { .. } | MarkerType::QuestStart | MarkerType::QuestEnd => {
+                "quest"
+            }
             MarkerType::LootTier { .. } | MarkerType::Treasure => "loot",
-            MarkerType::EncounterZone { .. } | MarkerType::BossRoom | MarkerType::SafeZone => "encounter",
+            MarkerType::EncounterZone { .. } | MarkerType::BossRoom | MarkerType::SafeZone => {
+                "encounter"
+            }
             MarkerType::Custom(_) => "custom",
         }
     }
@@ -267,12 +277,12 @@ impl Marker {
             metadata: HashMap::new(),
         }
     }
-    
+
     /// Create a marker with custom tag (backward compatibility)
     pub fn with_tag(x: u32, y: u32, tag: String) -> Self {
         Self::new(x, y, MarkerType::Custom(tag))
     }
-    
+
     /// Get the tag string for this marker (backward compatibility)
     pub fn tag(&self) -> String {
         match &self.marker_type {
@@ -317,7 +327,7 @@ impl MarkerConstraints {
             require_nearby: Vec::new(),
         }
     }
-    
+
     /// Create constraints for quest objectives (avoid clustering)
     pub fn quest_objective() -> Self {
         Self {
@@ -328,7 +338,7 @@ impl MarkerConstraints {
             require_nearby: Vec::new(),
         }
     }
-    
+
     /// Create constraints for loot (can cluster but not too close)
     pub fn loot() -> Self {
         Self {
@@ -432,17 +442,18 @@ impl SemanticRequirements {
             required_markers: HashMap::new(),
         }
     }
-    
+
     /// Create basic dungeon requirements
     pub fn basic_dungeon() -> Self {
         let mut req = Self::none();
         req.min_regions.insert("room".to_string(), 3);
-        req.required_connections.push(("room".to_string(), "corridor".to_string()));
+        req.required_connections
+            .push(("room".to_string(), "corridor".to_string()));
         req.required_markers.insert(MarkerType::Spawn, 1);
         req.required_markers.insert(MarkerType::Exit, 1);
         req
     }
-    
+
     /// Validate if semantic layers meet these requirements
     pub fn validate(&self, layers: &SemanticLayers) -> bool {
         // Check region counts
@@ -450,25 +461,25 @@ impl SemanticRequirements {
         for region in &layers.regions {
             *region_counts.entry(region.kind.clone()).or_insert(0) += 1;
         }
-        
+
         for (kind, min_count) in &self.min_regions {
             if region_counts.get(kind).unwrap_or(&0) < min_count {
                 return false;
             }
         }
-        
+
         // Check marker counts
         let mut marker_counts: HashMap<MarkerType, usize> = HashMap::new();
         for marker in &layers.markers {
             *marker_counts.entry(marker.marker_type.clone()).or_insert(0) += 1;
         }
-        
+
         for (marker_type, min_count) in &self.required_markers {
             if marker_counts.get(marker_type).unwrap_or(&0) < min_count {
                 return false;
             }
         }
-        
+
         true
     }
 }
@@ -541,32 +552,39 @@ impl VerticalConnectivity {
             floor_accessibility: HashMap::new(),
         }
     }
-    
+
     /// Analyze potential stair placements between floors
     /// This is a basic implementation that looks for suitable floor tiles
     /// adjacent to walls that could support stairs
-    pub fn analyze_stair_candidates(
-        &mut self,
-        floor_grids: &[Grid<Tile>],
-        min_clearance: usize,
-    ) {
+    pub fn analyze_stair_candidates(&mut self, floor_grids: &[Grid<Tile>], min_clearance: usize) {
         self.stair_candidates.clear();
-        
+
         for floor_idx in 0..floor_grids.len().saturating_sub(1) {
             let current_floor = &floor_grids[floor_idx];
             let next_floor = &floor_grids[floor_idx + 1];
-            
+
             // Find locations that are floor on both levels with wall support
             for y in min_clearance..current_floor.height().saturating_sub(min_clearance) {
                 for x in min_clearance..current_floor.width().saturating_sub(min_clearance) {
-                    if self.is_valid_stair_location(current_floor, next_floor, x as i32, y as i32, min_clearance as i32) {
-                        self.stair_candidates.push((x as u32, y as u32, floor_idx as u32, (floor_idx + 1) as u32));
+                    if self.is_valid_stair_location(
+                        current_floor,
+                        next_floor,
+                        x as i32,
+                        y as i32,
+                        min_clearance as i32,
+                    ) {
+                        self.stair_candidates.push((
+                            x as u32,
+                            y as u32,
+                            floor_idx as u32,
+                            (floor_idx + 1) as u32,
+                        ));
                     }
                 }
             }
         }
     }
-    
+
     /// Check if a location is suitable for stair placement
     fn is_valid_stair_location(
         &self,
@@ -579,41 +597,42 @@ impl VerticalConnectivity {
         // Both floors must have floor tiles at this location
         let tile1 = floor1.get(x, y);
         let tile2 = floor2.get(x, y);
-        
-        if !tile1.map_or(false, |t| t.is_floor()) || !tile2.map_or(false, |t| t.is_floor()) {
+
+        if !tile1.is_some_and(|t| t.is_floor()) || !tile2.is_some_and(|t| t.is_floor()) {
             return false;
         }
-        
+
         // Check for adequate clearance around the stair location
         for dy in -clearance..=clearance {
             for dx in -clearance..=clearance {
                 let check_x = x + dx;
                 let check_y = y + dy;
-                
-                let clear1 = floor1.get(check_x, check_y).map_or(false, |t| t.is_floor());
-                let clear2 = floor2.get(check_x, check_y).map_or(false, |t| t.is_floor());
-                
+
+                let clear1 = floor1.get(check_x, check_y).is_some_and(|t| t.is_floor());
+                let clear2 = floor2.get(check_x, check_y).is_some_and(|t| t.is_floor());
+
                 if !clear1 || !clear2 {
                     return false;
                 }
             }
         }
-        
+
         true
     }
-    
+
     /// Place stairs at the best candidate locations
     pub fn place_stairs(&mut self, max_stairs_per_floor: usize) {
         self.stairs.clear();
-        
+
         // Group candidates by floor pair
         let mut floor_candidates: HashMap<(u32, u32), Vec<(u32, u32)>> = HashMap::new();
         for &(x, y, from_floor, to_floor) in &self.stair_candidates {
-            floor_candidates.entry((from_floor, to_floor))
-                .or_insert_with(Vec::new)
+            floor_candidates
+                .entry((from_floor, to_floor))
+                .or_default()
                 .push((x, y));
         }
-        
+
         // Place limited number of stairs per floor pair
         for ((from_floor, to_floor), candidates) in floor_candidates {
             let stairs_to_place = candidates.len().min(max_stairs_per_floor);

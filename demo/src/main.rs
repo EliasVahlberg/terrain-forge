@@ -284,7 +284,7 @@ fn generate_with_semantic_viz(
         // Group markers by type
         let mut marker_counts = std::collections::HashMap::new();
         for marker in &semantic.markers {
-            *marker_counts.entry(&marker.tag).or_insert(0) += 1;
+            *marker_counts.entry(marker.tag()).or_insert(0) += 1;
         }
 
         println!("  Marker types:");

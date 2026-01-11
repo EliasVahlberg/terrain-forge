@@ -4,7 +4,9 @@
 //! from the generation algorithms. This allows semantic analysis of maps from
 //! any source - TerrainForge algorithms, pipelines, or external systems.
 
-use crate::semantic::{ConnectivityGraph, Marker, MarkerType, Masks, Region, SemanticConfig, SemanticLayers};
+use crate::semantic::{
+    ConnectivityGraph, Marker, MarkerType, Masks, Region, SemanticConfig, SemanticLayers,
+};
 use crate::{Grid, Rng, Tile};
 use std::collections::HashMap;
 
@@ -114,9 +116,13 @@ impl SemanticExtractor {
                     if rng.random() < (*weight as f64) {
                         if let Some(position) = self.find_marker_position(region, &markers, rng) {
                             markers.push(
-                                Marker::new(position.0, position.1, MarkerType::Custom(marker_type.clone()))
-                                    .with_region(region.id)
-                                    .with_weight(*weight),
+                                Marker::new(
+                                    position.0,
+                                    position.1,
+                                    MarkerType::Custom(marker_type.clone()),
+                                )
+                                .with_region(region.id)
+                                .with_weight(*weight),
                             );
                         }
                     }
