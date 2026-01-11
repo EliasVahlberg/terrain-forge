@@ -1,8 +1,8 @@
 //! PNG and text rendering
 
 use image::{ImageBuffer, Rgb, RgbImage};
-use terrain_forge::{Grid, Tile, SemanticLayers};
 use std::collections::HashMap;
+use terrain_forge::{Grid, SemanticLayers, Tile};
 
 const FLOOR_COLOR: Rgb<u8> = Rgb([200, 200, 200]);
 const WALL_COLOR: Rgb<u8> = Rgb([40, 40, 40]);
@@ -323,11 +323,15 @@ pub fn render_regions_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbIm
 }
 
 /// Render regions as colored PNG with scaling
-pub fn render_regions_png_scaled(grid: &Grid<Tile>, semantic: &SemanticLayers, scale: u32) -> RgbImage {
+pub fn render_regions_png_scaled(
+    grid: &Grid<Tile>,
+    semantic: &SemanticLayers,
+    scale: u32,
+) -> RgbImage {
     let width = grid.width() as u32 * scale;
     let height = grid.height() as u32 * scale;
     let mut img = ImageBuffer::new(width, height);
-    
+
     // Create region lookup map
     let mut region_map = HashMap::new();
     for region in &semantic.regions {
@@ -335,7 +339,7 @@ pub fn render_regions_png_scaled(grid: &Grid<Tile>, semantic: &SemanticLayers, s
             region_map.insert((x as usize, y as usize), &region.kind);
         }
     }
-    
+
     for (x, y, tile) in grid.iter() {
         let color = if tile.is_wall() {
             WALL_COLOR
@@ -356,7 +360,7 @@ pub fn render_regions_png_scaled(grid: &Grid<Tile>, semantic: &SemanticLayers, s
         } else {
             FLOOR_COLOR
         };
-        
+
         // Fill scaled block
         for dx in 0..scale {
             for dy in 0..scale {
@@ -364,26 +368,26 @@ pub fn render_regions_png_scaled(grid: &Grid<Tile>, semantic: &SemanticLayers, s
             }
         }
     }
-    
+
     img
 }
 
 /// Render masks as colored PNG
 pub fn render_masks_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImage {
     let mut img = ImageBuffer::new(grid.width() as u32, grid.height() as u32);
-    
+
     for (x, y, tile) in grid.iter() {
         let color = if tile.is_wall() {
             WALL_COLOR
         } else {
             // Check masks
-            let walkable = y < semantic.masks.walkable.len() && 
-                          x < semantic.masks.walkable[y].len() && 
-                          semantic.masks.walkable[y][x];
-            let no_spawn = y < semantic.masks.no_spawn.len() && 
-                          x < semantic.masks.no_spawn[y].len() && 
-                          semantic.masks.no_spawn[y][x];
-            
+            let walkable = y < semantic.masks.walkable.len()
+                && x < semantic.masks.walkable[y].len()
+                && semantic.masks.walkable[y][x];
+            let no_spawn = y < semantic.masks.no_spawn.len()
+                && x < semantic.masks.no_spawn[y].len()
+                && semantic.masks.no_spawn[y][x];
+
             if no_spawn {
                 NO_SPAWN_COLOR
             } else if walkable {
@@ -394,14 +398,14 @@ pub fn render_masks_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImag
         };
         img.put_pixel(x as u32, y as u32, color);
     }
-    
+
     img
 }
 
 /// Render connectivity graph as PNG with region connections
 pub fn render_connectivity_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImage {
     let mut img = render_regions_png(grid, semantic);
-    
+
     // Create region center map
     let mut region_centers = HashMap::new();
     for region in &semantic.regions {
@@ -413,27 +417,36 @@ pub fn render_connectivity_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> 
             region_centers.insert(region.id, center);
         }
     }
-    
+
     // Draw connectivity edges
     for &(from, to) in &semantic.connectivity.edges {
-        if let (Some(&(x1, y1)), Some(&(x2, y2))) = 
-            (region_centers.get(&from), region_centers.get(&to)) {
+        if let (Some(&(x1, y1)), Some(&(x2, y2))) =
+            (region_centers.get(&from), region_centers.get(&to))
+        {
             draw_line(&mut img, x1, y1, x2, y2, CONNECTIVITY_COLOR);
         }
     }
-    
+
     // Draw region centers
     for &(x, y) in region_centers.values() {
         if x < img.width() && y < img.height() {
             img.put_pixel(x, y, CONNECTIVITY_COLOR);
             // Draw a small cross
-            if x > 0 { img.put_pixel(x - 1, y, CONNECTIVITY_COLOR); }
-            if x < img.width() - 1 { img.put_pixel(x + 1, y, CONNECTIVITY_COLOR); }
-            if y > 0 { img.put_pixel(x, y - 1, CONNECTIVITY_COLOR); }
-            if y < img.height() - 1 { img.put_pixel(x, y + 1, CONNECTIVITY_COLOR); }
+            if x > 0 {
+                img.put_pixel(x - 1, y, CONNECTIVITY_COLOR);
+            }
+            if x < img.width() - 1 {
+                img.put_pixel(x + 1, y, CONNECTIVITY_COLOR);
+            }
+            if y > 0 {
+                img.put_pixel(x, y - 1, CONNECTIVITY_COLOR);
+            }
+            if y < img.height() - 1 {
+                img.put_pixel(x, y + 1, CONNECTIVITY_COLOR);
+            }
         }
     }
-    
+
     img
 }
 
@@ -444,17 +457,19 @@ fn draw_line(img: &mut RgbImage, x1: u32, y1: u32, x2: u32, y2: u32, color: Rgb<
     let sx = if x1 < x2 { 1 } else { -1 };
     let sy = if y1 < y2 { 1 } else { -1 };
     let mut err = dx - dy;
-    
+
     let mut x = x1 as i32;
     let mut y = y1 as i32;
-    
+
     loop {
         if x >= 0 && y >= 0 && (x as u32) < img.width() && (y as u32) < img.height() {
             img.put_pixel(x as u32, y as u32, color);
         }
-        
-        if x == x2 as i32 && y == y2 as i32 { break; }
-        
+
+        if x == x2 as i32 && y == y2 as i32 {
+            break;
+        }
+
         let e2 = 2 * err;
         if e2 > -dy {
             err -= dy;

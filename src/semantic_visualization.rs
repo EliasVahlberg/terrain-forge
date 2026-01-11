@@ -3,7 +3,7 @@
 //! Provides functions to visualize regions, masks, connectivity graphs,
 //! and other semantic information for debugging and analysis.
 
-use crate::semantic::{SemanticLayers, ConnectivityGraph, Masks};
+use crate::semantic::{ConnectivityGraph, Masks, SemanticLayers};
 use crate::{Grid, Tile};
 use std::collections::HashMap;
 
@@ -37,7 +37,7 @@ impl Default for VisualizationConfig {
         region_chars.insert("Junction".to_string(), 'J');
         region_chars.insert("Corridor".to_string(), '-');
         region_chars.insert("DeadEnd".to_string(), 'D');
-        
+
         Self {
             region_chars,
             default_region_char: '?',
@@ -50,9 +50,13 @@ impl Default for VisualizationConfig {
 }
 
 /// Visualize regions overlaid on the grid
-pub fn visualize_regions(grid: &Grid<Tile>, semantic: &SemanticLayers, config: &VisualizationConfig) -> String {
+pub fn visualize_regions(
+    grid: &Grid<Tile>,
+    semantic: &SemanticLayers,
+    config: &VisualizationConfig,
+) -> String {
     let mut output = String::new();
-    
+
     // Create region lookup map
     let mut region_map = HashMap::new();
     for region in &semantic.regions {
@@ -60,7 +64,7 @@ pub fn visualize_regions(grid: &Grid<Tile>, semantic: &SemanticLayers, config: &
             region_map.insert((x as usize, y as usize), region);
         }
     }
-    
+
     // Generate visualization
     for y in 0..grid.height() {
         for x in 0..grid.width() {
@@ -70,7 +74,10 @@ pub fn visualize_regions(grid: &Grid<Tile>, semantic: &SemanticLayers, config: &
                 if config.show_region_ids {
                     std::char::from_digit(region.id % 10, 10).unwrap_or('*')
                 } else {
-                    *config.region_chars.get(&region.kind).unwrap_or(&config.default_region_char)
+                    *config
+                        .region_chars
+                        .get(&region.kind)
+                        .unwrap_or(&config.default_region_char)
                 }
             } else {
                 config.floor_char
@@ -79,19 +86,23 @@ pub fn visualize_regions(grid: &Grid<Tile>, semantic: &SemanticLayers, config: &
         }
         output.push('\n');
     }
-    
+
     output
 }
 
 /// Visualize spatial masks
 pub fn visualize_masks(grid: &Grid<Tile>, masks: &Masks) -> String {
     let mut output = String::new();
-    
+
     output.push_str("=== WALKABLE MASK ===\n");
     for y in 0..grid.height() {
         for x in 0..grid.width() {
             let char = if y < masks.walkable.len() && x < masks.walkable[y].len() {
-                if masks.walkable[y][x] { '.' } else { '#' }
+                if masks.walkable[y][x] {
+                    '.'
+                } else {
+                    '#'
+                }
             } else {
                 '?'
             };
@@ -99,12 +110,16 @@ pub fn visualize_masks(grid: &Grid<Tile>, masks: &Masks) -> String {
         }
         output.push('\n');
     }
-    
+
     output.push_str("\n=== NO-SPAWN MASK ===\n");
     for y in 0..grid.height() {
         for x in 0..grid.width() {
             let char = if y < masks.no_spawn.len() && x < masks.no_spawn[y].len() {
-                if masks.no_spawn[y][x] { 'X' } else { '.' }
+                if masks.no_spawn[y][x] {
+                    'X'
+                } else {
+                    '.'
+                }
             } else {
                 '?'
             };
@@ -112,40 +127,43 @@ pub fn visualize_masks(grid: &Grid<Tile>, masks: &Masks) -> String {
         }
         output.push('\n');
     }
-    
+
     output
 }
 
 /// Visualize connectivity graph as text
 pub fn visualize_connectivity_graph(connectivity: &ConnectivityGraph) -> String {
     let mut output = String::new();
-    
+
     output.push_str("=== CONNECTIVITY GRAPH ===\n");
     output.push_str(&format!("Regions: {:?}\n", connectivity.regions));
     output.push_str(&format!("Edges: {:?}\n", connectivity.edges));
-    
+
     // Create adjacency representation
     let mut adjacencies: HashMap<u32, Vec<u32>> = HashMap::new();
     for &region_id in &connectivity.regions {
         adjacencies.insert(region_id, Vec::new());
     }
-    
+
     for &(from, to) in &connectivity.edges {
         adjacencies.entry(from).or_default().push(to);
         adjacencies.entry(to).or_default().push(from);
     }
-    
+
     output.push_str("\n=== ADJACENCY LIST ===\n");
     for (&region_id, neighbors) in &adjacencies {
-        output.push_str(&format!("Region {}: connected to {:?}\n", region_id, neighbors));
+        output.push_str(&format!(
+            "Region {}: connected to {:?}\n",
+            region_id, neighbors
+        ));
     }
-    
+
     // Simple graph visualization
     output.push_str("\n=== GRAPH STRUCTURE ===\n");
     for &(from, to) in &connectivity.edges {
         output.push_str(&format!("{} -- {}\n", from, to));
     }
-    
+
     output
 }
 
@@ -153,16 +171,18 @@ pub fn visualize_connectivity_graph(connectivity: &ConnectivityGraph) -> String 
 pub fn visualize_semantic_layers(grid: &Grid<Tile>, semantic: &SemanticLayers) -> String {
     let mut output = String::new();
     let config = VisualizationConfig::default();
-    
+
     output.push_str("=== SEMANTIC LAYERS VISUALIZATION ===\n\n");
-    
+
     // Basic statistics
     output.push_str(&format!("Regions: {}\n", semantic.regions.len()));
     output.push_str(&format!("Markers: {}\n", semantic.markers.len()));
-    output.push_str(&format!("Connectivity: {} regions, {} edges\n\n", 
-                            semantic.connectivity.regions.len(), 
-                            semantic.connectivity.edges.len()));
-    
+    output.push_str(&format!(
+        "Connectivity: {} regions, {} edges\n\n",
+        semantic.connectivity.regions.len(),
+        semantic.connectivity.edges.len()
+    ));
+
     // Region breakdown
     let mut region_counts = HashMap::new();
     for region in &semantic.regions {
@@ -173,7 +193,7 @@ pub fn visualize_semantic_layers(grid: &Grid<Tile>, semantic: &SemanticLayers) -
         output.push_str(&format!("  {}: {}\n", kind, count));
     }
     output.push('\n');
-    
+
     // Marker breakdown
     let mut marker_counts = HashMap::new();
     for marker in &semantic.markers {
@@ -184,7 +204,7 @@ pub fn visualize_semantic_layers(grid: &Grid<Tile>, semantic: &SemanticLayers) -
         output.push_str(&format!("  {}: {}\n", tag, count));
     }
     output.push('\n');
-    
+
     // Region visualization
     output.push_str("=== REGION MAP ===\n");
     output.push_str("Legend: ");
@@ -193,18 +213,21 @@ pub fn visualize_semantic_layers(grid: &Grid<Tile>, semantic: &SemanticLayers) -
             output.push_str(&format!("{}={} ", char, kind));
         }
     }
-    output.push_str(&format!("{}=Wall {}=Floor\n", config.wall_char, config.floor_char));
+    output.push_str(&format!(
+        "{}=Wall {}=Floor\n",
+        config.wall_char, config.floor_char
+    ));
     output.push('\n');
     output.push_str(&visualize_regions(grid, semantic, &config));
-    
+
     // Connectivity graph
     output.push('\n');
     output.push_str(&visualize_connectivity_graph(&semantic.connectivity));
-    
+
     // Masks
     output.push('\n');
     output.push_str(&visualize_masks(grid, &semantic.masks));
-    
+
     output
 }
 

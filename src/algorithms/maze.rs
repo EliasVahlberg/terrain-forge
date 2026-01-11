@@ -102,4 +102,3 @@ fn carve_between(grid: &mut Grid<Tile>, x1: usize, y1: usize, x2: usize, y2: usi
         }
     }
 }
-

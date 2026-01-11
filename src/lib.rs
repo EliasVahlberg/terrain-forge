@@ -92,30 +92,31 @@ pub mod noise;
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};
 pub use rng::Rng;
-pub use semantic::{
-    ConnectivityGraph, Marker, Masks, Region, SemanticConfig, SemanticLayers,
-};
-pub use semantic_extractor::{SemanticExtractor, extract_semantics, extract_semantics_default};
+pub use semantic::{ConnectivityGraph, Marker, Masks, Region, SemanticConfig, SemanticLayers};
+pub use semantic_extractor::{extract_semantics, extract_semantics_default, SemanticExtractor};
 pub use semantic_visualization::{
-    visualize_regions, visualize_masks, visualize_connectivity_graph, 
-    visualize_semantic_layers, visualize_region_ids, VisualizationConfig
+    visualize_connectivity_graph, visualize_masks, visualize_region_ids, visualize_regions,
+    visualize_semantic_layers, VisualizationConfig,
 };
 
 /// Generate a map with semantic layers using the new extraction approach
-/// 
+///
 /// **DEPRECATED**: This function is provided for backward compatibility.
 /// For new code, use the decoupled `SemanticExtractor` approach:
-/// 
+///
 /// ```rust
 /// // Instead of this:
 /// let (grid, semantic) = generate_with_semantic_tuple("cellular", 80, 60, 12345);
-/// 
+///
 /// // Use this:
 /// let mut grid = Grid::new(80, 60);
 /// algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
 /// let semantic = SemanticExtractor::for_caves().extract(&grid, &mut Rng::new(12345));
 /// ```
-#[deprecated(since = "0.3.0", note = "Use decoupled SemanticExtractor for better flexibility")]
+#[deprecated(
+    since = "0.3.0",
+    note = "Use decoupled SemanticExtractor for better flexibility"
+)]
 pub fn generate_with_semantic(
     algorithm_name: &str,
     width: usize,
@@ -137,7 +138,7 @@ pub fn generate_with_semantic(
         "maze" => SemanticExtractor::for_mazes(),
         _ => SemanticExtractor::default(),
     };
-    
+
     let semantic = extractor.extract(&grid, &mut rng);
 
     (grid, Some(semantic))

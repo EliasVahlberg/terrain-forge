@@ -108,7 +108,6 @@ impl Algorithm<Tile> for RoomAccretion {
     }
 }
 
-
 fn place_room(grid: &mut Grid<Tile>, template: &RoomTemplate, cx: usize, cy: usize, rng: &mut Rng) {
     match template {
         RoomTemplate::Rectangle { min, max } => {

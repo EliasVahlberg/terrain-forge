@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::{generate_with_semantic, Rng, SemanticExtractor};
     use crate::semantic::SemanticConfig;
+    use crate::{generate_with_semantic, Rng, SemanticExtractor};
 
     #[test]
     fn test_semantic_generation() {
@@ -24,8 +24,11 @@ mod tests {
             // Should have connectivity
             assert!(!semantic.connectivity.regions.is_empty());
 
-            println!("Generated {} regions and {} markers", 
-                semantic.regions.len(), semantic.markers.len());
+            println!(
+                "Generated {} regions and {} markers",
+                semantic.regions.len(),
+                semantic.markers.len()
+            );
         }
     }
 
@@ -34,8 +37,11 @@ mod tests {
         let (_tiles, semantic) = generate_with_semantic("room_accretion", 60, 40, 54321);
 
         if let Some(semantic) = semantic {
-            println!("Room accretion: {} regions, {} markers", 
-                semantic.regions.len(), semantic.markers.len());
+            println!(
+                "Room accretion: {} regions, {} markers",
+                semantic.regions.len(),
+                semantic.markers.len()
+            );
             assert!(!semantic.regions.is_empty());
         }
     }
@@ -45,19 +51,25 @@ mod tests {
         let (_tiles, semantic) = generate_with_semantic("bsp", 60, 40, 98765);
 
         if let Some(semantic) = semantic {
-            println!("BSP detailed: {} regions, {} markers", 
-                semantic.regions.len(), semantic.markers.len());
-            
+            println!(
+                "BSP detailed: {} regions, {} markers",
+                semantic.regions.len(),
+                semantic.markers.len()
+            );
+
             // BSP should create structured regions
             for region in &semantic.regions {
-                println!("Region {}: {} with {} cells", 
-                    region.id, region.kind, region.cells.len());
+                println!(
+                    "Region {}: {} with {} cells",
+                    region.id,
+                    region.kind,
+                    region.cells.len()
+                );
             }
-            
+
             // Should have markers
             for marker in &semantic.markers {
-                println!("Marker: {} at ({}, {})", 
-                    marker.tag, marker.x, marker.y);
+                println!("Marker: {} at ({}, {})", marker.tag, marker.x, marker.y);
             }
         }
     }
@@ -67,9 +79,12 @@ mod tests {
         let (_tiles, semantic) = generate_with_semantic("cellular", 60, 40, 11111);
 
         if let Some(semantic) = semantic {
-            println!("Cellular: {} regions, {} markers", 
-                semantic.regions.len(), semantic.markers.len());
-            
+            println!(
+                "Cellular: {} regions, {} markers",
+                semantic.regions.len(),
+                semantic.markers.len()
+            );
+
             // Cellular should create organic regions
             assert!(!semantic.regions.is_empty());
         }
@@ -80,9 +95,12 @@ mod tests {
         let (_tiles, semantic) = generate_with_semantic("rooms", 60, 40, 22222);
 
         if let Some(semantic) = semantic {
-            println!("Rooms: {} regions, {} markers", 
-                semantic.regions.len(), semantic.markers.len());
-            
+            println!(
+                "Rooms: {} regions, {} markers",
+                semantic.regions.len(),
+                semantic.markers.len()
+            );
+
             // Rooms should create structured regions
             assert!(!semantic.regions.is_empty());
         }
@@ -93,9 +111,12 @@ mod tests {
         let (_tiles, semantic) = generate_with_semantic("maze", 60, 40, 33333);
 
         if let Some(semantic) = semantic {
-            println!("Maze: {} regions, {} markers", 
-                semantic.regions.len(), semantic.markers.len());
-            
+            println!(
+                "Maze: {} regions, {} markers",
+                semantic.regions.len(),
+                semantic.markers.len()
+            );
+
             // Maze should create path-based regions
             assert!(!semantic.regions.is_empty());
         }
@@ -103,65 +124,77 @@ mod tests {
 
     #[test]
     fn test_configurable_semantic_system() {
-        use crate::{Algorithm, Grid};
         use crate::algorithms::CellularAutomata;
-        
+        use crate::{Algorithm, Grid};
+
         // Generate a grid first
         let mut rng = Rng::new(12345);
         let mut grid = Grid::new(60, 40);
         let algorithm = CellularAutomata::default();
         algorithm.generate(&mut grid, 12345);
-        
+
         // Create custom semantic configuration
         let custom_config = SemanticConfig::cave_system();
-        
+
         // Extract semantics using the decoupled system
         let extractor = SemanticExtractor::new(custom_config);
         let semantic = extractor.extract(&grid, &mut rng);
-        
-        println!("Configurable system: {} regions, {} markers", 
-            semantic.regions.len(), semantic.markers.len());
-        
+
+        println!(
+            "Configurable system: {} regions, {} markers",
+            semantic.regions.len(),
+            semantic.markers.len()
+        );
+
         // Should have connectivity data
         assert!(!semantic.connectivity.regions.is_empty());
     }
 
     #[test]
     fn test_algorithm_specific_configs() {
-        use crate::{Algorithm, Grid};
         use crate::algorithms::CellularAutomata;
-        
+        use crate::{Algorithm, Grid};
+
         // Test cave system configuration
         let mut rng = Rng::new(54321);
         let mut grid = Grid::new(40, 30);
         let algorithm = CellularAutomata::default();
         algorithm.generate(&mut grid, 54321);
-        
+
         let cave_config = SemanticConfig::cave_system();
         let extractor = SemanticExtractor::new(cave_config);
         let semantic = extractor.extract(&grid, &mut rng);
-        
-        println!("Cave system: {} regions, {} markers", 
-            semantic.regions.len(), semantic.markers.len());
-        
+
+        println!(
+            "Cave system: {} regions, {} markers",
+            semantic.regions.len(),
+            semantic.markers.len()
+        );
+
         // Cave system should generate regions and markers
         assert!(!semantic.regions.is_empty());
         assert!(!semantic.markers.is_empty());
-        
+
         // Test room system configuration
         let room_config = SemanticConfig::room_system();
         let extractor = SemanticExtractor::new(room_config);
         let semantic = extractor.extract(&grid, &mut rng);
-        
-        println!("Room system: {} regions, {} markers", 
-            semantic.regions.len(), semantic.markers.len());
-        
+
+        println!(
+            "Room system: {} regions, {} markers",
+            semantic.regions.len(),
+            semantic.markers.len()
+        );
+
         // Test maze system configuration
         let maze_config = SemanticConfig::maze_system();
         let extractor = SemanticExtractor::new(maze_config);
         let semantic = extractor.extract(&grid, &mut rng);
-        
-        println!("Maze system: {} regions, {} markers", 
-            semantic.regions.len(), semantic.markers.len());
+
+        println!(
+            "Maze system: {} regions, {} markers",
+            semantic.regions.len(),
+            semantic.markers.len()
+        );
     }
 }

@@ -101,7 +101,7 @@ impl SemanticConfig {
             },
         }
     }
-    
+
     /// Configuration optimized for structured rooms
     pub fn room_system() -> Self {
         Self {
@@ -133,7 +133,7 @@ impl SemanticConfig {
             },
         }
     }
-    
+
     /// Configuration optimized for maze systems
     pub fn maze_system() -> Self {
         Self {

@@ -100,7 +100,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             cfg.seed = Some(seed);
 
             if semantic || regions || masks || connectivity {
-                generate_with_semantic_viz(&cfg, seed, &output, text, regions, masks, connectivity)?;
+                generate_with_semantic_viz(
+                    &cfg,
+                    seed,
+                    &output,
+                    text,
+                    regions,
+                    masks,
+                    connectivity,
+                )?;
             } else {
                 let (grid, elapsed) = generate(&cfg, seed);
 
@@ -130,7 +138,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let seed = seed.or(cfg.seed).unwrap_or_else(random_seed);
 
             if semantic || regions || masks || connectivity {
-                generate_with_semantic_viz(&cfg, seed, &output, text, regions, masks, connectivity)?;
+                generate_with_semantic_viz(
+                    &cfg,
+                    seed,
+                    &output,
+                    text,
+                    regions,
+                    masks,
+                    connectivity,
+                )?;
             } else {
                 let (grid, elapsed) = generate(&cfg, seed);
 
@@ -224,7 +240,7 @@ fn generate_with_semantic_viz(
         // For pipelines/layers, generate first then extract semantics
         let (grid, _) = generate(cfg, seed);
         let mut rng = terrain_forge::Rng::new(seed);
-        
+
         // Use cellular config for complex pipelines (most likely to have interesting regions)
         let extractor = terrain_forge::SemanticExtractor::for_caves();
         let semantic = extractor.extract(&grid, &mut rng);
