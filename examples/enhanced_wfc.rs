@@ -1,9 +1,9 @@
 //! Enhanced Wave Function Collapse Demo
-//! 
+//!
 //! Demonstrates pattern learning, backtracking, and constraint propagation
 
 use terrain_forge::{
-    algorithms::{Wfc, WfcConfig, WfcPatternExtractor, Bsp},
+    algorithms::{Bsp, Wfc, WfcConfig, WfcPatternExtractor},
     Algorithm, Grid, Tile,
 };
 
@@ -15,7 +15,7 @@ fn main() {
     let mut example_grid = Grid::new(20, 15);
     let bsp = Bsp::default();
     bsp.generate(&mut example_grid, 54321);
-    
+
     print_grid(&example_grid, "Example Map");
 
     // Step 2: Extract patterns from example
@@ -49,11 +49,17 @@ fn main() {
     println!("\n5. Comparison:");
     let floors1 = grid1.count(|t| t.is_floor());
     let floors2 = grid2.count(|t| t.is_floor());
-    
-    println!("   Without backtracking: {} floors ({:.1}%)", 
-             floors1, 100.0 * floors1 as f32 / (grid1.width() * grid1.height()) as f32);
-    println!("   With backtracking: {} floors ({:.1}%)", 
-             floors2, 100.0 * floors2 as f32 / (grid2.width() * grid2.height()) as f32);
+
+    println!(
+        "   Without backtracking: {} floors ({:.1}%)",
+        floors1,
+        100.0 * floors1 as f32 / (grid1.width() * grid1.height()) as f32
+    );
+    println!(
+        "   With backtracking: {} floors ({:.1}%)",
+        floors2,
+        100.0 * floors2 as f32 / (grid2.width() * grid2.height()) as f32
+    );
 
     // Step 6: Different pattern sizes
     println!("\n6. Pattern Size Comparison:");
@@ -66,10 +72,14 @@ fn main() {
             enable_backtracking: true,
         });
         wfc.generate_with_patterns(&mut grid, patterns.clone(), 98765);
-        
+
         let floors = grid.count(|t| t.is_floor());
-        println!("   Pattern size {}: {} patterns, {} floors", 
-                 size, patterns.len(), floors);
+        println!(
+            "   Pattern size {}: {} patterns, {} floors",
+            size,
+            patterns.len(),
+            floors
+        );
     }
 
     println!("\n✅ Enhanced WFC demo complete!");

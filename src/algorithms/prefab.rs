@@ -65,11 +65,12 @@ impl Prefab {
     pub fn from_data(data: PrefabData) -> Self {
         let width = data.width;
         let height = data.height;
-        let tiles = data.pattern
+        let tiles = data
+            .pattern
             .iter()
             .flat_map(|row| row.chars().map(|c| c == '.'))
             .collect();
-        
+
         Self {
             name: data.name,
             width,
@@ -103,7 +104,7 @@ impl Prefab {
                 rotated_data[new_idx] = self.data[old_idx];
             }
         }
-        
+
         Self {
             name: format!("{}_rot90", self.name),
             width: self.height,
@@ -125,7 +126,7 @@ impl Prefab {
                 mirrored_data[new_idx] = self.data[old_idx];
             }
         }
-        
+
         Self {
             name: format!("{}_mirror_h", self.name),
             width: self.width,
@@ -147,7 +148,7 @@ impl Prefab {
                 mirrored_data[new_idx] = self.data[old_idx];
             }
         }
-        
+
         Self {
             name: format!("{}_mirror_v", self.name),
             width: self.width,
@@ -192,38 +193,42 @@ impl PrefabLibrary {
 
     pub fn add_prefab(&mut self, prefab: Prefab) {
         let index = self.prefabs.len();
-        
+
         for tag in &prefab.tags {
             self.by_tag.entry(tag.clone()).or_default().push(index);
         }
-        
+
         self.prefabs.push(prefab);
     }
 
     pub fn load_from_json<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn std::error::Error>> {
         let content = std::fs::read_to_string(path)?;
         let data: PrefabLibraryData = serde_json::from_str(&content)?;
-        
+
         let mut library = Self::new();
         for prefab_data in data.prefabs {
             library.add_prefab(Prefab::from_data(prefab_data));
         }
-        
+
         Ok(library)
     }
 
     pub fn save_to_json<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn std::error::Error>> {
         let data = PrefabLibraryData {
-            prefabs: self.prefabs.iter().map(|p| PrefabData {
-                name: p.name.clone(),
-                width: p.width,
-                height: p.height,
-                pattern: self.prefab_to_pattern(p),
-                weight: p.weight,
-                tags: p.tags.clone(),
-            }).collect(),
+            prefabs: self
+                .prefabs
+                .iter()
+                .map(|p| PrefabData {
+                    name: p.name.clone(),
+                    width: p.width,
+                    height: p.height,
+                    pattern: self.prefab_to_pattern(p),
+                    weight: p.weight,
+                    tags: p.tags.clone(),
+                })
+                .collect(),
         };
-        
+
         let content = serde_json::to_string_pretty(&data)?;
         std::fs::write(path, content)?;
         Ok(())
@@ -246,7 +251,8 @@ impl PrefabLibrary {
     }
 
     pub fn get_by_tag(&self, tag: &str) -> Vec<&Prefab> {
-        self.by_tag.get(tag)
+        self.by_tag
+            .get(tag)
             .map(|indices| indices.iter().map(|&i| &self.prefabs[i]).collect())
             .unwrap_or_default()
     }
@@ -280,7 +286,7 @@ impl PrefabLibrary {
 
     pub fn create_default() -> Self {
         let mut library = Self::new();
-        
+
         // Add some basic prefabs
         let mut room = Prefab::rect(5, 5);
         room.name = "small_room".to_string();
@@ -292,11 +298,7 @@ impl PrefabLibrary {
         corridor.tags = vec!["corridor".to_string()];
         library.add_prefab(corridor);
 
-        let mut cross = Prefab::new(&[
-            "#.#",
-            "...",
-            "#.#",
-        ]);
+        let mut cross = Prefab::new(&["#.#", "...", "#.#"]);
         cross.name = "cross".to_string();
         cross.tags = vec!["junction".to_string()];
         library.add_prefab(cross);
@@ -313,7 +315,7 @@ impl Default for PrefabLibrary {
 
 #[derive(Debug, Clone, Default)]
 pub struct PrefabTransform {
-    pub rotation: u8,  // 0, 1, 2, 3 for 0°, 90°, 180°, 270°
+    pub rotation: u8, // 0, 1, 2, 3 for 0°, 90°, 180°, 270°
     pub mirror_h: bool,
     pub mirror_v: bool,
 }
@@ -321,7 +323,7 @@ pub struct PrefabTransform {
 impl PrefabTransform {
     pub fn apply(&self, prefab: &Prefab) -> Prefab {
         let mut result = prefab.clone();
-        
+
         // Apply mirroring first
         if self.mirror_h {
             result = result.mirrored_horizontal();
@@ -329,18 +331,22 @@ impl PrefabTransform {
         if self.mirror_v {
             result = result.mirrored_vertical();
         }
-        
+
         // Apply rotation
         for _ in 0..self.rotation {
             result = result.rotated();
         }
-        
+
         result
     }
 
     pub fn random(rng: &mut Rng, allow_rotation: bool, allow_mirroring: bool) -> Self {
         Self {
-            rotation: if allow_rotation { rng.range(0, 4) as u8 } else { 0 },
+            rotation: if allow_rotation {
+                rng.range(0, 4) as u8
+            } else {
+                0
+            },
             mirror_h: allow_mirroring && rng.chance(0.5),
             mirror_v: allow_mirroring && rng.chance(0.5),
         }
@@ -385,9 +391,9 @@ impl Algorithm<Tile> for PrefabPlacer {
 
             // Apply random transformations
             let transform = PrefabTransform::random(
-                &mut rng, 
-                self.config.allow_rotation, 
-                self.config.allow_mirroring
+                &mut rng,
+                self.config.allow_rotation,
+                self.config.allow_mirroring,
             );
             let prefab = transform.apply(base_prefab);
 

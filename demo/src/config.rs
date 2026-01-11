@@ -199,14 +199,14 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 } else {
                     vec![Prefab::rect(5, 5)]
                 };
-                
+
                 // Convert Vec<Prefab> to PrefabLibrary
                 let mut library = PrefabLibrary::new();
                 for mut prefab in prefabs {
                     prefab.weight = 1.0;
                     library.add_prefab(prefab);
                 }
-                
+
                 Box::new(PrefabPlacer::new(
                     PrefabConfig {
                         max_prefabs: get_usize(params, "max_prefabs", 3),

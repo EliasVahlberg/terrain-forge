@@ -13,16 +13,16 @@ pub struct Graph {
 impl Graph {
     pub fn new(vertices: Vec<Point>, edges: Vec<Edge>) -> Self {
         let mut adjacency = HashMap::new();
-        
+
         for (i, _) in vertices.iter().enumerate() {
             adjacency.insert(i, Vec::new());
         }
-        
+
         for edge in &edges {
             adjacency.entry(edge.a).or_default().push(edge.b);
             adjacency.entry(edge.b).or_default().push(edge.a);
         }
-        
+
         Self {
             vertices,
             edges,
@@ -43,7 +43,10 @@ impl Graph {
     }
 
     pub fn neighbors(&self, vertex: usize) -> &[usize] {
-        self.adjacency.get(&vertex).map(|v| v.as_slice()).unwrap_or(&[])
+        self.adjacency
+            .get(&vertex)
+            .map(|v| v.as_slice())
+            .unwrap_or(&[])
     }
 
     pub fn is_connected(&self) -> bool {
@@ -126,7 +129,10 @@ impl Graph {
         let mut queue = std::collections::BinaryHeap::new();
 
         distances[start] = 0.0;
-        queue.push(State { cost: 0, vertex: start });
+        queue.push(State {
+            cost: 0,
+            vertex: start,
+        });
 
         while let Some(State { cost: _, vertex }) = queue.pop() {
             if visited.contains(&vertex) {
@@ -146,9 +152,9 @@ impl Graph {
                     if new_dist < distances[neighbor] {
                         distances[neighbor] = new_dist;
                         previous[neighbor] = Some(vertex);
-                        queue.push(State { 
+                        queue.push(State {
                             cost: (new_dist * 1000.0) as u32, // Scale for integer comparison
-                            vertex: neighbor 
+                            vertex: neighbor,
                         });
                     }
                 }
@@ -184,7 +190,7 @@ impl Graph {
         });
 
         let mut parent: Vec<usize> = (0..self.vertices.len()).collect();
-        
+
         fn find(parent: &mut [usize], x: usize) -> usize {
             if parent[x] != x {
                 parent[x] = find(parent, parent[x]);
@@ -203,11 +209,11 @@ impl Graph {
         for edge in edges {
             let root_a = find(&mut parent, edge.a);
             let root_b = find(&mut parent, edge.b);
-            
+
             if root_a != root_b {
                 mst_edges.push(edge);
                 union(&mut parent, edge.a, edge.b);
-                
+
                 if mst_edges.len() == self.vertices.len() - 1 {
                     break;
                 }
@@ -246,13 +252,13 @@ impl Graph {
         let sum: f32 = (0..self.vertices.len())
             .map(|i| self.clustering_coefficient(i))
             .sum();
-        
+
         sum / self.vertices.len() as f32
     }
 
     pub fn diameter(&self) -> f32 {
         let mut max_distance: f32 = 0.0;
-        
+
         for i in 0..self.vertices.len() {
             for j in (i + 1)..self.vertices.len() {
                 if let Some(path) = self.shortest_path(i, j) {
@@ -264,7 +270,7 @@ impl Graph {
                 }
             }
         }
-        
+
         max_distance
     }
 }
@@ -282,7 +288,7 @@ pub struct GraphAnalysis {
 impl GraphAnalysis {
     pub fn analyze(graph: &Graph) -> Self {
         let components = graph.connected_components();
-        
+
         Self {
             vertex_count: graph.vertex_count(),
             edge_count: graph.edge_count(),

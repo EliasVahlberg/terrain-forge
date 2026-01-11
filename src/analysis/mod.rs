@@ -3,5 +3,5 @@
 pub mod delaunay;
 pub mod graph;
 
-pub use delaunay::{DelaunayTriangulation, Point, Triangle, Edge, connect_rooms};
-pub use graph::{Graph, GraphAnalysis, analyze_room_connectivity};
+pub use delaunay::{connect_rooms, DelaunayTriangulation, Edge, Point, Triangle};
+pub use graph::{analyze_room_connectivity, Graph, GraphAnalysis};

@@ -84,6 +84,7 @@ mod semantic_visualization;
 mod semantic_tests;
 
 pub mod algorithms;
+pub mod analysis;
 pub mod compose;
 pub mod constraints;
 pub mod effects;
@@ -91,7 +92,6 @@ pub mod noise;
 pub mod pipeline;
 pub mod semantic;
 pub mod spatial;
-pub mod analysis;
 
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};

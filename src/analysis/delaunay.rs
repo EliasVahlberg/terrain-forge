@@ -41,13 +41,10 @@ impl Triangle {
         let pc = points[self.c];
 
         let d = 2.0 * (pa.x * (pb.y - pc.y) + pb.x * (pc.y - pa.y) + pc.x * (pa.y - pb.y));
-        
+
         if d.abs() < f32::EPSILON {
             // Degenerate triangle, return centroid
-            return Point::new(
-                (pa.x + pb.x + pc.x) / 3.0,
-                (pa.y + pb.y + pc.y) / 3.0,
-            );
+            return Point::new((pa.x + pb.x + pc.x) / 3.0, (pa.y + pb.y + pc.y) / 3.0);
         }
 
         let ux = (pa.x * pa.x + pa.y * pa.y) * (pb.y - pc.y)
@@ -106,11 +103,11 @@ impl DelaunayTriangulation {
             triangles: Vec::new(),
             edges: Vec::new(),
         };
-        
+
         if triangulation.points.len() >= 3 {
             triangulation.triangulate();
         }
-        
+
         triangulation
     }
 
@@ -131,11 +128,15 @@ impl DelaunayTriangulation {
         let super_b = self.points.len() + 1;
         let super_c = self.points.len() + 2;
 
-        self.points.push(Point::new(mid_x - 20.0 * delta_max, mid_y - delta_max));
-        self.points.push(Point::new(mid_x, mid_y + 20.0 * delta_max));
-        self.points.push(Point::new(mid_x + 20.0 * delta_max, mid_y - delta_max));
+        self.points
+            .push(Point::new(mid_x - 20.0 * delta_max, mid_y - delta_max));
+        self.points
+            .push(Point::new(mid_x, mid_y + 20.0 * delta_max));
+        self.points
+            .push(Point::new(mid_x + 20.0 * delta_max, mid_y - delta_max));
 
-        self.triangles.push(Triangle::new(super_a, super_b, super_c));
+        self.triangles
+            .push(Triangle::new(super_a, super_b, super_c));
 
         // Add points one by one
         for i in 0..super_a {
@@ -195,7 +196,9 @@ impl DelaunayTriangulation {
 
         // Remove triangles that contain super triangle vertices
         self.triangles.retain(|tri| {
-            !tri.contains_vertex(super_a) && !tri.contains_vertex(super_b) && !tri.contains_vertex(super_c)
+            !tri.contains_vertex(super_a)
+                && !tri.contains_vertex(super_b)
+                && !tri.contains_vertex(super_c)
         });
 
         // Remove super triangle points
@@ -238,10 +241,14 @@ impl DelaunayTriangulation {
 
         let mut mst_edges = Vec::new();
         let mut edges = self.edges.clone();
-        edges.sort_by(|a, b| a.length(&self.points).partial_cmp(&b.length(&self.points)).unwrap());
+        edges.sort_by(|a, b| {
+            a.length(&self.points)
+                .partial_cmp(&b.length(&self.points))
+                .unwrap()
+        });
 
         let mut parent: Vec<usize> = (0..self.points.len()).collect();
-        
+
         fn find(parent: &mut [usize], x: usize) -> usize {
             if parent[x] != x {
                 parent[x] = find(parent, parent[x]);
@@ -260,11 +267,11 @@ impl DelaunayTriangulation {
         for edge in edges {
             let root_a = find(&mut parent, edge.a);
             let root_b = find(&mut parent, edge.b);
-            
+
             if root_a != root_b {
                 mst_edges.push(edge);
                 union(&mut parent, edge.a, edge.b);
-                
+
                 if mst_edges.len() == self.points.len() - 1 {
                     break;
                 }
@@ -283,7 +290,7 @@ pub fn connect_rooms<C: Cell>(grid: &mut Grid<C>, room_centers: &[Point]) -> Vec
 
     let triangulation = DelaunayTriangulation::new(room_centers.to_vec());
     let mst = triangulation.minimum_spanning_tree();
-    
+
     // Draw connections on grid (simplified - just mark as passable)
     for edge in &mst {
         let start = triangulation.points[edge.a];
@@ -303,7 +310,7 @@ fn draw_line<C: Cell>(grid: &mut Grid<C>, start: Point, end: Point) {
         let t = i as f32 / steps as f32;
         let x = (start.x + t * (end.x - start.x)) as i32;
         let y = (start.y + t * (end.y - start.y)) as i32;
-        
+
         if let Some(cell) = grid.get_mut(x, y) {
             if !cell.is_passable() {
                 // This is a simplified approach - in practice you'd want to set to Floor
