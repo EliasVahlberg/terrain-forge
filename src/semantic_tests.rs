@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_configurable_semantic_system() {
-        use crate::{Algorithm, Grid, Tile};
+        use crate::{Algorithm, Grid};
         use crate::algorithms::CellularAutomata;
         
         // Generate a grid first
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_algorithm_specific_configs() {
-        use crate::{Algorithm, Grid, Tile};
+        use crate::{Algorithm, Grid};
         use crate::algorithms::CellularAutomata;
         
         // Test cave system configuration
