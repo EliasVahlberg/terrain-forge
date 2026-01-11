@@ -203,9 +203,9 @@ fn generate_with_semantic_viz(
         None => "unknown",
     };
 
-    let result = terrain_forge::generate_with_semantic(algorithm_name, cfg.width, cfg.height, seed);
+    let (tiles, semantic) = terrain_forge::generate_with_semantic(algorithm_name, cfg.width, cfg.height, seed);
 
-    if let Some(semantic) = &result.semantic {
+    if let Some(semantic) = &semantic {
         // Print semantic information
         println!("Semantic Analysis (seed: {}):", seed);
         println!("  Regions: {}", semantic.regions.len());
@@ -241,11 +241,11 @@ fn generate_with_semantic_viz(
 
     if text {
         let txt_path = output.replace(".png", ".txt");
-        let text_output = render::render_text_with_semantic(&result);
+        let text_output = render::render_text_with_semantic(&tiles, &semantic);
         render::save_text(&text_output, &txt_path)?;
         println!("Saved semantic visualization to {}", txt_path);
     } else {
-        let img = render::render_grid_with_semantic(&result);
+        let img = render::render_grid_with_semantic(&tiles, &semantic);
         render::save_png(&img, output)?;
         println!("Saved semantic visualization to {}", output);
     }

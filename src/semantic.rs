@@ -242,43 +242,6 @@ pub struct SemanticLayers {
     pub connectivity: ConnectivityGraph,
 }
 
-/// Extended generation result with semantic information
-/// 
-/// **DEPRECATED**: This struct is only used for backward compatibility with
-/// `generate_with_semantic()`. For new code, use the decoupled approach:
-/// 
-/// ```rust
-/// // OLD (coupled):
-/// let result = generate_with_semantic("cellular", 80, 60, 12345);
-/// 
-/// // NEW (decoupled):
-/// let mut grid = Grid::new(80, 60);
-/// algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
-/// let semantic = SemanticExtractor::for_caves().extract(&grid, &mut rng);
-/// ```
-#[derive(Debug)]
-#[deprecated(since = "0.3.0", note = "Use decoupled SemanticExtractor instead")]
-pub struct GenerationResult {
-    pub tiles: Grid<Tile>,
-    pub semantic: Option<SemanticLayers>,
-}
-
-impl GenerationResult {
-    pub fn new(tiles: Grid<Tile>) -> Self {
-        Self {
-            tiles,
-            semantic: None,
-        }
-    }
-
-    pub fn with_semantic(tiles: Grid<Tile>, semantic: SemanticLayers) -> Self {
-        Self {
-            tiles,
-            semantic: Some(semantic),
-        }
-    }
-}
-
 impl Region {
     pub fn new(id: u32, kind: impl Into<String>) -> Self {
         Self {

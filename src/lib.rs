@@ -93,7 +93,7 @@ pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};
 pub use rng::Rng;
 pub use semantic::{
-    ConnectivityGraph, GenerationResult, Marker, Masks, Region, SemanticConfig, SemanticLayers,
+    ConnectivityGraph, Marker, Masks, Region, SemanticConfig, SemanticLayers,
 };
 pub use semantic_extractor::{SemanticExtractor, extract_semantics, extract_semantics_default};
 pub use semantic_visualization::{
@@ -108,7 +108,7 @@ pub use semantic_visualization::{
 /// 
 /// ```rust
 /// // Instead of this:
-/// let result = generate_with_semantic("cellular", 80, 60, 12345);
+/// let (grid, semantic) = generate_with_semantic_tuple("cellular", 80, 60, 12345);
 /// 
 /// // Use this:
 /// let mut grid = Grid::new(80, 60);
@@ -121,7 +121,7 @@ pub fn generate_with_semantic(
     width: usize,
     height: usize,
     seed: u64,
-) -> GenerationResult {
+) -> (Grid<Tile>, Option<SemanticLayers>) {
     let mut grid = Grid::new(width, height);
     let mut rng = Rng::new(seed);
 
@@ -140,5 +140,5 @@ pub fn generate_with_semantic(
     
     let semantic = extractor.extract(&grid, &mut rng);
 
-    GenerationResult::with_semantic(grid, semantic)
+    (grid, Some(semantic))
 }

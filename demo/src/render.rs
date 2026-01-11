@@ -1,7 +1,7 @@
 //! PNG and text rendering
 
 use image::{ImageBuffer, Rgb, RgbImage};
-use terrain_forge::{GenerationResult, Grid, Tile};
+use terrain_forge::{Grid, Tile, SemanticLayers};
 
 const FLOOR_COLOR: Rgb<u8> = Rgb([200, 200, 200]);
 const WALL_COLOR: Rgb<u8> = Rgb([40, 40, 40]);
@@ -229,10 +229,10 @@ fn get_char_bitmap(c: char) -> Option<[u8; 7]> {
     })
 }
 
-pub fn render_grid_with_semantic(result: &GenerationResult) -> RgbImage {
-    let mut img = render_grid(&result.tiles);
+pub fn render_grid_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLayers>) -> RgbImage {
+    let mut img = render_grid(grid);
 
-    if let Some(semantic) = &result.semantic {
+    if let Some(semantic) = semantic {
         // Overlay markers
         for marker in &semantic.markers {
             let color = match marker.tag.as_str() {
@@ -251,19 +251,19 @@ pub fn render_grid_with_semantic(result: &GenerationResult) -> RgbImage {
     img
 }
 
-pub fn render_text_with_semantic(result: &GenerationResult) -> String {
+pub fn render_text_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLayers>) -> String {
     let mut out = String::new();
 
-    if let Some(semantic) = &result.semantic {
+    if let Some(semantic) = semantic {
         // Create marker lookup
         let mut marker_map = std::collections::HashMap::new();
         for marker in &semantic.markers {
             marker_map.insert((marker.x, marker.y), &marker.tag);
         }
 
-        for y in 0..result.tiles.height() {
-            for x in 0..result.tiles.width() {
-                let tile = result.tiles[(x, y)];
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                let tile = grid[(x, y)];
 
                 if let Some(tag) = marker_map.get(&(x as u32, y as u32)) {
                     // Show marker with specific character
@@ -283,7 +283,7 @@ pub fn render_text_with_semantic(result: &GenerationResult) -> String {
             out.push('\n');
         }
     } else {
-        out = render_text(&result.tiles);
+        out = render_text(grid);
     }
 
     out
