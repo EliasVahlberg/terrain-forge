@@ -1,8 +1,15 @@
 # TerrainForge API Reference
 
-*Version 0.3.0 - Now with Semantic Layers*
+*Version 0.4.0 - Pipeline Intelligence & Semantic Enhancements*
 
-**What's New in v0.3.0:**
+**What's New in v0.4.0:**
+- 🧠 **Pipeline Intelligence**: Conditional operations (if-then-else, while) with smart branching
+- 📋 **Template System**: Reusable pipeline configurations with parameter substitution  
+- 🎯 **Hierarchical Markers**: Quest objectives, loot tiers, encounter zones with priorities
+- 📊 **Requirement-Driven Generation**: Generate maps that meet specific semantic criteria
+- 🏗️ **Multi-Floor Support**: Vertical connectivity analysis with automatic stair placement
+
+**Previous Features (v0.3.0):**
 - 🎯 **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
 - 🏗️ **Room Accretion Algorithm**: Brogue-style organic dungeon generation  
 - 🎨 **Enhanced Demo Framework**: Semantic visualization with color-coded markers
@@ -540,44 +547,254 @@ let shortest_path = find_path_between_regions(
 );
 ```
 
+## NEW: Pipeline Intelligence (v0.4.0)
+
+### `ConditionalPipeline`
+
+Smart pipeline with conditional operations and branching logic.
+
+```rust
+use terrain_forge::pipeline::*;
+
+let mut pipeline = ConditionalPipeline::new();
+
+// Add simple operation
+pipeline.add_operation(ConditionalOperation::simple(
+    PipelineOperation::Algorithm { name: "bsp".to_string(), seed: Some(12345) }
+));
+
+// Add conditional operation
+pipeline.add_operation(ConditionalOperation::conditional(
+    PipelineOperation::Log { message: "Checking density".to_string() },
+    PipelineCondition::Density { min: Some(0.2), max: Some(0.6) },
+    vec![/* if_true operations */],
+    vec![/* if_false operations */]
+));
+
+// Execute pipeline
+let mut grid = Grid::new(40, 30);
+let mut context = PipelineContext::new();
+let mut rng = Rng::new(12345);
+let result = pipeline.execute(&mut grid, &mut context, &mut rng);
+```
+
+### `PipelineCondition`
+
+Conditions for pipeline branching.
+
+```rust
+// Grid property conditions
+PipelineCondition::FloorCount { min: Some(100), max: Some(500) }
+PipelineCondition::Density { min: Some(0.2), max: Some(0.8) }
+PipelineCondition::RegionCount { min: Some(3), max: Some(10) }
+PipelineCondition::Connected { required: true }
+
+// Custom condition
+PipelineCondition::Custom(|grid, context| {
+    grid.count(|t| t.is_floor()) > 200
+})
+```
+
+### `PipelineTemplate`
+
+Reusable pipeline configurations with parameter substitution.
+
+```rust
+let template = PipelineTemplate::new("dungeon", "Basic dungeon template")
+    .with_parameter("algorithm", "bsp")
+    .with_parameter("size", "medium")
+    .with_operation(ConditionalOperation::simple(
+        PipelineOperation::Algorithm { 
+            name: "{algorithm}".to_string(), 
+            seed: Some(12345) 
+        }
+    ));
+
+// Instantiate with custom parameters
+let mut params = std::collections::HashMap::new();
+params.insert("algorithm".to_string(), "cellular".to_string());
+let pipeline = template.instantiate(Some(params));
+```
+
+### `TemplateLibrary`
+
+Built-in template collection.
+
+```rust
+let library = TemplateLibrary::new();
+
+// Available templates: "simple_dungeon", "cave_system", "maze"
+let template = library.get_template("simple_dungeon").unwrap();
+let pipeline = template.instantiate(None);
+```
+
+## NEW: Hierarchical Markers (v0.4.0)
+
+### `MarkerType`
+
+Hierarchical marker types with categories and priorities.
+
+```rust
+use terrain_forge::semantic::*;
+
+// Quest markers
+MarkerType::QuestObjective { priority: 1 }  // High priority quest
+MarkerType::QuestStart
+MarkerType::QuestEnd
+
+// Loot markers  
+MarkerType::LootTier { tier: 3 }            // Tier 1-3 loot
+MarkerType::Treasure
+
+// Encounter markers
+MarkerType::EncounterZone { difficulty: 5 } // Difficulty 1-5
+MarkerType::BossRoom
+MarkerType::SafeZone
+
+// Custom markers (backward compatibility)
+MarkerType::Custom("custom_tag".to_string())
+
+// Get category
+marker_type.category() -> &'static str      // "quest", "loot", "encounter", "custom"
+```
+
+### `Marker`
+
+Enhanced marker with hierarchical types.
+
+```rust
+// Create markers
+let marker = Marker::new(x, y, MarkerType::QuestObjective { priority: 1 });
+let marker = Marker::with_tag(x, y, "custom".to_string()); // Backward compatibility
+
+// Access
+marker.tag() -> String                      // Get tag string representation
+marker.marker_type.category() -> &str       // Get category
+```
+
+### `MarkerConstraints`
+
+Placement rules for markers.
+
+```rust
+// Predefined constraints
+let constraints = MarkerConstraints::quest_objective(); // Min distance 10.0, excludes SafeZone
+let constraints = MarkerConstraints::loot();           // Min distance 5.0, excludes SafeZone
+
+// Custom constraints
+let constraints = MarkerConstraints {
+    min_distance_same: Some(8.0),
+    min_distance_any: Some(3.0),
+    exclude_types: vec![MarkerType::SafeZone],
+    require_nearby: vec![(MarkerType::QuestStart, 15.0)],
+    ..Default::default()
+};
+```
+
+## NEW: Requirement-Driven Generation (v0.4.0)
+
+### `SemanticRequirements`
+
+Requirements for map generation validation.
+
+```rust
+// Predefined requirements
+let requirements = SemanticRequirements::basic_dungeon(); // 3+ rooms, spawn + exit
+
+// Custom requirements
+let mut requirements = SemanticRequirements::none();
+requirements.min_regions.insert("room".to_string(), 5);
+requirements.required_markers.insert(MarkerType::LootTier { tier: 2 }, 3);
+requirements.min_walkable_area = Some(400);
+
+// Validate semantic layers
+let valid = requirements.validate(&semantic_layers);
+```
+
+### `generate_with_requirements()`
+
+Generate maps that meet specific requirements.
+
+```rust
+use terrain_forge::{generate_with_requirements, semantic::*};
+
+let requirements = SemanticRequirements::basic_dungeon();
+
+match generate_with_requirements("bsp", 60, 40, requirements, Some(10), 12345) {
+    Ok((grid, semantic)) => println!("✅ Generated valid map!"),
+    Err(msg) => println!("❌ Failed: {}", msg),
+}
+```
+
+## NEW: Multi-Floor Support (v0.4.0)
+
+### `VerticalConnectivity`
+
+Multi-floor stair placement analysis.
+
+```rust
+let floors = vec![floor1_grid, floor2_grid, floor3_grid];
+let mut connectivity = VerticalConnectivity::new();
+
+// Analyze stair candidates
+connectivity.analyze_stair_candidates(&floors, 2); // 2-tile clearance
+
+// Place stairs
+connectivity.place_stairs(3); // Max 3 stairs per floor pair
+
+// Access results
+println!("Candidates: {}", connectivity.stair_candidates.len());
+println!("Placed: {}", connectivity.stairs.len());
+
+for &(x, y, from_floor, to_floor) in &connectivity.stairs {
+    println!("Stair at ({}, {}) connects floor {} to {}", x, y, from_floor, to_floor);
+}
+```
+
 ## Example
 
 ```rust
 use terrain_forge::{Grid, Tile, Algorithm, algorithms, constraints};
 use terrain_forge::compose::Pipeline;
 use terrain_forge::effects;
-use terrain_forge::semantic::SemanticGenerator;
+use terrain_forge::semantic::*;
+use terrain_forge::pipeline::*;
 
 fn main() {
-    // Basic generation
-    let mut grid = Grid::new(80, 60);
-    let algo = algorithms::get("bsp").unwrap();
-    algo.generate(&mut grid, 12345);
+    // NEW: Pipeline Intelligence
+    let mut pipeline = ConditionalPipeline::new();
+    pipeline.add_operation(ConditionalOperation::simple(
+        PipelineOperation::Algorithm { name: "bsp".to_string(), seed: Some(12345) }
+    ));
+    pipeline.add_operation(ConditionalOperation::conditional(
+        PipelineOperation::Log { message: "Checking quality".to_string() },
+        PipelineCondition::Density { min: Some(0.2), max: Some(0.6) },
+        vec![ConditionalOperation::simple(PipelineOperation::SetParameter { 
+            key: "quality".to_string(), value: "good".to_string() 
+        })],
+        vec![ConditionalOperation::simple(PipelineOperation::SetParameter { 
+            key: "quality".to_string(), value: "poor".to_string() 
+        })]
+    ));
     
-    // NEW: Semantic generation
-    let mut semantic_grid = Grid::new(80, 60);
+    let mut grid = Grid::new(40, 30);
+    let mut context = PipelineContext::new();
     let mut rng = Rng::new(12345);
-    let bsp = terrain_forge::algorithms::Bsp::default();
-    bsp.generate(&mut semantic_grid, 12345);
-    let semantic = SemanticExtractor::for_rooms().extract(&mut semantic_grid, &mut rng);
+    let result = pipeline.execute(&mut grid, &mut context, &mut rng);
     
-    println!("Generated {} markers", semantic.markers.len());
-    println!("Found {} room centers", semantic.masks.room_centers.len());
-    println!("Connectivity graph has {} regions", semantic.connectivity.adjacencies.len());
+    // NEW: Hierarchical markers
+    let extractor = SemanticExtractor::for_rooms();
+    let mut semantic = extractor.extract(&grid, &mut rng);
+    semantic.markers.push(Marker::new(10, 10, MarkerType::QuestObjective { priority: 1 }));
+    semantic.markers.push(Marker::new(15, 15, MarkerType::LootTier { tier: 3 }));
     
-    // Pipeline composition
-    let mut grid2 = Grid::new(80, 60);
-    let pipeline = Pipeline::new()
-        .add(algorithms::get("cellular").unwrap())
-        .add(algorithms::get("glass_seam").unwrap());
-    pipeline.generate(&mut grid2, 42);
+    // NEW: Requirement validation
+    let mut requirements = SemanticRequirements::basic_dungeon();
+    requirements.required_markers.insert(MarkerType::LootTier { tier: 3 }, 1);
+    let valid = requirements.validate(&semantic);
     
-    // Post-process
-    effects::erode(&mut grid2, 1);
-    effects::bridge_gaps(&mut grid2, 5);
-    
-    // Validate
-    let connectivity = constraints::validate_connectivity(&grid2);
-    println!("Connectivity: {:.2}", connectivity);
+    println!("Pipeline quality: {}", context.get_parameter("quality").unwrap_or(&"unknown".to_string()));
+    println!("Requirements met: {}", valid);
+    println!("Generated {} hierarchical markers", semantic.markers.len());
 }
 ```

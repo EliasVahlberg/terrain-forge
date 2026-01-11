@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-01-11
+
+### Added
+- **🧠 Pipeline Intelligence** - Advanced conditional operations and smart branching
+  - `ConditionalPipeline` with if-then-else logic based on grid properties
+  - `PipelineCondition` enum for density, floor count, connectivity checks
+  - `PipelineContext` for inter-stage parameter passing and execution logging
+  - `StageResult` and `ParameterMap` for result aggregation from pipeline branches
+- **📋 Template System** - Reusable pipeline configurations with parameter substitution
+  - `PipelineTemplate` with `{placeholder}` syntax for dynamic parameters
+  - `TemplateLibrary` with built-in templates: simple_dungeon, cave_system, maze
+  - Template instantiation with custom parameter overrides
+- **🎯 Hierarchical Markers** - Enhanced marker system with categories and priorities
+  - `MarkerType` enum with quest objectives, loot tiers, encounter zones
+  - Quest markers: `QuestObjective { priority }`, `QuestStart`, `QuestEnd`
+  - Loot markers: `LootTier { tier }`, `Treasure`
+  - Encounter markers: `EncounterZone { difficulty }`, `BossRoom`, `SafeZone`
+  - `MarkerConstraints` for placement rules with proximity and exclusion logic
+- **📊 Requirement-Driven Generation** - Generate maps meeting specific criteria
+  - `SemanticRequirements` with region count, marker count, connectivity validation
+  - `generate_with_requirements()` function with automatic retry logic
+  - `basic_dungeon()` preset requirements for common use cases
+- **🏗️ Multi-Floor Support** - Vertical connectivity analysis and stair placement
+  - `VerticalConnectivity` for analyzing stair placement candidates
+  - Clearance validation and automatic stair placement between floors
+  - Support for 2+ floor dungeons with configurable stair limits
+- **📚 Comprehensive Examples** - 6 new demo examples showcasing all features
+  - `hierarchical_markers.rs` - Quest objectives, loot tiers, encounter zones
+  - `requirement_generation.rs` - Requirement-driven generation with validation
+  - `conditional_pipelines.rs` - If-then-else pipeline logic with conditions
+  - `pipeline_templates.rs` - Built-in and custom templates with parameters
+  - `vertical_connectivity.rs` - Multi-floor stair placement analysis
+  - `complete_workflow.rs` - End-to-end demo combining all new features
+
+### Changed
+- **Backward Compatibility** - Full compatibility maintained with v0.3.x APIs
+  - `Marker` struct updated with `marker_type: MarkerType` field
+  - `tag()` method provides backward-compatible string representation
+  - `Custom(String)` marker type preserves existing functionality
+- **Documentation** - Updated README and API docs with v0.4.0 features
+  - Added comprehensive examples for all new features
+  - Updated API reference with detailed usage patterns
+
+### Fixed
+- **CI/CD Compliance** - All formatting and linting issues resolved
+  - Fixed clippy warnings: `map_or` → `is_some_and`, `or_insert_with` → `or_default`
+  - Resolved demo code borrowing issues with marker tag access
+  - All 43 tests pass across all platforms (Ubuntu, macOS, Windows)
+
 ## [0.3.2] - 2026-01-11
 
 ### Added
