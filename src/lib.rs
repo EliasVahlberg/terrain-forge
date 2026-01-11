@@ -78,6 +78,7 @@ mod grid;
 mod rng;
 mod semantic;
 mod semantic_extractor;
+mod semantic_visualization;
 
 #[cfg(test)]
 mod semantic_tests;
@@ -95,8 +96,26 @@ pub use semantic::{
     ConnectivityGraph, GenerationResult, Marker, Masks, Region, SemanticConfig, SemanticLayers,
 };
 pub use semantic_extractor::{SemanticExtractor, extract_semantics, extract_semantics_default};
+pub use semantic_visualization::{
+    visualize_regions, visualize_masks, visualize_connectivity_graph, 
+    visualize_semantic_layers, visualize_region_ids, VisualizationConfig
+};
 
 /// Generate a map with semantic layers using the new extraction approach
+/// 
+/// **DEPRECATED**: This function is provided for backward compatibility.
+/// For new code, use the decoupled `SemanticExtractor` approach:
+/// 
+/// ```rust
+/// // Instead of this:
+/// let result = generate_with_semantic("cellular", 80, 60, 12345);
+/// 
+/// // Use this:
+/// let mut grid = Grid::new(80, 60);
+/// algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
+/// let semantic = SemanticExtractor::for_caves().extract(&grid, &mut Rng::new(12345));
+/// ```
+#[deprecated(since = "0.3.0", note = "Use decoupled SemanticExtractor for better flexibility")]
 pub fn generate_with_semantic(
     algorithm_name: &str,
     width: usize,
