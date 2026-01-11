@@ -1,8 +1,8 @@
 # <img src="terrain_forge_logo.png" alt="TerrainForge Logo" width="32" height="32" style="vertical-align: middle;"> TerrainForge
 
 <div align="center">
-  <img src="demo/output/showcase/hires/pipeline_epic.png" alt="Epic Pipeline Showcase">
-  <p><em>BSP → Cellular pipeline generating structured caves (240×180, 85 regions, 24 markers)</em></p>
+  <img src="demo/output/showcase/hires/pipeline_epic_large.png" alt="Epic Pipeline Showcase">
+  <p><em>BSP → Cellular pipeline generating structured caves (480×360, 426 regions, 119 markers)</em></p>
 </div>
 
 A modular procedural generation engine for terrain, dungeons, and maps in Rust.
