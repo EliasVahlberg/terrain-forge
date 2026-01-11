@@ -89,6 +89,7 @@ pub mod constraints;
 pub mod effects;
 pub mod semantic;
 pub mod noise;
+pub mod pipeline;
 
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};
