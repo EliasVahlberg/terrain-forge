@@ -25,6 +25,7 @@ cargo run -q -- gen percolation -s $SEED -o output/single/percolation.png
 cargo run -q -- gen diamond_square -s $SEED -o output/single/diamond_square.png
 cargo run -q -- gen fractal -s $SEED -o output/single/fractal.png
 cargo run -q -- gen agent -s $SEED -o output/single/agent.png
+cargo run -q -- gen room_accretion -s $SEED -o output/single/room_accretion.png
 
 echo ""
 echo "--- Compositions ---"
@@ -40,6 +41,10 @@ cargo run -q -- run configs/basic_bsp.json -o output/configs/basic_bsp.png
 cargo run -q -- run configs/dense_caves.json -o output/configs/dense_caves.png
 cargo run -q -- run configs/connected_dungeon.json -o output/configs/connected_dungeon.png
 cargo run -q -- run configs/saltglass_overworld.json -o output/configs/saltglass_overworld.png
+cargo run -q -- run configs/region_connectors.json -o output/configs/region_connectors.png
+cargo run -q -- run configs/room_accretion.json -o output/configs/room_accretion_config.png
+cargo run -q -- run configs/prefab_rotation.json -o output/configs/prefab_rotation.png
+cargo run -q -- run configs/brogue_style.json -o output/configs/brogue_style.png
 
 echo ""
 echo "--- Comparisons ---"

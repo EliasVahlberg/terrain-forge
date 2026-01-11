@@ -25,7 +25,7 @@ pub struct Config {
     
     // Post-processing
     #[serde(default)]
-    pub effects: Vec<String>,
+    pub effects: Vec<EffectSpec>,
     
     // Validation
     pub validate: Option<ValidationSpec>,
@@ -43,6 +43,16 @@ pub enum AlgorithmSpec {
         type_name: String,
         #[serde(flatten)]
         params: HashMap<String, serde_json::Value>,
+    },
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum EffectSpec {
+    Name(String),
+    WithParams {
+        name: String,
+        config: HashMap<String, serde_json::Value>,
     },
 }
 
@@ -149,6 +159,37 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                     steps_per_agent: get_usize(params, "steps_per_agent", 200),
                     turn_chance: get_f64(params, "turn_chance", 0.3),
                 })),
+                "room_accretion" => {
+                    let templates = if let Some(templates_val) = params.get("templates") {
+                        parse_room_templates(templates_val)
+                    } else {
+                        vec![
+                            RoomTemplate::Rectangle { min: 5, max: 10 },
+                            RoomTemplate::Circle { min_radius: 3, max_radius: 6 },
+                            RoomTemplate::Blob { size: 8, smoothing: 2 },
+                        ]
+                    };
+                    Box::new(RoomAccretion::new(RoomAccretionConfig {
+                        templates,
+                        max_rooms: get_usize(params, "max_rooms", 15),
+                        loop_chance: get_f64(params, "loop_chance", 0.1),
+                    }))
+                },
+                "prefab" => {
+                    let prefabs = if let Some(prefabs_val) = params.get("prefabs") {
+                        parse_prefabs(prefabs_val)
+                    } else {
+                        vec![Prefab::rect(5, 5)]
+                    };
+                    Box::new(PrefabPlacer::new(
+                        PrefabConfig {
+                            max_prefabs: get_usize(params, "max_prefabs", 3),
+                            min_spacing: get_usize(params, "min_spacing", 5),
+                            allow_rotation: params.get("allow_rotation").and_then(|v| v.as_bool()).unwrap_or(true),
+                        },
+                        prefabs
+                    ))
+                },
                 _ => algorithms::get(type_name).unwrap_or_else(|| Box::new(Bsp::default())),
             }
         }
@@ -172,16 +213,106 @@ fn get_f64(params: &HashMap<String, serde_json::Value>, key: &str, default: f64)
     params.get(key).and_then(|v| v.as_f64()).unwrap_or(default)
 }
 
-pub fn apply_effects(grid: &mut Grid<Tile>, effect_names: &[String]) {
-    for name in effect_names {
-        match name.as_str() {
-            "erode" => effects::erode(grid, 1),
-            "dilate" => effects::dilate(grid, 1),
-            "open" => effects::open(grid, 1),
-            "close" => effects::close(grid, 1),
-            "bridge_gaps" => { effects::bridge_gaps(grid, 5); }
-            "remove_dead_ends" => { effects::remove_dead_ends(grid, 3); }
-            _ => eprintln!("Unknown effect: {}", name),
+fn parse_room_templates(val: &serde_json::Value) -> Vec<RoomTemplate> {
+    let mut templates = Vec::new();
+    if let Some(array) = val.as_array() {
+        for item in array {
+            if let Some(obj) = item.as_object() {
+                if let Some(rect) = obj.get("Rectangle") {
+                    if let Some(rect_obj) = rect.as_object() {
+                        let min = rect_obj.get("min").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
+                        let max = rect_obj.get("max").and_then(|v| v.as_u64()).unwrap_or(10) as usize;
+                        templates.push(RoomTemplate::Rectangle { min, max });
+                    }
+                } else if let Some(circle) = obj.get("Circle") {
+                    if let Some(circle_obj) = circle.as_object() {
+                        let min_radius = circle_obj.get("min_radius").and_then(|v| v.as_u64()).unwrap_or(3) as usize;
+                        let max_radius = circle_obj.get("max_radius").and_then(|v| v.as_u64()).unwrap_or(6) as usize;
+                        templates.push(RoomTemplate::Circle { min_radius, max_radius });
+                    }
+                } else if let Some(blob) = obj.get("Blob") {
+                    if let Some(blob_obj) = blob.as_object() {
+                        let size = blob_obj.get("size").and_then(|v| v.as_u64()).unwrap_or(8) as usize;
+                        let smoothing = blob_obj.get("smoothing").and_then(|v| v.as_u64()).unwrap_or(2) as usize;
+                        templates.push(RoomTemplate::Blob { size, smoothing });
+                    }
+                }
+            }
+        }
+    }
+    if templates.is_empty() {
+        templates.push(RoomTemplate::Rectangle { min: 5, max: 10 });
+    }
+    templates
+}
+
+fn parse_prefabs(val: &serde_json::Value) -> Vec<Prefab> {
+    let mut prefabs = Vec::new();
+    if let Some(array) = val.as_array() {
+        for item in array {
+            if let Some(obj) = item.as_object() {
+                if let Some(pattern) = obj.get("pattern") {
+                    if let Some(pattern_array) = pattern.as_array() {
+                        let pattern_strs: Vec<&str> = pattern_array
+                            .iter()
+                            .filter_map(|v| v.as_str())
+                            .collect();
+                        if !pattern_strs.is_empty() {
+                            prefabs.push(Prefab::new(&pattern_strs));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if prefabs.is_empty() {
+        prefabs.push(Prefab::rect(5, 5));
+    }
+    prefabs
+}
+
+pub fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec]) {
+    for effect in effects {
+        match effect {
+            EffectSpec::Name(name) => {
+                match name.as_str() {
+                    "erode" => effects::erode(grid, 1),
+                    "dilate" => effects::dilate(grid, 1),
+                    "open" => effects::open(grid, 1),
+                    "close" => effects::close(grid, 1),
+                    "bridge_gaps" => { effects::bridge_gaps(grid, 5); }
+                    "remove_dead_ends" => { effects::remove_dead_ends(grid, 3); }
+                    "connect_regions_spanning" => {
+                        let mut rng = terrain_forge::Rng::new(42);
+                        effects::connect_regions_spanning(grid, 0.2, &mut rng);
+                    }
+                    _ => eprintln!("Unknown effect: {}", name),
+                }
+            }
+            EffectSpec::WithParams { name, config } => {
+                match name.as_str() {
+                    "connect_regions_spanning" => {
+                        let mut rng = terrain_forge::Rng::new(42);
+                        let chance = config.get("extra_connection_chance")
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(0.2);
+                        effects::connect_regions_spanning(grid, chance, &mut rng);
+                    }
+                    "erode" => {
+                        let iterations = config.get("iterations")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(1) as usize;
+                        effects::erode(grid, iterations);
+                    }
+                    "dilate" => {
+                        let iterations = config.get("iterations")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(1) as usize;
+                        effects::dilate(grid, iterations);
+                    }
+                    _ => eprintln!("Unknown effect: {}", name),
+                }
+            }
         }
     }
 }

@@ -1,0 +1,16 @@
+{
+  "algorithm": {
+    "type": "room_accretion",
+    "templates": [
+      { "Rectangle": { "min": 5, "max": 10 } },
+      { "Circle": { "min_radius": 3, "max_radius": 6 } },
+      { "Blob": { "size": 8, "smoothing": 2 } }
+    ],
+    "max_rooms": 12,
+    "loop_chance": 0.15
+  },
+  "validation": {
+    "connectivity": true,
+    "density": { "min": 0.25, "max": 0.6 }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "pipeline": [
+    {
+      "type": "bsp",
+      "min_room_size": 6,
+      "max_depth": 3
+    },
+    {
+      "type": "room_accretion",
+      "templates": [
+        { "Blob": { "size": 6, "smoothing": 3 } }
+      ],
+      "max_rooms": 5,
+      "loop_chance": 0.0
+    }
+  ],
+  "effects": [
+    {
+      "name": "connect_regions_spanning",
+      "config": {
+        "extra_connection_chance": 0.25
+      }
+    }
+  ],
+  "validation": {
+    "connectivity": true,
+    "density": { "min": 0.3, "max": 0.8 }
+  }
+}
