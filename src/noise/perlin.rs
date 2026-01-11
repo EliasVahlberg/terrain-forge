@@ -106,7 +106,11 @@ mod tests {
         for i in 0..100 {
             for j in 0..100 {
                 let v = noise.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!((-1.5..=1.5).contains(&v), "Value {} out of expected range", v);
+                assert!(
+                    (-1.5..=1.5).contains(&v),
+                    "Value {} out of expected range",
+                    v
+                );
             }
         }
     }

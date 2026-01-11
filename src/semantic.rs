@@ -146,9 +146,7 @@ impl Masks {
 
         for y in 0..tiles.height() {
             for x in 0..tiles.width() {
-                let walkable = tiles
-                    .get(x as i32, y as i32)
-                    .is_some_and(|t| t.is_floor());
+                let walkable = tiles.get(x as i32, y as i32).is_some_and(|t| t.is_floor());
                 masks.walkable[y][x] = walkable;
             }
         }
