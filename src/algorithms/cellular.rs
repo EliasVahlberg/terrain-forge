@@ -1,4 +1,3 @@
-use crate::semantic::{placement, Masks, SemanticConfig, SemanticGenerator, SemanticLayers};
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
@@ -93,27 +92,4 @@ fn count_neighbors(cells: &[bool], x: usize, y: usize, w: usize) -> usize {
         }
     }
     count
-}
-impl SemanticGenerator<Tile> for CellularAutomata {
-    fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
-        self.generate_semantic_with_config(grid, rng, &SemanticConfig::cave_system())
-    }
-    
-    fn generate_semantic_with_config(&self, grid: &Grid<Tile>, rng: &mut Rng, config: &SemanticConfig) -> SemanticLayers {
-        let mut regions = placement::extract_regions(grid);
-        
-        // Use configurable classification instead of hardcoded thresholds
-        placement::classify_regions_by_size(&mut regions, config);
-        
-        let markers = placement::generate_configurable_markers(&regions, config, rng);
-        let masks = Masks::from_tiles(grid);
-        let connectivity = placement::build_connectivity(grid, &regions);
-        
-        SemanticLayers {
-            regions,
-            markers,
-            masks,
-            connectivity,
-        }
-    }
 }

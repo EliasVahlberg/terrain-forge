@@ -3,7 +3,7 @@
 //! Provides region metadata, spawn markers, and connectivity information
 //! alongside tile generation for game integration.
 
-use crate::{Grid, Rng, Tile};
+use crate::{Grid, Tile};
 use std::collections::HashMap;
 
 /// Configuration for semantic layer generation
@@ -149,17 +149,6 @@ pub struct GenerationResult {
     pub semantic: Option<SemanticLayers>,
 }
 
-/// Trait for algorithms that can generate semantic information
-pub trait SemanticGenerator<T: crate::grid::Cell> {
-    /// Generate semantic layers for the given grid with configuration
-    fn generate_semantic(&self, grid: &Grid<T>, rng: &mut Rng) -> SemanticLayers {
-        self.generate_semantic_with_config(grid, rng, &SemanticConfig::default())
-    }
-    
-    /// Generate semantic layers with custom configuration
-    fn generate_semantic_with_config(&self, grid: &Grid<T>, rng: &mut Rng, config: &SemanticConfig) -> SemanticLayers;
-}
-
 impl GenerationResult {
     pub fn new(tiles: Grid<Tile>) -> Self {
         Self {
@@ -278,146 +267,5 @@ impl ConnectivityGraph {
 impl Default for ConnectivityGraph {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-/// Utility functions for marker placement
-pub mod placement {
-    use super::*;
-    use crate::effects;
-
-    /// Classify regions based on configurable size thresholds
-    pub fn classify_regions_by_size(regions: &mut [Region], config: &SemanticConfig) {
-        for region in regions {
-            let size = region.cells.len();
-            
-            // Find the first threshold that matches (thresholds should be sorted descending)
-            region.kind = config.size_thresholds
-                .iter()
-                .find(|(threshold, _)| size >= *threshold)
-                .map(|(_, name)| name.clone())
-                .unwrap_or_else(|| "Unknown".to_string());
-        }
-    }
-    
-    /// Generate markers based on configuration
-    pub fn generate_configurable_markers(
-        regions: &[Region], 
-        config: &SemanticConfig, 
-        rng: &mut Rng
-    ) -> Vec<Marker> {
-        let mut markers = Vec::new();
-        
-        for region in regions {
-            let marker_count = (config.max_markers_per_region as f32 * 
-                               (region.cells.len() as f32 / 100.0).min(1.0)) as usize;
-            
-            for _ in 0..marker_count {
-                if let Some((marker_type, weight)) = rng.pick(&config.marker_types) {
-                    if rng.random() < (*weight as f64) {
-                        if let Some(&(x, y)) = rng.pick(&region.cells) {
-                            markers.push(
-                                Marker::new(x, y, marker_type)
-                                    .with_region(region.id)
-                                    .with_weight(*weight)
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        
-        markers
-    }
-    pub fn distribute_markers(
-        regions: &[Region],
-        tag: &str,
-        total: usize,
-        rng: &mut Rng,
-    ) -> Vec<Marker> {
-        if regions.is_empty() || total == 0 {
-            return Vec::new();
-        }
-
-        let mut markers = Vec::new();
-        let total_area: usize = regions.iter().map(|r| r.area()).sum();
-
-        for region in regions {
-            let region_markers = if total_area > 0 {
-                (total * region.area()) / total_area
-            } else {
-                total / regions.len()
-            };
-
-            for _ in 0..region_markers {
-                if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
-                    markers.push(Marker::new(x, y, tag).with_region(region.id));
-                }
-            }
-        }
-
-        markers
-    }
-
-    /// Extract regions from a grid using flood fill
-    pub fn extract_regions(grid: &Grid<Tile>) -> Vec<Region> {
-        let (labels, count) = effects::label_regions(grid);
-        let mut regions = Vec::new();
-
-        for region_id in 1..=count {
-            let mut region = Region::new(region_id, "unknown");
-
-            for y in 0..grid.height() {
-                for x in 0..grid.width() {
-                    let idx = y * grid.width() + x;
-                    if labels.get(idx).copied().unwrap_or(0) == region_id {
-                        region.add_cell(x as u32, y as u32);
-                    }
-                }
-            }
-
-            if !region.cells.is_empty() {
-                regions.push(region);
-            }
-        }
-
-        regions
-    }
-
-    /// Build connectivity graph from regions
-    pub fn build_connectivity(grid: &Grid<Tile>, regions: &[Region]) -> ConnectivityGraph {
-        let mut graph = ConnectivityGraph::new();
-
-        // Add all regions to graph
-        for region in regions {
-            graph.add_region(region.id);
-        }
-
-        // Check adjacency between regions
-        for i in 0..regions.len() {
-            for j in (i + 1)..regions.len() {
-                if are_regions_adjacent(grid, &regions[i], &regions[j]) {
-                    graph.add_edge(regions[i].id, regions[j].id);
-                }
-            }
-        }
-
-        graph
-    }
-
-    /// Check if two regions are adjacent (share a border)
-    fn are_regions_adjacent(_grid: &Grid<Tile>, region1: &Region, region2: &Region) -> bool {
-        for &(x1, y1) in &region1.cells {
-            for &(x2, y2) in &region2.cells {
-                let dx = (x1 as i32 - x2 as i32).abs();
-                let dy = (y1 as i32 - y2 as i32).abs();
-
-                // Adjacent if Manhattan distance is 1 (orthogonally adjacent)
-                if (dx == 1 && dy == 0) || (dx == 0 && dy == 1) {
-                    return true;
-                }
-            }
-        }
-        false
     }
 }

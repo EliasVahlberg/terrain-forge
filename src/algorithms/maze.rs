@@ -1,4 +1,3 @@
-use crate::semantic::{placement, Masks, SemanticConfig, SemanticGenerator, SemanticLayers};
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
@@ -103,34 +102,4 @@ fn carve_between(grid: &mut Grid<Tile>, x1: usize, y1: usize, x2: usize, y2: usi
         }
     }
 }
-impl SemanticGenerator<Tile> for Maze {
-    fn generate_semantic_with_config(&self, grid: &Grid<Tile>, rng: &mut Rng, config: &SemanticConfig) -> SemanticLayers {
-        let mut regions = placement::extract_regions(grid);
-        
-        placement::classify_regions_by_size(&mut regions, config);
-        
-        let markers = placement::generate_configurable_markers(&regions, config, rng);
-        let masks = Masks::from_tiles(grid);
-        let connectivity = placement::build_connectivity(grid, &regions);
-        
-        SemanticLayers {
-            regions,
-            markers,
-            masks,
-            connectivity,
-        }
-    }
-}
 
-fn count_floor_neighbors(grid: &Grid<Tile>, x: i32, y: i32) -> usize {
-    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
-    directions.iter()
-        .filter(|&&(dx, dy)| {
-            if let Some(tile) = grid.get(x + dx, y + dy) {
-                tile.is_floor()
-            } else {
-                false
-            }
-        })
-        .count()
-}

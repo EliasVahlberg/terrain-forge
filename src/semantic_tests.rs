@@ -90,7 +90,7 @@ mod tests {
             let rooms: Vec<_> = semantic
                 .regions
                 .iter()
-                .filter(|r| r.kind == "Room")
+                .filter(|r| r.kind == "Hall" || r.kind == "Room")
                 .collect();
             println!("Simple rooms generated {} rooms", rooms.len());
         }
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn test_configurable_semantic_system() {
-        use crate::semantic::{SemanticConfig, SemanticGenerator};
+        use crate::{SemanticExtractor, SemanticConfig};
         use crate::algorithms::CellularAutomata;
         
         let mut grid = Grid::new(60, 40);
@@ -139,7 +139,8 @@ mod tests {
             max_markers_per_region: 2,
         };
         
-        let semantic = algo.generate_semantic_with_config(&grid, &mut rng, &custom_config);
+        let extractor = SemanticExtractor::new(custom_config);
+        let semantic = extractor.extract(&grid, &mut rng);
         
         println!("Custom config generated {} regions with {} markers", 
                  semantic.regions.len(), semantic.markers.len());
