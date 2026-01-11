@@ -18,6 +18,7 @@ show_help() {
     echo "Commands:"
     echo "  semantic     - Run comprehensive semantic analysis demo"
     echo "  png          - Generate PNG visualizations"
+    echo "  hires        - Generate high-resolution showcase (200x150+)"
     echo "  viz          - Advanced visualization examples"
     echo "  simple       - Basic visualization tutorial"
     echo "  test         - Run algorithm validation tests"
@@ -39,6 +40,10 @@ case "${1:-help}" in
         echo "Running PNG visualization demo..."
         ./scripts/run_png_demo.sh
         ;;
+    hires)
+        echo "Running high-resolution showcase..."
+        ./scripts/generate_hires_showcase.sh
+        ;;
     viz)
         echo "Running advanced visualization demo..."
         ./scripts/run_visualization_demo.sh
@@ -57,11 +62,13 @@ case "${1:-help}" in
         echo
         ./scripts/run_png_demo.sh
         echo
+        ./scripts/generate_hires_showcase.sh
+        echo
         ./scripts/run_tests.sh
         ;;
     clean)
         echo "Cleaning output directories..."
-        rm -rf output/semantic/* output/png_visualizations/* output/algorithms/* output/validation/*
+        rm -rf output/semantic/* output/png_visualizations/* output/algorithms/* output/validation/* output/showcase/*
         echo "Output directories cleaned."
         ;;
     help|--help|-h)

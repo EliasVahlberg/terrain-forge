@@ -29,6 +29,8 @@ enum Command {
         width: usize,
         #[arg(short = 'H', long, default_value = "60")]
         height: usize,
+        #[arg(long, default_value = "1")]
+        scale: usize,
         #[arg(short, long)]
         text: bool,
         #[arg(long)]
@@ -84,6 +86,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             width,
             height,
+            scale,
             text,
             semantic,
             regions,
@@ -92,8 +95,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             let seed = seed.unwrap_or_else(random_seed);
             let mut cfg = config::parse_shorthand(&spec);
-            cfg.width = width;
-            cfg.height = height;
+            cfg.width = width * scale;
+            cfg.height = height * scale;
             cfg.seed = Some(seed);
 
             if semantic || regions || masks || connectivity {

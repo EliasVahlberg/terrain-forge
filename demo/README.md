@@ -29,6 +29,7 @@ Use the unified demo runner for easy access to all demonstrations:
 **Commands:**
 - `semantic` - Comprehensive semantic analysis demo
 - `png` - PNG visualization generation
+- `hires` - High-resolution showcase (200x150+)
 - `viz` - Advanced visualization examples  
 - `simple` - Basic visualization tutorial
 - `test` - Algorithm validation tests
@@ -43,6 +44,8 @@ Use the unified demo runner for easy access to all demonstrations:
 ### Individual Scripts
 - **`scripts/run_semantic_demo.sh`** - Comprehensive semantic analysis across all algorithms
 - **`scripts/run_png_demo.sh`** - PNG visualization generation (regions, masks, connectivity)
+- **`scripts/generate_showcase.sh`** - Create impressive showcase visualizations
+- **`scripts/generate_hires_showcase.sh`** - High-resolution examples (200x150+)
 - **`scripts/run_tests.sh`** - Algorithm validation and testing
 - **`scripts/run_visualization_demo.sh`** - Advanced visualization examples
 - **`scripts/simple_viz_demo.sh`** - Basic visualization tutorial
@@ -60,6 +63,7 @@ cargo run -- gen <algorithm> [options]
 - `-s, --seed <SEED>` - Random seed
 - `-w, --width <WIDTH>` - Grid width (default: 80)
 - `-H, --height <HEIGHT>` - Grid height (default: 60)
+- `--scale <SCALE>` - Upscaling factor (default: 1)
 - `-o, --output <FILE>` - Output file
 
 ### Semantic Analysis
@@ -123,6 +127,16 @@ cargo run -- gen maze --connectivity -s 12345 -o maze_graph.png
 
 # Compare algorithms
 cargo run -- batch cellular bsp maze -s 12345
+```
+
+### High-Resolution Generation
+```bash
+# Generate large maps with upscaling
+cargo run -- gen cellular --regions -s 42 -w 100 -H 75 --scale 2  # 200x150
+cargo run -- gen "bsp > cellular" -s 123 -w 80 -H 60 --scale 3    # 240x180
+
+# High-resolution showcase
+./scripts/demo.sh hires
 ```
 
 ## Key Features Demonstrated
