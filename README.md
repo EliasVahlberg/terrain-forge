@@ -25,7 +25,7 @@ A modular procedural generation engine for terrain, dungeons, and maps in Rust.
 ## Quick Start
 
 ```rust
-use terrain_forge::{Grid, Tile, algorithms};
+use terrain_forge::{Grid, Tile, algorithms, Algorithm, Rng, SemanticExtractor};
 
 fn main() {
     let mut grid = Grid::new(80, 60);
@@ -40,15 +40,19 @@ fn main() {
 ### NEW: Semantic Generation
 
 ```rust
-use terrain_forge::semantic::SemanticGenerator;
+use terrain_forge::{SemanticExtractor, Rng};
 use terrain_forge::algorithms::Bsp;
 
 fn main() {
     let mut grid = Grid::new(80, 60);
+    let mut rng = Rng::new(12345);
     let algo = Bsp::default();
     
-    // Generate with semantic layers
-    let semantic = algo.generate_with_semantic(&mut grid, 12345);
+    // Generate terrain
+    algo.generate(&mut grid, 12345);
+    
+    // Extract semantic layers
+    let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
     
     println!("Generated {} markers", semantic.markers.len());
     println!("Found {} room centers", semantic.masks.room_centers.len());
@@ -139,19 +143,22 @@ let layered = fbm.get(10.5, 20.3);
 Generate game-agnostic metadata for entity spawning and region analysis:
 
 ```rust
-use terrain_forge::semantic::{SemanticGenerator, Region, Marker};
+use terrain_forge::{SemanticExtractor, Rng};
 use terrain_forge::algorithms::{Bsp, CellularAutomata, Maze};
 
 // Different algorithms provide different semantic insights
 let mut grid = Grid::new(80, 60);
+let mut rng = Rng::new(12345);
 
 // Cave system analysis
 let cellular = CellularAutomata::default();
-let semantic = cellular.generate_with_semantic(&mut grid, 12345);
+cellular.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_caves().extract(&grid, &mut rng);
 
 // Maze structure analysis  
 let maze = Maze::default();
-let semantic = maze.generate_with_semantic(&mut grid, 12345);
+maze.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_mazes().extract(&grid, &mut rng);
 
 // Entity spawning works the same across all algorithms
 for (x, y, marker) in &semantic.markers {
