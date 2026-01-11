@@ -11,6 +11,10 @@ readme = "README.md"
 keywords = ["procgen", "terrain", "dungeon", "roguelike", "gamedev"]
 categories = ["game-development", "algorithms"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [workspace]
 members = [".", "demo"]
 
