@@ -8,45 +8,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2026-01-11
 
 ### Added
-- **🧠 Pipeline Intelligence** - Advanced conditional operations and smart branching
-  - `ConditionalPipeline` with if-then-else logic based on grid properties
-  - `PipelineCondition` enum for density, floor count, connectivity checks
-  - `PipelineContext` for inter-stage parameter passing and execution logging
-  - `StageResult` and `ParameterMap` for result aggregation from pipeline branches
-- **📋 Template System** - Reusable pipeline configurations with parameter substitution
-  - `PipelineTemplate` with `{placeholder}` syntax for dynamic parameters
-  - `TemplateLibrary` with built-in templates: simple_dungeon, cave_system, maze
-  - Template instantiation with custom parameter overrides
-- **🎯 Hierarchical Markers** - Enhanced marker system with categories and priorities
-  - `MarkerType` enum with quest objectives, loot tiers, encounter zones
-  - Quest markers: `QuestObjective { priority }`, `QuestStart`, `QuestEnd`
-  - Loot markers: `LootTier { tier }`, `Treasure`
-  - Encounter markers: `EncounterZone { difficulty }`, `BossRoom`, `SafeZone`
-  - `MarkerConstraints` for placement rules with proximity and exclusion logic
-- **📊 Requirement-Driven Generation** - Generate maps meeting specific criteria
-  - `SemanticRequirements` with region count, marker count, connectivity validation
-  - `generate_with_requirements()` function with automatic retry logic
-  - `basic_dungeon()` preset requirements for common use cases
-- **🏗️ Multi-Floor Support** - Vertical connectivity analysis and stair placement
-  - `VerticalConnectivity` for analyzing stair placement candidates
-  - Clearance validation and automatic stair placement between floors
-  - Support for 2+ floor dungeons with configurable stair limits
-- **📚 Comprehensive Examples** - 6 new demo examples showcasing all features
-  - `hierarchical_markers.rs` - Quest objectives, loot tiers, encounter zones
-  - `requirement_generation.rs` - Requirement-driven generation with validation
-  - `conditional_pipelines.rs` - If-then-else pipeline logic with conditions
-  - `pipeline_templates.rs` - Built-in and custom templates with parameters
-  - `vertical_connectivity.rs` - Multi-floor stair placement analysis
-  - `complete_workflow.rs` - End-to-end demo combining all new features
+- **📐 Spatial Analysis Module** - Advanced spatial algorithms for pathfinding and analysis
+  - `DistanceTransform` with Euclidean, Manhattan, and Chebyshev metrics
+  - `DijkstraMap` for multi-goal pathfinding with configurable movement costs
+  - `FlowField` generation for smooth AI movement and navigation
+  - `morphology` module with erosion, dilation, opening, closing operations
+  - Configurable structuring elements (cross, circle, square patterns)
+- **🧠 Enhanced Wave Function Collapse** - Pattern learning and backtracking support
+  - `WfcPatternExtractor` for learning patterns from example maps
+  - `WfcBacktracker` with constraint satisfaction and rollback capabilities
+  - `Pattern` struct with rotation and constraint propagation
+  - Enhanced constraint propagation for better generation quality
+- **🔗 Delaunay Triangulation** - Natural room connections using graph theory
+  - `DelaunayTriangulation` with Bowyer-Watson algorithm implementation
+  - Minimum spanning tree generation for optimal room connectivity
+  - `Point`, `Triangle`, `Edge` primitives for geometric operations
+  - `connect_rooms()` utility for applying MST connections to grids
+- **🏗️ Advanced Prefab System** - JSON serialization and transformation support
+  - `PrefabLibrary` with persistent storage and weighted selection
+  - `PrefabData` with JSON/TOML serialization support
+  - `PrefabTransform` with rotation and mirroring capabilities
+  - Tag-based prefab organization and retrieval system
+- **📊 Graph Analysis** - Connectivity metrics and pathfinding algorithms
+  - `Graph` structure with adjacency lists and connectivity analysis
+  - `GraphAnalysis` with clustering coefficients and diameter calculations
+  - Shortest path algorithms with Dijkstra implementation
+  - Connected components analysis and articulation point detection
+- **🎮 Comprehensive Examples** - 15 demo examples showcasing all v0.4.0 features
+  - `enhanced_wfc.rs` - Pattern learning and backtracking demonstration
+  - `delaunay_connections.rs` - Natural room connections with triangulation
+  - `advanced_prefabs.rs` - JSON prefab libraries with transformations
+  - `phase4_workflow.rs` - Complete workflow combining all Phase 4 features
+  - `distance_transforms.rs` - Multi-metric distance field calculations
+  - `advanced_pathfinding.rs` - Dijkstra maps and flow field generation
+  - `morphological_operations.rs` - Shape analysis and filtering operations
+  - `spatial_workflow.rs` - Complete spatial analysis demonstration
 
-### Changed
-- **Backward Compatibility** - Full compatibility maintained with v0.3.x APIs
-  - `Marker` struct updated with `marker_type: MarkerType` field
-  - `tag()` method provides backward-compatible string representation
-  - `Custom(String)` marker type preserves existing functionality
-- **Documentation** - Updated README and API docs with v0.4.0 features
-  - Added comprehensive examples for all new features
-  - Updated API reference with detailed usage patterns
+### Enhanced
+- **Algorithm Count** - Expanded from 14 to 15 algorithms with enhanced WFC
+- **Test Coverage** - Comprehensive test suite with 61 tests across all phases
+  - 26 unit tests for core functionality
+  - 35 integration tests covering all four development phases
+  - Phase 3 integration tests (8 tests) for spatial analysis
+  - Phase 4 integration tests (10 tests) for quality of life features
+- **Documentation** - Updated README and API reference for v0.4.0
+  - Complete API documentation for all new modules
+  - Comprehensive examples and usage patterns
+  - Updated algorithm table and feature descriptions
+
+### Technical
+- **Module Organization** - New `spatial` and `analysis` modules
+  - `src/spatial/` - Distance transforms, pathfinding, morphology
+  - `src/analysis/` - Delaunay triangulation and graph theory
+- **Code Quality** - Zero warnings with comprehensive clippy compliance
+  - Fixed all clippy warnings across library and examples
+  - Consistent code formatting with rustfmt
+  - Robust pre-push validation with comprehensive test suite
 
 ### Fixed
 - **CI/CD Compliance** - All formatting and linting issues resolved
