@@ -249,7 +249,7 @@ fn generate_with_semantic_viz(
         // For single algorithms, generate and extract semantics
         let (grid, _) = generate(cfg, seed);
         let mut rng = terrain_forge::Rng::new(seed);
-        
+
         let extractor = match &cfg.algorithm {
             Some(config::AlgorithmSpec::Name(name)) => match name.as_str() {
                 "cellular" => terrain_forge::SemanticExtractor::for_caves(),
@@ -265,7 +265,7 @@ fn generate_with_semantic_viz(
             },
             None => terrain_forge::SemanticExtractor::default(),
         };
-        
+
         let semantic = extractor.extract(&grid, &mut rng);
         (grid, Some(semantic))
     };
