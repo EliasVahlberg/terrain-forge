@@ -1,5 +1,9 @@
 # TerrainForge
 
+<div align="center">
+  <img src="terrain_forge_logo.png" alt="TerrainForge Logo" width="76" height="76">
+</div>
+
 ![Epic Pipeline Showcase](demo/output/showcase/hires/pipeline_epic.png)
 
 A modular procedural generation engine for terrain, dungeons, and maps in Rust.
