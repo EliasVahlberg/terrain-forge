@@ -12,7 +12,7 @@ fn main() {
 
     // Step 1: Create prefab library programmatically
     println!("1. Creating Prefab Library:");
-    let mut library = create_sample_library();
+    let library = create_sample_library();
     
     println!("   Created library with {} prefabs:", library.get_prefabs().len());
     for prefab in library.get_prefabs() {

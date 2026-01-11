@@ -1,0 +1,73 @@
+{
+  "prefabs": [
+    {
+      "name": "small_room",
+      "width": 5,
+      "height": 5,
+      "pattern": [
+        "#####",
+        "#...#",
+        "#...#",
+        "#...#",
+        "#####"
+      ],
+      "weight": 3.0,
+      "tags": [
+        "room",
+        "small"
+      ]
+    },
+    {
+      "name": "large_room",
+      "width": 7,
+      "height": 6,
+      "pattern": [
+        "#######",
+        "#.....#",
+        "#.....#",
+        "#.....#",
+        "#.....#",
+        "#######"
+      ],
+      "weight": 1.5,
+      "tags": [
+        "room",
+        "large"
+      ]
+    },
+    {
+      "name": "corridor",
+      "width": 7,
+      "height": 3,
+      "pattern": [
+        "#######",
+        ".......",
+        "#######"
+      ],
+      "weight": 0.8,
+      "tags": [
+        "corridor",
+        "connection"
+      ]
+    },
+    {
+      "name": "l_shaped_room",
+      "width": 6,
+      "height": 6,
+      "pattern": [
+        "######",
+        "#....#",
+        "#....#",
+        "#..###",
+        "#..###",
+        "######"
+      ],
+      "weight": 0.5,
+      "tags": [
+        "room",
+        "special",
+        "l_shaped"
+      ]
+    }
+  ]
+}

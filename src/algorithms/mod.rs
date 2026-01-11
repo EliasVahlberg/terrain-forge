@@ -26,11 +26,11 @@ pub use fractal::Fractal;
 pub use glass_seam::GlassSeam;
 pub use maze::{Maze, MazeConfig};
 pub use percolation::{Percolation, PercolationConfig};
-pub use prefab::{Prefab, PrefabConfig, PrefabPlacer};
+pub use prefab::{Prefab, PrefabConfig, PrefabPlacer, PrefabLibrary, PrefabTransform, PrefabData};
 pub use room_accretion::{RoomAccretion, RoomAccretionConfig, RoomTemplate};
 pub use rooms::{SimpleRooms, SimpleRoomsConfig};
 pub use voronoi::{Voronoi, VoronoiConfig};
-pub use wfc::{Wfc, WfcConfig};
+pub use wfc::{Wfc, WfcConfig, WfcPatternExtractor, WfcBacktracker, Pattern};
 
 use crate::{Algorithm, Tile};
 

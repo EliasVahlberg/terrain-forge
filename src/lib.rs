@@ -91,6 +91,7 @@ pub mod noise;
 pub mod pipeline;
 pub mod semantic;
 pub mod spatial;
+pub mod analysis;
 
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};

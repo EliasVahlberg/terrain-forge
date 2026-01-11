@@ -311,21 +311,11 @@ impl Default for PrefabLibrary {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct PrefabTransform {
     pub rotation: u8,  // 0, 1, 2, 3 for 0°, 90°, 180°, 270°
     pub mirror_h: bool,
     pub mirror_v: bool,
-}
-
-impl Default for PrefabTransform {
-    fn default() -> Self {
-        Self {
-            rotation: 0,
-            mirror_h: false,
-            mirror_v: false,
-        }
-    }
 }
 
 impl PrefabTransform {

@@ -5,7 +5,7 @@
 use terrain_forge::{
     algorithms::{Bsp, Wfc, WfcConfig, WfcPatternExtractor, PrefabLibrary, PrefabData, PrefabPlacer, PrefabConfig},
     analysis::{DelaunayTriangulation, Point, Graph, GraphAnalysis},
-    Algorithm, Grid, Tile, Rng,
+    Algorithm, Grid, Tile,
 };
 
 fn main() {
@@ -76,7 +76,7 @@ fn main() {
 
     // Step 6: Create specialized prefab library
     println!("\n6. Creating Specialized Prefab Library:");
-    let mut library = create_specialized_library();
+    let library = create_specialized_library();
     
     println!("   Created library with {} prefabs:", library.get_prefabs().len());
     for prefab in library.get_prefabs() {

@@ -8,7 +8,7 @@ pub trait Cell: Clone + Default {
 }
 
 /// Basic tile type for dungeon/terrain generation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
 pub enum Tile {
     #[default]
     Wall,
