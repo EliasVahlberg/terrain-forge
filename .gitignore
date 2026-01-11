@@ -7,6 +7,8 @@ Cargo.lock
 /test_reports/
 *.png
 !docs/*.png
+!demo/output/showcase/**/*.png
+!terrain_forge_logo.png
 
 # IDE files
 .vscode/
