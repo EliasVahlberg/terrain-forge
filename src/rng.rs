@@ -33,4 +33,11 @@ impl Rng {
         if slice.is_empty() { None } 
         else { Some(&slice[self.range_usize(0, slice.len())]) }
     }
+
+    pub fn shuffle<T>(&mut self, slice: &mut [T]) {
+        for i in (1..slice.len()).rev() {
+            let j = self.range_usize(0, i + 1);
+            slice.swap(i, j);
+        }
+    }
 }

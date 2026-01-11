@@ -14,4 +14,4 @@ pub use filters::{gaussian_blur, median_filter};
 pub use warp::{edge_detect, domain_warp};
 pub use blend::{threshold, gradient_blend, radial_blend};
 pub use transform::{mirror, rotate, scatter};
-pub use connectivity::{bridge_gaps, remove_dead_ends, find_chokepoints};
+pub use connectivity::{bridge_gaps, remove_dead_ends, find_chokepoints, label_regions, connect_regions_spanning};
