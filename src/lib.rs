@@ -19,7 +19,7 @@
 //! Extract semantic information from any generated map:
 //!
 //! ```rust
-//! use terrain_forge::{algorithms, SemanticExtractor, SemanticConfig};
+//! use terrain_forge::{algorithms, SemanticExtractor, Grid, Rng};
 //!
 //! // 1. Generate map using any method
 //! let mut grid = Grid::new(80, 60);
@@ -27,6 +27,7 @@
 //!
 //! // 2. Extract semantic information
 //! let extractor = SemanticExtractor::for_caves();
+//! let mut rng = Rng::new(12345);
 //! let semantic = extractor.extract(&grid, &mut rng);
 //!
 //! // Works with any grid source - pipelines, external tools, etc.
@@ -105,8 +106,10 @@ pub use semantic_visualization::{
 /// For new code, use the decoupled `SemanticExtractor` approach:
 ///
 /// ```rust
-/// // Instead of this:
-/// let (grid, semantic) = generate_with_semantic_tuple("cellular", 80, 60, 12345);
+/// use terrain_forge::{algorithms, SemanticExtractor, Grid, Rng};
+///
+/// // Instead of this deprecated approach:
+/// // let (grid, semantic) = generate_with_semantic_tuple("cellular", 80, 60, 12345);
 ///
 /// // Use this:
 /// let mut grid = Grid::new(80, 60);
