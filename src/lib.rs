@@ -16,7 +16,7 @@
 //!
 //! ## Algorithms
 //!
-//! 13 generation algorithms available via [`algorithms::get`]:
+//! 14 generation algorithms available via [`algorithms::get`]:
 //! - `bsp` - Binary Space Partitioning for structured rooms
 //! - `cellular` - Cellular automata for organic caves
 //! - `drunkard` - Random walk for winding corridors
@@ -30,6 +30,7 @@
 //! - `fractal` - Fractal noise terrain
 //! - `agent` - Multi-agent carving
 //! - `glass_seam` - Region connector
+//! - `room_accretion` - Brogue-style organic dungeons
 //!
 //! ## Composition
 //!
