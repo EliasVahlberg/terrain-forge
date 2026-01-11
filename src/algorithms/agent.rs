@@ -8,7 +8,13 @@ pub struct AgentConfig {
 }
 
 impl Default for AgentConfig {
-    fn default() -> Self { Self { num_agents: 5, steps_per_agent: 200, turn_chance: 0.3 } }
+    fn default() -> Self {
+        Self {
+            num_agents: 5,
+            steps_per_agent: 200,
+            turn_chance: 0.3,
+        }
+    }
 }
 
 pub struct AgentBased {
@@ -16,11 +22,15 @@ pub struct AgentBased {
 }
 
 impl AgentBased {
-    pub fn new(config: AgentConfig) -> Self { Self { config } }
+    pub fn new(config: AgentConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for AgentBased {
-    fn default() -> Self { Self::new(AgentConfig::default()) }
+    fn default() -> Self {
+        Self::new(AgentConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for AgentBased {
@@ -38,7 +48,11 @@ impl Algorithm<Tile> for AgentBased {
                 grid.set(x, y, Tile::Floor);
 
                 if rng.chance(self.config.turn_chance) {
-                    dir = if rng.chance(0.5) { (dir + 1) % 4 } else { (dir + 3) % 4 };
+                    dir = if rng.chance(0.5) {
+                        (dir + 1) % 4
+                    } else {
+                        (dir + 3) % 4
+                    };
                 }
 
                 let (dx, dy) = dirs[dir];
@@ -54,5 +68,7 @@ impl Algorithm<Tile> for AgentBased {
         }
     }
 
-    fn name(&self) -> &'static str { "AgentBased" }
+    fn name(&self) -> &'static str {
+        "AgentBased"
+    }
 }

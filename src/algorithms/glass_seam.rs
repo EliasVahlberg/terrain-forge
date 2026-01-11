@@ -6,7 +6,11 @@ pub struct GlassSeam {
 }
 
 impl Default for GlassSeam {
-    fn default() -> Self { Self { coverage_threshold: 0.75 } }
+    fn default() -> Self {
+        Self {
+            coverage_threshold: 0.75,
+        }
+    }
 }
 
 impl Algorithm<Tile> for GlassSeam {
@@ -27,18 +31,29 @@ impl Algorithm<Tile> for GlassSeam {
         ensure_connectivity(grid, (5, 5), self.coverage_threshold, &mut rng);
     }
 
-    fn name(&self) -> &'static str { "GlassSeam" }
+    fn name(&self) -> &'static str {
+        "GlassSeam"
+    }
 }
 
-fn ensure_connectivity(grid: &mut Grid<Tile>, spawn: (usize, usize), threshold: f64, _rng: &mut Rng) {
+fn ensure_connectivity(
+    grid: &mut Grid<Tile>,
+    spawn: (usize, usize),
+    threshold: f64,
+    _rng: &mut Rng,
+) {
     let regions = identify_regions(grid);
-    if regions.len() <= 1 { return; }
+    if regions.len() <= 1 {
+        return;
+    }
 
     let spawn_region = regions.iter().position(|r| r.contains(&spawn)).unwrap_or(0);
     let total_floor: usize = regions.iter().map(|r| r.len()).sum();
     let mut coverage = regions[spawn_region].len() as f64 / total_floor as f64;
 
-    if coverage >= threshold { return; }
+    if coverage >= threshold {
+        return;
+    }
 
     let mut connected = HashSet::new();
     connected.insert(spawn_region);
@@ -48,7 +63,9 @@ fn ensure_connectivity(grid: &mut Grid<Tile>, spawn: (usize, usize), threshold: 
         let mut best_cost = usize::MAX;
 
         for (i, region) in regions.iter().enumerate() {
-            if connected.contains(&i) { continue; }
+            if connected.contains(&i) {
+                continue;
+            }
             for &ci in &connected {
                 let cost = connection_cost(&regions[ci], region);
                 if cost < best_cost {
@@ -77,28 +94,45 @@ fn identify_regions(grid: &Grid<Tile>) -> Vec<Vec<(usize, usize)>> {
         for y in 0..h {
             if !visited[x][y] && grid[(x, y)].is_floor() {
                 let region = flood_fill(grid, x, y, &mut visited);
-                if !region.is_empty() { regions.push(region); }
+                if !region.is_empty() {
+                    regions.push(region);
+                }
             }
         }
     }
     regions
 }
 
-fn flood_fill(grid: &Grid<Tile>, sx: usize, sy: usize, visited: &mut [Vec<bool>]) -> Vec<(usize, usize)> {
+fn flood_fill(
+    grid: &Grid<Tile>,
+    sx: usize,
+    sy: usize,
+    visited: &mut [Vec<bool>],
+) -> Vec<(usize, usize)> {
     let (w, h) = (grid.width(), grid.height());
     let mut region = Vec::new();
     let mut queue = VecDeque::new();
     queue.push_back((sx, sy));
 
     while let Some((x, y)) = queue.pop_front() {
-        if x >= w || y >= h || visited[x][y] || !grid[(x, y)].is_floor() { continue; }
+        if x >= w || y >= h || visited[x][y] || !grid[(x, y)].is_floor() {
+            continue;
+        }
         visited[x][y] = true;
         region.push((x, y));
 
-        if x > 0 { queue.push_back((x - 1, y)); }
-        if x + 1 < w { queue.push_back((x + 1, y)); }
-        if y > 0 { queue.push_back((x, y - 1)); }
-        if y + 1 < h { queue.push_back((x, y + 1)); }
+        if x > 0 {
+            queue.push_back((x - 1, y));
+        }
+        if x + 1 < w {
+            queue.push_back((x + 1, y));
+        }
+        if y > 0 {
+            queue.push_back((x, y - 1));
+        }
+        if y + 1 < h {
+            queue.push_back((x, y + 1));
+        }
     }
     region
 }
@@ -110,7 +144,9 @@ fn connection_cost(a: &[(usize, usize)], b: &[(usize, usize)]) -> usize {
 }
 
 fn centroid(region: &[(usize, usize)]) -> (usize, usize) {
-    if region.is_empty() { return (0, 0); }
+    if region.is_empty() {
+        return (0, 0);
+    }
     let sx: usize = region.iter().map(|p| p.0).sum();
     let sy: usize = region.iter().map(|p| p.1).sum();
     (sx / region.len(), sy / region.len())

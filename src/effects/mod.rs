@@ -1,17 +1,19 @@
 //! Effects and transforms for post-processing generated maps
 
+mod blend;
+mod connectivity;
+mod filters;
 mod morphology;
 mod spatial;
-mod filters;
-mod warp;
-mod blend;
 mod transform;
-mod connectivity;
+mod warp;
 
-pub use morphology::{erode, dilate, open, close};
-pub use spatial::{distance_transform, dijkstra_map};
+pub use blend::{gradient_blend, radial_blend, threshold};
+pub use connectivity::{
+    bridge_gaps, connect_regions_spanning, find_chokepoints, label_regions, remove_dead_ends,
+};
 pub use filters::{gaussian_blur, median_filter};
-pub use warp::{edge_detect, domain_warp};
-pub use blend::{threshold, gradient_blend, radial_blend};
+pub use morphology::{close, dilate, erode, open};
+pub use spatial::{dijkstra_map, distance_transform};
 pub use transform::{mirror, rotate, scatter};
-pub use connectivity::{bridge_gaps, remove_dead_ends, find_chokepoints, label_regions, connect_regions_spanning};
+pub use warp::{domain_warp, edge_detect};

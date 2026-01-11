@@ -23,7 +23,7 @@
 //!
 //! let result = generate_with_semantic("room_accretion", 80, 60, 12345);
 //! if let Some(semantic) = result.semantic {
-//!     println!("Generated {} regions with {} markers", 
+//!     println!("Generated {} regions with {} markers",
 //!              semantic.regions.len(), semantic.markers.len());
 //! }
 //! ```
@@ -69,24 +69,26 @@
 //!
 //! [`noise`] module provides Perlin, Simplex, Value, Worley with FBM and modifiers.
 
+mod algorithm;
 mod grid;
 mod rng;
-mod algorithm;
 mod semantic;
 
 #[cfg(test)]
 mod semantic_tests;
 
 pub mod algorithms;
-pub mod noise;
-pub mod effects;
 pub mod compose;
 pub mod constraints;
+pub mod effects;
+pub mod noise;
 
-pub use grid::{Grid, Cell, Tile};
-pub use rng::Rng;
 pub use algorithm::Algorithm;
-pub use semantic::{Region, Marker, Masks, ConnectivityGraph, SemanticLayers, GenerationResult, SemanticGenerator};
+pub use grid::{Cell, Grid, Tile};
+pub use rng::Rng;
+pub use semantic::{
+    ConnectivityGraph, GenerationResult, Marker, Masks, Region, SemanticGenerator, SemanticLayers,
+};
 
 /// Generate a map with semantic layers if the algorithm supports it
 pub fn generate_with_semantic(
@@ -97,24 +99,27 @@ pub fn generate_with_semantic(
 ) -> GenerationResult {
     let mut grid = Grid::new(width, height);
     let mut rng = Rng::new(seed);
-    
+
     // Generate tiles
     if let Some(algo) = algorithms::get(algorithm_name) {
         algo.generate(&mut grid, seed);
     }
-    
+
     // Try to generate semantic layers
     let semantic = match algorithm_name {
         "bsp" => {
             let algo = algorithms::Bsp::default();
             Some(algo.generate_semantic(&grid, &mut rng))
-        },
+        }
         "room_accretion" | "accretion" => {
             let algo = algorithms::RoomAccretion::default();
             Some(algo.generate_semantic(&grid, &mut rng))
-        },
+        }
         _ => None,
     };
-    
-    GenerationResult { tiles: grid, semantic }
+
+    GenerationResult {
+        tiles: grid,
+        semantic,
+    }
 }

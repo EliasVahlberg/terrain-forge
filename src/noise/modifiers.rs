@@ -57,7 +57,11 @@ pub struct Blend<A: NoiseSource, B: NoiseSource, C: NoiseSource> {
 
 impl<A: NoiseSource, B: NoiseSource, C: NoiseSource> Blend<A, B, C> {
     pub fn new(source_a: A, source_b: B, control: C) -> Self {
-        Self { source_a, source_b, control }
+        Self {
+            source_a,
+            source_b,
+            control,
+        }
     }
 }
 
@@ -73,7 +77,7 @@ impl<A: NoiseSource, B: NoiseSource, C: NoiseSource> NoiseSource for Blend<A, B,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::noise::{Perlin, NoiseExt};
+    use crate::noise::{NoiseExt, Perlin};
 
     #[test]
     fn scale_modifier() {
@@ -99,7 +103,7 @@ mod tests {
         for i in 0..50 {
             for j in 0..50 {
                 let v = noise.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!(v >= -0.5 && v <= 0.5);
+                assert!((-0.5..=0.5).contains(&v));
             }
         }
     }
@@ -117,15 +121,12 @@ mod tests {
 
     #[test]
     fn chained_modifiers() {
-        let noise = Perlin::new(42)
-            .scale(0.5)
-            .offset(0.5)
-            .clamp(0.0, 1.0);
-        
+        let noise = Perlin::new(42).scale(0.5).offset(0.5).clamp(0.0, 1.0);
+
         for i in 0..50 {
             for j in 0..50 {
                 let v = noise.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!(v >= 0.0 && v <= 1.0);
+                assert!((0.0..=1.0).contains(&v));
             }
         }
     }

@@ -1,7 +1,7 @@
 //! Edge detection and domain warping
 
-use crate::{Grid, Tile};
 use crate::noise::NoiseSource;
+use crate::{Grid, Tile};
 
 pub fn edge_detect(grid: &Grid<Tile>) -> Vec<(usize, usize)> {
     let (w, h) = (grid.width(), grid.height());
@@ -14,15 +14,24 @@ pub fn edge_detect(grid: &Grid<Tile>) -> Vec<(usize, usize)> {
                 || grid[(x + 1, y)].is_floor() != is_floor
                 || grid[(x, y - 1)].is_floor() != is_floor
                 || grid[(x, y + 1)].is_floor() != is_floor;
-            if diff { edges.push((x, y)); }
+            if diff {
+                edges.push((x, y));
+            }
         }
     }
     edges
 }
 
-pub fn domain_warp<N: NoiseSource>(grid: &mut Grid<Tile>, noise: &N, amplitude: f64, frequency: f64) {
+pub fn domain_warp<N: NoiseSource>(
+    grid: &mut Grid<Tile>,
+    noise: &N,
+    amplitude: f64,
+    frequency: f64,
+) {
     let (w, h) = (grid.width(), grid.height());
-    let snapshot: Vec<bool> = (0..w * h).map(|i| grid[(i % w, i / w)].is_floor()).collect();
+    let snapshot: Vec<bool> = (0..w * h)
+        .map(|i| grid[(i % w, i / w)].is_floor())
+        .collect();
 
     for y in 1..h - 1 {
         for x in 1..w - 1 {
@@ -34,7 +43,15 @@ pub fn domain_warp<N: NoiseSource>(grid: &mut Grid<Tile>, noise: &N, amplitude: 
             let sx = ((x as f64 + dx).round() as usize).clamp(0, w - 1);
             let sy = ((y as f64 + dy).round() as usize).clamp(0, h - 1);
 
-            grid.set(x as i32, y as i32, if snapshot[sy * w + sx] { Tile::Floor } else { Tile::Wall });
+            grid.set(
+                x as i32,
+                y as i32,
+                if snapshot[sy * w + sx] {
+                    Tile::Floor
+                } else {
+                    Tile::Wall
+                },
+            );
         }
     }
 }

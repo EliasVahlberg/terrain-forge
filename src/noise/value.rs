@@ -8,7 +8,10 @@ pub struct Value {
 
 impl Value {
     pub fn new(seed: u64) -> Self {
-        Self { seed, frequency: 1.0 }
+        Self {
+            seed,
+            frequency: 1.0,
+        }
     }
 
     pub fn with_frequency(mut self, frequency: f64) -> Self {
@@ -18,7 +21,8 @@ impl Value {
 
     // Hash to get random value at grid point
     fn hash(&self, x: i32, y: i32) -> f64 {
-        let h = (x as u64).wrapping_mul(374761393)
+        let h = (x as u64)
+            .wrapping_mul(374761393)
             .wrapping_add((y as u64).wrapping_mul(668265263))
             .wrapping_add(self.seed);
         let h = (h ^ (h >> 13)).wrapping_mul(1274126177);
@@ -74,7 +78,7 @@ mod tests {
         for i in 0..100 {
             for j in 0..100 {
                 let v = noise.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!(v >= -1.0 && v <= 1.0, "Value {} out of range", v);
+                assert!((-1.0..=1.0).contains(&v), "Value {} out of range", v);
             }
         }
     }

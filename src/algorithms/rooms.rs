@@ -10,7 +10,12 @@ pub struct SimpleRoomsConfig {
 
 impl Default for SimpleRoomsConfig {
     fn default() -> Self {
-        Self { min_room_size: 4, max_room_size: 10, max_rooms: 10, min_spacing: 1 }
+        Self {
+            min_room_size: 4,
+            max_room_size: 10,
+            max_rooms: 10,
+            min_spacing: 1,
+        }
     }
 }
 
@@ -19,14 +24,23 @@ pub struct SimpleRooms {
 }
 
 impl SimpleRooms {
-    pub fn new(config: SimpleRoomsConfig) -> Self { Self { config } }
+    pub fn new(config: SimpleRoomsConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for SimpleRooms {
-    fn default() -> Self { Self::new(SimpleRoomsConfig::default()) }
+    fn default() -> Self {
+        Self::new(SimpleRoomsConfig::default())
+    }
 }
 
-struct Room { x: usize, y: usize, w: usize, h: usize }
+struct Room {
+    x: usize,
+    y: usize,
+    w: usize,
+    h: usize,
+}
 
 impl Room {
     fn intersects(&self, other: &Room, spacing: usize) -> bool {
@@ -36,7 +50,9 @@ impl Room {
             || (self.y as i32 + self.h as i32 + s) < other.y as i32
             || (other.y as i32 + other.h as i32 + s) < self.y as i32)
     }
-    fn center(&self) -> (usize, usize) { (self.x + self.w / 2, self.y + self.h / 2) }
+    fn center(&self) -> (usize, usize) {
+        (self.x + self.w / 2, self.y + self.h / 2)
+    }
 }
 
 impl Algorithm<Tile> for SimpleRooms {
@@ -46,17 +62,23 @@ impl Algorithm<Tile> for SimpleRooms {
         let cfg = &self.config;
 
         for _ in 0..cfg.max_rooms * 3 {
-            if rooms.len() >= cfg.max_rooms { break; }
+            if rooms.len() >= cfg.max_rooms {
+                break;
+            }
 
             let w = rng.range_usize(cfg.min_room_size, cfg.max_room_size + 1);
             let h = rng.range_usize(cfg.min_room_size, cfg.max_room_size + 1);
-            if w + 2 >= grid.width() || h + 2 >= grid.height() { continue; }
+            if w + 2 >= grid.width() || h + 2 >= grid.height() {
+                continue;
+            }
 
             let x = rng.range_usize(1, grid.width() - w - 1);
             let y = rng.range_usize(1, grid.height() - h - 1);
             let room = Room { x, y, w, h };
 
-            if rooms.iter().any(|r| r.intersects(&room, cfg.min_spacing)) { continue; }
+            if rooms.iter().any(|r| r.intersects(&room, cfg.min_spacing)) {
+                continue;
+            }
 
             grid.fill_rect(x as i32, y as i32, w, h, Tile::Floor);
 
@@ -75,13 +97,19 @@ impl Algorithm<Tile> for SimpleRooms {
         }
     }
 
-    fn name(&self) -> &'static str { "SimpleRooms" }
+    fn name(&self) -> &'static str {
+        "SimpleRooms"
+    }
 }
 
 fn carve_h(grid: &mut Grid<Tile>, x1: usize, x2: usize, y: usize) {
-    for x in x1.min(x2)..=x1.max(x2) { grid.set(x as i32, y as i32, Tile::Floor); }
+    for x in x1.min(x2)..=x1.max(x2) {
+        grid.set(x as i32, y as i32, Tile::Floor);
+    }
 }
 
 fn carve_v(grid: &mut Grid<Tile>, y1: usize, y2: usize, x: usize) {
-    for y in y1.min(y2)..=y1.max(y2) { grid.set(x as i32, y as i32, Tile::Floor); }
+    for y in y1.min(y2)..=y1.max(y2) {
+        grid.set(x as i32, y as i32, Tile::Floor);
+    }
 }

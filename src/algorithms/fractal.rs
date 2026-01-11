@@ -3,7 +3,9 @@ use crate::{Algorithm, Grid, Rng, Tile};
 pub struct Fractal;
 
 impl Default for Fractal {
-    fn default() -> Self { Self }
+    fn default() -> Self {
+        Self
+    }
 }
 
 impl Algorithm<Tile> for Fractal {
@@ -16,7 +18,9 @@ impl Algorithm<Tile> for Fractal {
         }
     }
 
-    fn name(&self) -> &'static str { "Fractal" }
+    fn name(&self) -> &'static str {
+        "Fractal"
+    }
 }
 
 fn generate_mandelbrot(grid: &mut Grid<Tile>) {

@@ -16,12 +16,18 @@ pub enum Tile {
 }
 
 impl Tile {
-    pub fn is_wall(&self) -> bool { matches!(self, Tile::Wall) }
-    pub fn is_floor(&self) -> bool { matches!(self, Tile::Floor) }
+    pub fn is_wall(&self) -> bool {
+        matches!(self, Tile::Wall)
+    }
+    pub fn is_floor(&self) -> bool {
+        matches!(self, Tile::Floor)
+    }
 }
 
 impl Cell for Tile {
-    fn is_passable(&self) -> bool { self.is_floor() }
+    fn is_passable(&self) -> bool {
+        self.is_floor()
+    }
 }
 
 /// 2D grid of cells
@@ -41,8 +47,12 @@ impl<C: Cell> Grid<C> {
         }
     }
 
-    pub fn width(&self) -> usize { self.width }
-    pub fn height(&self) -> usize { self.height }
+    pub fn width(&self) -> usize {
+        self.width
+    }
+    pub fn height(&self) -> usize {
+        self.height
+    }
 
     pub fn in_bounds(&self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height
@@ -90,9 +100,10 @@ impl<C: Cell> Grid<C> {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (usize, usize, &C)> {
-        self.cells.iter().enumerate().map(move |(i, c)| {
-            (i % self.width, i / self.width, c)
-        })
+        self.cells
+            .iter()
+            .enumerate()
+            .map(move |(i, c)| (i % self.width, i / self.width, c))
     }
 }
 

@@ -7,7 +7,9 @@ pub struct Pipeline<C: Cell> {
 }
 
 impl<C: Cell> Pipeline<C> {
-    pub fn new() -> Self { Self { steps: Vec::new() } }
+    pub fn new() -> Self {
+        Self { steps: Vec::new() }
+    }
 
     pub fn then<A: Algorithm<C> + 'static>(mut self, algorithm: A) -> Self {
         self.steps.push(Box::new(algorithm));
@@ -28,7 +30,9 @@ impl<C: Cell> Pipeline<C> {
 }
 
 impl<C: Cell> Default for Pipeline<C> {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<C: Cell> Algorithm<C> for Pipeline<C> {
@@ -36,5 +40,7 @@ impl<C: Cell> Algorithm<C> for Pipeline<C> {
         self.execute(grid, seed);
     }
 
-    fn name(&self) -> &'static str { "Pipeline" }
+    fn name(&self) -> &'static str {
+        "Pipeline"
+    }
 }

@@ -55,9 +55,17 @@ pub fn dijkstra_map(grid: &Grid<Tile>, sources: &[(usize, usize)]) -> Vec<Vec<u3
 
 fn neighbors(x: usize, y: usize, w: usize, h: usize) -> impl Iterator<Item = (usize, usize)> {
     let mut n = Vec::with_capacity(4);
-    if x > 0 { n.push((x - 1, y)); }
-    if x + 1 < w { n.push((x + 1, y)); }
-    if y > 0 { n.push((x, y - 1)); }
-    if y + 1 < h { n.push((x, y + 1)); }
+    if x > 0 {
+        n.push((x - 1, y));
+    }
+    if x + 1 < w {
+        n.push((x + 1, y));
+    }
+    if y > 0 {
+        n.push((x, y - 1));
+    }
+    if y + 1 < h {
+        n.push((x, y + 1));
+    }
     n.into_iter()
 }

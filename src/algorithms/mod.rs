@@ -1,36 +1,36 @@
 //! Procedural generation algorithms
 
+mod agent;
 mod bsp;
 mod cellular;
-mod drunkard;
-mod maze;
-mod rooms;
-mod voronoi;
-mod dla;
-mod wfc;
-mod percolation;
 mod diamond_square;
-mod prefab;
-mod agent;
+mod dla;
+mod drunkard;
 mod fractal;
 mod glass_seam;
+mod maze;
+mod percolation;
+mod prefab;
 mod room_accretion;
+mod rooms;
+mod voronoi;
+mod wfc;
 
+pub use agent::{AgentBased, AgentConfig};
 pub use bsp::{Bsp, BspConfig};
 pub use cellular::{CellularAutomata, CellularConfig};
-pub use drunkard::{DrunkardWalk, DrunkardConfig};
-pub use maze::{Maze, MazeConfig};
-pub use rooms::{SimpleRooms, SimpleRoomsConfig};
-pub use voronoi::{Voronoi, VoronoiConfig};
-pub use dla::{Dla, DlaConfig};
-pub use wfc::{Wfc, WfcConfig};
-pub use percolation::{Percolation, PercolationConfig};
 pub use diamond_square::{DiamondSquare, DiamondSquareConfig};
-pub use prefab::{PrefabPlacer, PrefabConfig, Prefab};
-pub use agent::{AgentBased, AgentConfig};
+pub use dla::{Dla, DlaConfig};
+pub use drunkard::{DrunkardConfig, DrunkardWalk};
 pub use fractal::Fractal;
 pub use glass_seam::GlassSeam;
+pub use maze::{Maze, MazeConfig};
+pub use percolation::{Percolation, PercolationConfig};
+pub use prefab::{Prefab, PrefabConfig, PrefabPlacer};
 pub use room_accretion::{RoomAccretion, RoomAccretionConfig, RoomTemplate};
+pub use rooms::{SimpleRooms, SimpleRoomsConfig};
+pub use voronoi::{Voronoi, VoronoiConfig};
+pub use wfc::{Wfc, WfcConfig};
 
 use crate::{Algorithm, Tile};
 
@@ -58,8 +58,19 @@ pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
 /// List all available algorithm names
 pub fn list() -> &'static [&'static str] {
     &[
-        "bsp", "cellular", "drunkard", "maze", "rooms", "voronoi",
-        "dla", "wfc", "percolation", "diamond_square", "agent", 
-        "fractal", "glass_seam", "room_accretion",
+        "bsp",
+        "cellular",
+        "drunkard",
+        "maze",
+        "rooms",
+        "voronoi",
+        "dla",
+        "wfc",
+        "percolation",
+        "diamond_square",
+        "agent",
+        "fractal",
+        "glass_seam",
+        "room_accretion",
     ]
 }

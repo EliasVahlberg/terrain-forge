@@ -6,7 +6,9 @@ pub struct MazeConfig {
 }
 
 impl Default for MazeConfig {
-    fn default() -> Self { Self { corridor_width: 1 } }
+    fn default() -> Self {
+        Self { corridor_width: 1 }
+    }
 }
 
 pub struct Maze {
@@ -14,11 +16,15 @@ pub struct Maze {
 }
 
 impl Maze {
-    pub fn new(config: MazeConfig) -> Self { Self { config } }
+    pub fn new(config: MazeConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for Maze {
-    fn default() -> Self { Self::new(MazeConfig::default()) }
+    fn default() -> Self {
+        Self::new(MazeConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for Maze {
@@ -29,7 +35,9 @@ impl Algorithm<Tile> for Maze {
 
         let maze_w = (w - 1) / step;
         let maze_h = (h - 1) / step;
-        if maze_w < 2 || maze_h < 2 { return; }
+        if maze_w < 2 || maze_h < 2 {
+            return;
+        }
 
         let mut visited = vec![vec![false; maze_h]; maze_w];
         let mut stack = vec![(0usize, 0usize)];
@@ -37,10 +45,18 @@ impl Algorithm<Tile> for Maze {
 
         while let Some(&(cx, cy)) = stack.last() {
             let mut neighbors = Vec::new();
-            if cx > 0 && !visited[cx - 1][cy] { neighbors.push((cx - 1, cy)); }
-            if cx + 1 < maze_w && !visited[cx + 1][cy] { neighbors.push((cx + 1, cy)); }
-            if cy > 0 && !visited[cx][cy - 1] { neighbors.push((cx, cy - 1)); }
-            if cy + 1 < maze_h && !visited[cx][cy + 1] { neighbors.push((cx, cy + 1)); }
+            if cx > 0 && !visited[cx - 1][cy] {
+                neighbors.push((cx - 1, cy));
+            }
+            if cx + 1 < maze_w && !visited[cx + 1][cy] {
+                neighbors.push((cx + 1, cy));
+            }
+            if cy > 0 && !visited[cx][cy - 1] {
+                neighbors.push((cx, cy - 1));
+            }
+            if cy + 1 < maze_h && !visited[cx][cy + 1] {
+                neighbors.push((cx, cy + 1));
+            }
 
             if neighbors.is_empty() {
                 stack.pop();
@@ -60,7 +76,9 @@ impl Algorithm<Tile> for Maze {
         }
     }
 
-    fn name(&self) -> &'static str { "Maze" }
+    fn name(&self) -> &'static str {
+        "Maze"
+    }
 }
 
 fn carve_cell(grid: &mut Grid<Tile>, x: usize, y: usize, size: usize) {

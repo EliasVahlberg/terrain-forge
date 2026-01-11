@@ -1,20 +1,20 @@
 //! Noise generation module with composable generators and modifiers
 
-mod perlin;
-mod value;
 mod fbm;
 mod modifiers;
-mod simplex;
-mod worley;
+mod perlin;
 mod ridged;
+mod simplex;
+mod value;
+mod worley;
 
-pub use perlin::Perlin;
-pub use value::Value;
 pub use fbm::Fbm;
 pub use modifiers::*;
-pub use simplex::Simplex;
-pub use worley::Worley;
+pub use perlin::Perlin;
 pub use ridged::Ridged;
+pub use simplex::Simplex;
+pub use value::Value;
+pub use worley::Worley;
 
 /// Trait for noise sources that can be sampled at 2D coordinates
 pub trait NoiseSource {
@@ -26,17 +26,27 @@ pub trait NoiseSource {
 pub trait NoiseExt: NoiseSource + Sized {
     /// Scale output by a factor
     fn scale(self, factor: f64) -> Scale<Self> {
-        Scale { source: self, factor }
+        Scale {
+            source: self,
+            factor,
+        }
     }
 
     /// Add offset to output
     fn offset(self, amount: f64) -> Offset<Self> {
-        Offset { source: self, amount }
+        Offset {
+            source: self,
+            amount,
+        }
     }
 
     /// Clamp output to range
     fn clamp(self, min: f64, max: f64) -> Clamp<Self> {
-        Clamp { source: self, min, max }
+        Clamp {
+            source: self,
+            min,
+            max,
+        }
     }
 
     /// Take absolute value

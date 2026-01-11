@@ -6,7 +6,9 @@ pub struct WfcConfig {
 }
 
 impl Default for WfcConfig {
-    fn default() -> Self { Self { floor_weight: 0.4 } }
+    fn default() -> Self {
+        Self { floor_weight: 0.4 }
+    }
 }
 
 pub struct Wfc {
@@ -14,11 +16,15 @@ pub struct Wfc {
 }
 
 impl Wfc {
-    pub fn new(config: WfcConfig) -> Self { Self { config } }
+    pub fn new(config: WfcConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for Wfc {
-    fn default() -> Self { Self::new(WfcConfig::default()) }
+    fn default() -> Self {
+        Self::new(WfcConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for Wfc {
@@ -62,11 +68,17 @@ impl Algorithm<Tile> for Wfc {
                 }
             }
 
-            if candidates.is_empty() { break; }
+            if candidates.is_empty() {
+                break;
+            }
 
             let &(cx, cy) = rng.pick(&candidates).unwrap();
             let choose_floor = rng.chance(self.config.floor_weight) && possibilities[cy][cx][1];
-            possibilities[cy][cx] = if choose_floor { [false, true] } else { [true, false] };
+            possibilities[cy][cx] = if choose_floor {
+                [false, true]
+            } else {
+                [true, false]
+            };
 
             propagate(&mut possibilities);
         }
@@ -81,7 +93,9 @@ impl Algorithm<Tile> for Wfc {
         }
     }
 
-    fn name(&self) -> &'static str { "WFC" }
+    fn name(&self) -> &'static str {
+        "WFC"
+    }
 }
 
 fn propagate(poss: &mut [Vec<[bool; 2]>]) {
@@ -90,7 +104,9 @@ fn propagate(poss: &mut [Vec<[bool; 2]>]) {
         changed = false;
         for row in poss.iter_mut() {
             for cell in row.iter_mut() {
-                if cell.iter().filter(|&&b| b).count() != 1 { continue; }
+                if cell.iter().filter(|&&b| b).count() != 1 {
+                    continue;
+                }
                 // Simplified propagation - no actual constraints applied
             }
         }

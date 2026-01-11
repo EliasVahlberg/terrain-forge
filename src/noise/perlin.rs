@@ -8,7 +8,10 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new(seed: u64) -> Self {
-        Self { seed, frequency: 1.0 }
+        Self {
+            seed,
+            frequency: 1.0,
+        }
     }
 
     pub fn with_frequency(mut self, frequency: f64) -> Self {
@@ -18,7 +21,8 @@ impl Perlin {
 
     // Hash function for gradient selection
     fn hash(&self, x: i32, y: i32) -> usize {
-        let h = (x as u64).wrapping_mul(374761393)
+        let h = (x as u64)
+            .wrapping_mul(374761393)
             .wrapping_add((y as u64).wrapping_mul(668265263))
             .wrapping_add(self.seed);
         (h ^ (h >> 13)).wrapping_mul(1274126177) as usize & 7
@@ -102,7 +106,7 @@ mod tests {
         for i in 0..100 {
             for j in 0..100 {
                 let v = noise.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!(v >= -1.5 && v <= 1.5, "Value {} out of expected range", v);
+                assert!((-1.5..=1.5).contains(&v), "Value {} out of expected range", v);
             }
         }
     }

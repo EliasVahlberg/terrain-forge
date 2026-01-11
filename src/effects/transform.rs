@@ -32,7 +32,11 @@ pub fn rotate(grid: &mut Grid<Tile>, degrees: u32) {
             let snapshot: Vec<Tile> = (0..w * h).map(|i| grid[(i % w, i / w)]).collect();
             for y in 0..h {
                 for x in 0..w {
-                    let (sx, sy) = if degrees == 90 { (y, w - 1 - x) } else { (h - 1 - y, x) };
+                    let (sx, sy) = if degrees == 90 {
+                        (y, w - 1 - x)
+                    } else {
+                        (h - 1 - y, x)
+                    };
                     grid.set(x as i32, y as i32, snapshot[sy * w + sx]);
                 }
             }

@@ -7,7 +7,12 @@ pub struct DrunkardConfig {
 }
 
 impl Default for DrunkardConfig {
-    fn default() -> Self { Self { floor_percent: 0.4, max_iterations: 50000 } }
+    fn default() -> Self {
+        Self {
+            floor_percent: 0.4,
+            max_iterations: 50000,
+        }
+    }
 }
 
 pub struct DrunkardWalk {
@@ -15,11 +20,15 @@ pub struct DrunkardWalk {
 }
 
 impl DrunkardWalk {
-    pub fn new(config: DrunkardConfig) -> Self { Self { config } }
+    pub fn new(config: DrunkardConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for DrunkardWalk {
-    fn default() -> Self { Self::new(DrunkardConfig::default()) }
+    fn default() -> Self {
+        Self::new(DrunkardConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for DrunkardWalk {
@@ -34,7 +43,9 @@ impl Algorithm<Tile> for DrunkardWalk {
         let mut floor_count = 0;
 
         for _ in 0..self.config.max_iterations {
-            if floor_count >= target { break; }
+            if floor_count >= target {
+                break;
+            }
 
             if !grid.get(x, y).map(|t| t.is_floor()).unwrap_or(true) {
                 grid.set(x, y, Tile::Floor);
@@ -50,5 +61,7 @@ impl Algorithm<Tile> for DrunkardWalk {
         }
     }
 
-    fn name(&self) -> &'static str { "DrunkardWalk" }
+    fn name(&self) -> &'static str {
+        "DrunkardWalk"
+    }
 }

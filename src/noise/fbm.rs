@@ -10,7 +10,12 @@ pub struct Fbm<S: NoiseSource> {
 
 impl<S: NoiseSource> Fbm<S> {
     pub fn new(source: S, octaves: u32, lacunarity: f64, persistence: f64) -> Self {
-        Self { source, octaves, lacunarity, persistence }
+        Self {
+            source,
+            octaves,
+            lacunarity,
+            persistence,
+        }
     }
 }
 
@@ -41,7 +46,7 @@ mod tests {
     fn fbm_adds_detail() {
         let base = Perlin::new(42);
         let fbm = Fbm::new(Perlin::new(42), 4, 2.0, 0.5);
-        
+
         // FBM should produce different values than base at non-integer coords
         let base_val = base.sample(1.37, 2.89);
         let fbm_val = fbm.sample(1.37, 2.89);
@@ -54,7 +59,7 @@ mod tests {
         for i in 0..50 {
             for j in 0..50 {
                 let v = fbm.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!(v >= -2.0 && v <= 2.0, "FBM value {} out of range", v);
+                assert!((-2.0..=2.0).contains(&v), "FBM value {} out of range", v);
             }
         }
     }

@@ -10,7 +10,12 @@ pub struct Ridged<S> {
 
 impl<S: NoiseSource> Ridged<S> {
     pub fn new(source: S, octaves: u32, lacunarity: f64, persistence: f64) -> Self {
-        Self { source, octaves, lacunarity, persistence }
+        Self {
+            source,
+            octaves,
+            lacunarity,
+            persistence,
+        }
     }
 }
 
@@ -49,7 +54,7 @@ mod tests {
         for i in 0..50 {
             for j in 0..50 {
                 let v = noise.sample(i as f64 * 0.1, j as f64 * 0.1);
-                assert!(v >= -1.0 && v <= 1.0, "Value {} out of range", v);
+                assert!((-1.0..=1.0).contains(&v), "Value {} out of range", v);
             }
         }
     }

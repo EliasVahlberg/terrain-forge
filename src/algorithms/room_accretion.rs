@@ -1,5 +1,5 @@
+use crate::semantic::{placement, Marker, Masks, SemanticGenerator, SemanticLayers};
 use crate::{Algorithm, Grid, Rng, Tile};
-use crate::semantic::{SemanticGenerator, SemanticLayers, Marker, Masks, placement};
 
 #[derive(Debug, Clone)]
 pub struct RoomAccretionConfig {
@@ -10,9 +10,18 @@ pub struct RoomAccretionConfig {
 
 #[derive(Debug, Clone)]
 pub enum RoomTemplate {
-    Rectangle { min: usize, max: usize },
-    Blob { size: usize, smoothing: usize },
-    Circle { min_radius: usize, max_radius: usize },
+    Rectangle {
+        min: usize,
+        max: usize,
+    },
+    Blob {
+        size: usize,
+        smoothing: usize,
+    },
+    Circle {
+        min_radius: usize,
+        max_radius: usize,
+    },
 }
 
 impl Default for RoomAccretionConfig {
@@ -20,8 +29,14 @@ impl Default for RoomAccretionConfig {
         Self {
             templates: vec![
                 RoomTemplate::Rectangle { min: 5, max: 12 },
-                RoomTemplate::Blob { size: 8, smoothing: 2 },
-                RoomTemplate::Circle { min_radius: 3, max_radius: 6 },
+                RoomTemplate::Blob {
+                    size: 8,
+                    smoothing: 2,
+                },
+                RoomTemplate::Circle {
+                    min_radius: 3,
+                    max_radius: 6,
+                },
             ],
             max_rooms: 15,
             loop_chance: 0.1,
@@ -49,36 +64,40 @@ impl Algorithm<Tile> for RoomAccretion {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
         let mut rng = Rng::new(seed);
         let (w, h) = (grid.width(), grid.height());
-        
+
         // Start with first room in center
         let center_x = w / 2;
         let center_y = h / 2;
         let template = rng.pick(&self.config.templates).unwrap().clone();
         place_room(grid, &template, center_x, center_y, &mut rng);
-        
+
         // Add rooms by sliding until they fit adjacent to existing structure
         for _ in 1..self.config.max_rooms {
             let template = rng.pick(&self.config.templates).unwrap().clone();
-            
+
             // Try multiple positions
             let mut placed = false;
             for _ in 0..50 {
                 let start_x = rng.range_usize(5, w - 5);
                 let start_y = rng.range_usize(5, h - 5);
-                
-                if let Some((final_x, final_y)) = slide_to_fit(grid, &template, start_x, start_y, &mut rng) {
+
+                if let Some((final_x, final_y)) =
+                    slide_to_fit(grid, &template, start_x, start_y, &mut rng)
+                {
                     place_room(grid, &template, final_x, final_y, &mut rng);
-                    
+
                     // Connect to existing structure
                     connect_to_existing(grid, final_x, final_y, &template, &mut rng);
                     placed = true;
                     break;
                 }
             }
-            
-            if !placed { break; }
+
+            if !placed {
+                break;
+            }
         }
-        
+
         // Add loops
         if self.config.loop_chance > 0.0 {
             crate::effects::connect_regions_spanning(grid, self.config.loop_chance, &mut rng);
@@ -93,14 +112,14 @@ impl Algorithm<Tile> for RoomAccretion {
 impl SemanticGenerator<Tile> for RoomAccretion {
     fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
         let mut regions = placement::extract_regions(grid);
-        
+
         // Tag regions based on size and shape
         for region in &mut regions {
             let area = region.area();
             if area > 30 {
                 region.kind = "room".to_string();
                 region.add_tag("accretion_room");
-                
+
                 // Tag by approximate template type
                 if area > 100 {
                     region.add_tag("large_room");
@@ -112,50 +131,48 @@ impl SemanticGenerator<Tile> for RoomAccretion {
                 region.add_tag("connector");
             }
         }
-        
+
         // Generate diverse markers for rooms
-        let room_regions: Vec<_> = regions.iter().filter(|r| r.kind == "room").cloned().collect();
+        let room_regions: Vec<_> = regions
+            .iter()
+            .filter(|r| r.kind == "room")
+            .cloned()
+            .collect();
         let mut markers = Vec::new();
-        
+
         for region in &room_regions {
             let area = region.area();
-            
+
             // Loot slots proportional to room size
-            let loot_count = (area / 25).max(1).min(4);
+            let loot_count = (area / 25).clamp(1, 4);
             for _ in 0..loot_count {
                 if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
-                    markers.push(
-                        Marker::new(x, y, "loot_slot")
-                            .with_region(region.id)
-                    );
+                    markers.push(Marker::new(x, y, "loot_slot").with_region(region.id));
                 }
             }
-            
+
             // Special markers for larger rooms
             if area > 80 {
                 if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
                     markers.push(
                         Marker::new(x, y, "boss_spawn")
                             .with_region(region.id)
-                            .with_weight(3.0)
+                            .with_weight(3.0),
                     );
                 }
             }
-            
+
             // Light anchors for medium+ rooms
             if area > 40 {
                 if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
-                    markers.push(
-                        Marker::new(x, y, "light_anchor")
-                            .with_region(region.id)
-                    );
+                    markers.push(Marker::new(x, y, "light_anchor").with_region(region.id));
                 }
             }
         }
-        
+
         let masks = Masks::from_tiles(grid);
         let connectivity = placement::build_connectivity(grid, &regions);
-        
+
         SemanticLayers {
             regions,
             markers,
@@ -176,7 +193,10 @@ fn place_room(grid: &mut Grid<Tile>, template: &RoomTemplate, cx: usize, cy: usi
                 }
             }
         }
-        RoomTemplate::Circle { min_radius, max_radius } => {
+        RoomTemplate::Circle {
+            min_radius,
+            max_radius,
+        } => {
             let radius = rng.range_usize(*min_radius, *max_radius + 1);
             let r2 = (radius * radius) as f64;
             for dy in -(radius as i32)..=(radius as i32) {
@@ -193,7 +213,7 @@ fn place_room(grid: &mut Grid<Tile>, template: &RoomTemplate, cx: usize, cy: usi
             // Create blob using cellular automata
             let half = size / 2;
             let mut temp_grid = Grid::new(size + 2, size + 2);
-            
+
             // Random fill
             for y in 1..size + 1 {
                 for x in 1..size + 1 {
@@ -202,31 +222,47 @@ fn place_room(grid: &mut Grid<Tile>, template: &RoomTemplate, cx: usize, cy: usi
                     }
                 }
             }
-            
+
             // Smooth
             for _ in 0..*smoothing {
                 let mut new_grid = temp_grid.clone();
                 for y in 1..size + 1 {
                     for x in 1..size + 1 {
                         let neighbors = [
-                            temp_grid[(x - 1, y)], temp_grid[(x + 1, y)],
-                            temp_grid[(x, y - 1)], temp_grid[(x, y + 1)],
-                            temp_grid[(x - 1, y - 1)], temp_grid[(x + 1, y - 1)],
-                            temp_grid[(x - 1, y + 1)], temp_grid[(x + 1, y + 1)],
+                            temp_grid[(x - 1, y)],
+                            temp_grid[(x + 1, y)],
+                            temp_grid[(x, y - 1)],
+                            temp_grid[(x, y + 1)],
+                            temp_grid[(x - 1, y - 1)],
+                            temp_grid[(x + 1, y - 1)],
+                            temp_grid[(x - 1, y + 1)],
+                            temp_grid[(x + 1, y + 1)],
                         ];
                         let floor_count = neighbors.iter().filter(|t| t.is_floor()).count();
-                        new_grid.set(x as i32, y as i32, if floor_count >= 4 { Tile::Floor } else { Tile::Wall });
+                        new_grid.set(
+                            x as i32,
+                            y as i32,
+                            if floor_count >= 4 {
+                                Tile::Floor
+                            } else {
+                                Tile::Wall
+                            },
+                        );
                     }
                 }
                 temp_grid = new_grid;
             }
-            
+
             // Copy to main grid
             for y in 1..size + 1 {
                 for x in 1..size + 1 {
                     if temp_grid[(x, y)].is_floor() {
-                        let gx = (cx as i32 + x as i32 - half as i32 - 1).max(0).min(grid.width() as i32 - 1);
-                        let gy = (cy as i32 + y as i32 - half as i32 - 1).max(0).min(grid.height() as i32 - 1);
+                        let gx = (cx as i32 + x as i32 - half as i32 - 1)
+                            .max(0)
+                            .min(grid.width() as i32 - 1);
+                        let gy = (cy as i32 + y as i32 - half as i32 - 1)
+                            .max(0)
+                            .min(grid.height() as i32 - 1);
                         grid.set(gx, gy, Tile::Floor);
                     }
                 }
@@ -235,13 +271,19 @@ fn place_room(grid: &mut Grid<Tile>, template: &RoomTemplate, cx: usize, cy: usi
     }
 }
 
-fn slide_to_fit(grid: &Grid<Tile>, template: &RoomTemplate, start_x: usize, start_y: usize, rng: &mut Rng) -> Option<(usize, usize)> {
+fn slide_to_fit(
+    grid: &Grid<Tile>,
+    template: &RoomTemplate,
+    start_x: usize,
+    start_y: usize,
+    rng: &mut Rng,
+) -> Option<(usize, usize)> {
     let directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]; // N, E, S, W
     let direction = rng.pick(&directions).unwrap();
-    
+
     let mut x = start_x as i32;
     let mut y = start_y as i32;
-    
+
     // Slide until we hit existing floor or boundary
     for _ in 0..50 {
         if would_overlap(grid, template, x as usize, y as usize) {
@@ -253,15 +295,15 @@ fn slide_to_fit(grid: &Grid<Tile>, template: &RoomTemplate, start_x: usize, star
             }
             return None;
         }
-        
+
         x += direction.0;
         y += direction.1;
-        
+
         if x < 5 || y < 5 || x >= grid.width() as i32 - 5 || y >= grid.height() as i32 - 5 {
             return None;
         }
     }
-    
+
     None
 }
 
@@ -301,9 +343,15 @@ fn get_template_bounds(template: &RoomTemplate) -> (i32, i32) {
     }
 }
 
-fn connect_to_existing(grid: &mut Grid<Tile>, cx: usize, cy: usize, template: &RoomTemplate, rng: &mut Rng) {
+fn connect_to_existing(
+    grid: &mut Grid<Tile>,
+    cx: usize,
+    cy: usize,
+    template: &RoomTemplate,
+    rng: &mut Rng,
+) {
     let bounds = get_template_bounds(template);
-    
+
     // Find edge of room
     let mut edge_points = Vec::new();
     for dy in -bounds.1..=bounds.1 {
@@ -313,7 +361,10 @@ fn connect_to_existing(grid: &mut Grid<Tile>, cx: usize, cy: usize, template: &R
             if grid[(x, y)].is_floor() {
                 // Check if on edge
                 let neighbors = [
-                    (x.wrapping_sub(1), y), (x + 1, y), (x, y.wrapping_sub(1)), (x, y + 1)
+                    (x.wrapping_sub(1), y),
+                    (x + 1, y),
+                    (x, y.wrapping_sub(1)),
+                    (x, y + 1),
                 ];
                 for &(nx, ny) in &neighbors {
                     if nx < grid.width() && ny < grid.height() && !grid[(nx, ny)].is_floor() {
@@ -324,15 +375,19 @@ fn connect_to_existing(grid: &mut Grid<Tile>, cx: usize, cy: usize, template: &R
             }
         }
     }
-    
+
     if let Some(&(start_x, start_y)) = rng.pick(&edge_points) {
         // Carve a short corridor
         let directions = [(0, -1), (1, 0), (0, 1), (-1, 0)];
         let direction = rng.pick(&directions).unwrap();
-        
+
         for i in 1..=3 {
-            let x = (start_x as i32 + direction.0 * i).max(0).min(grid.width() as i32 - 1);
-            let y = (start_y as i32 + direction.1 * i).max(0).min(grid.height() as i32 - 1);
+            let x = (start_x as i32 + direction.0 * i)
+                .max(0)
+                .min(grid.width() as i32 - 1);
+            let y = (start_y as i32 + direction.1 * i)
+                .max(0)
+                .min(grid.height() as i32 - 1);
             grid.set(x, y, Tile::Floor);
         }
     }

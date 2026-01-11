@@ -1,7 +1,7 @@
 //! Composition system for chaining and layering algorithms
 
-mod pipeline;
 mod layer;
+mod pipeline;
 
+pub use layer::{BlendMode, LayeredGenerator};
 pub use pipeline::Pipeline;
-pub use layer::{LayeredGenerator, BlendMode};

@@ -15,7 +15,9 @@ pub struct LayeredGenerator {
 }
 
 impl LayeredGenerator {
-    pub fn new() -> Self { Self { layers: Vec::new() } }
+    pub fn new() -> Self {
+        Self { layers: Vec::new() }
+    }
 
     pub fn base<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Replace));
@@ -39,7 +41,9 @@ impl LayeredGenerator {
 }
 
 impl Default for LayeredGenerator {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Algorithm<Tile> for LayeredGenerator {
@@ -88,5 +92,7 @@ impl Algorithm<Tile> for LayeredGenerator {
         }
     }
 
-    fn name(&self) -> &'static str { "LayeredGenerator" }
+    fn name(&self) -> &'static str {
+        "LayeredGenerator"
+    }
 }

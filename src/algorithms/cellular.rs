@@ -10,7 +10,12 @@ pub struct CellularConfig {
 
 impl Default for CellularConfig {
     fn default() -> Self {
-        Self { initial_floor_chance: 0.45, iterations: 4, birth_limit: 5, death_limit: 4 }
+        Self {
+            initial_floor_chance: 0.45,
+            iterations: 4,
+            birth_limit: 5,
+            death_limit: 4,
+        }
     }
 }
 
@@ -19,11 +24,15 @@ pub struct CellularAutomata {
 }
 
 impl CellularAutomata {
-    pub fn new(config: CellularConfig) -> Self { Self { config } }
+    pub fn new(config: CellularConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for CellularAutomata {
-    fn default() -> Self { Self::new(CellularConfig::default()) }
+    fn default() -> Self {
+        Self::new(CellularConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for CellularAutomata {
@@ -53,23 +62,33 @@ impl Algorithm<Tile> for CellularAutomata {
                     } else {
                         neighbors >= self.config.birth_limit
                     };
-                    grid.set(x as i32, y as i32, if new_floor { Tile::Floor } else { Tile::Wall });
+                    grid.set(
+                        x as i32,
+                        y as i32,
+                        if new_floor { Tile::Floor } else { Tile::Wall },
+                    );
                 }
             }
         }
     }
 
-    fn name(&self) -> &'static str { "CellularAutomata" }
+    fn name(&self) -> &'static str {
+        "CellularAutomata"
+    }
 }
 
 fn count_neighbors(cells: &[bool], x: usize, y: usize, w: usize) -> usize {
     let mut count = 0;
     for dy in -1i32..=1 {
         for dx in -1i32..=1 {
-            if dx == 0 && dy == 0 { continue; }
+            if dx == 0 && dy == 0 {
+                continue;
+            }
             let nx = (x as i32 + dx) as usize;
             let ny = (y as i32 + dy) as usize;
-            if cells[ny * w + nx] { count += 1; }
+            if cells[ny * w + nx] {
+                count += 1;
+            }
         }
     }
     count

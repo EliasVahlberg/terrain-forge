@@ -7,7 +7,12 @@ pub struct PercolationConfig {
 }
 
 impl Default for PercolationConfig {
-    fn default() -> Self { Self { fill_probability: 0.45, keep_largest: true } }
+    fn default() -> Self {
+        Self {
+            fill_probability: 0.45,
+            keep_largest: true,
+        }
+    }
 }
 
 pub struct Percolation {
@@ -15,11 +20,15 @@ pub struct Percolation {
 }
 
 impl Percolation {
-    pub fn new(config: PercolationConfig) -> Self { Self { config } }
+    pub fn new(config: PercolationConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for Percolation {
-    fn default() -> Self { Self::new(PercolationConfig::default()) }
+    fn default() -> Self {
+        Self::new(PercolationConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for Percolation {
@@ -35,7 +44,9 @@ impl Algorithm<Tile> for Percolation {
             }
         }
 
-        if !self.config.keep_largest { return; }
+        if !self.config.keep_largest {
+            return;
+        }
 
         // Find and keep largest region
         let mut labels = vec![0u32; w * h];
@@ -53,8 +64,13 @@ impl Algorithm<Tile> for Percolation {
         }
 
         if label > 0 {
-            let largest = sizes.iter().enumerate().skip(1)
-                .max_by_key(|&(_, &s)| s).map(|(i, _)| i as u32).unwrap_or(1);
+            let largest = sizes
+                .iter()
+                .enumerate()
+                .skip(1)
+                .max_by_key(|&(_, &s)| s)
+                .map(|(i, _)| i as u32)
+                .unwrap_or(1);
 
             for y in 0..h {
                 for x in 0..w {
@@ -66,24 +82,44 @@ impl Algorithm<Tile> for Percolation {
         }
     }
 
-    fn name(&self) -> &'static str { "Percolation" }
+    fn name(&self) -> &'static str {
+        "Percolation"
+    }
 }
 
-fn flood_fill(grid: &Grid<Tile>, labels: &mut [u32], sx: usize, sy: usize, label: u32, w: usize, h: usize) -> usize {
+fn flood_fill(
+    grid: &Grid<Tile>,
+    labels: &mut [u32],
+    sx: usize,
+    sy: usize,
+    label: u32,
+    w: usize,
+    h: usize,
+) -> usize {
     let mut stack = vec![(sx, sy)];
     let mut count = 0;
 
     while let Some((x, y)) = stack.pop() {
         let idx = y * w + x;
-        if labels[idx] != 0 || !grid[(x, y)].is_floor() { continue; }
+        if labels[idx] != 0 || !grid[(x, y)].is_floor() {
+            continue;
+        }
 
         labels[idx] = label;
         count += 1;
 
-        if x > 0 { stack.push((x - 1, y)); }
-        if x + 1 < w { stack.push((x + 1, y)); }
-        if y > 0 { stack.push((x, y - 1)); }
-        if y + 1 < h { stack.push((x, y + 1)); }
+        if x > 0 {
+            stack.push((x - 1, y));
+        }
+        if x + 1 < w {
+            stack.push((x + 1, y));
+        }
+        if y > 0 {
+            stack.push((x, y - 1));
+        }
+        if y + 1 < h {
+            stack.push((x, y + 1));
+        }
     }
     count
 }

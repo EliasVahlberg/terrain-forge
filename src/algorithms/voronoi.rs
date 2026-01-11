@@ -7,7 +7,12 @@ pub struct VoronoiConfig {
 }
 
 impl Default for VoronoiConfig {
-    fn default() -> Self { Self { num_points: 15, floor_chance: 0.5 } }
+    fn default() -> Self {
+        Self {
+            num_points: 15,
+            floor_chance: 0.5,
+        }
+    }
 }
 
 pub struct Voronoi {
@@ -15,11 +20,15 @@ pub struct Voronoi {
 }
 
 impl Voronoi {
-    pub fn new(config: VoronoiConfig) -> Self { Self { config } }
+    pub fn new(config: VoronoiConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for Voronoi {
-    fn default() -> Self { Self::new(VoronoiConfig::default()) }
+    fn default() -> Self {
+        Self::new(VoronoiConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for Voronoi {
@@ -40,8 +49,8 @@ impl Algorithm<Tile> for Voronoi {
                 let mut min_dist = usize::MAX;
                 let mut closest = 0;
                 for (i, &(px, py)) in points.iter().enumerate() {
-                    let dist = (x as i32 - px as i32).unsigned_abs() as usize 
-                             + (y as i32 - py as i32).unsigned_abs() as usize;
+                    let dist = (x as i32 - px as i32).unsigned_abs() as usize
+                        + (y as i32 - py as i32).unsigned_abs() as usize;
                     if dist < min_dist {
                         min_dist = dist;
                         closest = i;
@@ -54,5 +63,7 @@ impl Algorithm<Tile> for Voronoi {
         }
     }
 
-    fn name(&self) -> &'static str { "Voronoi" }
+    fn name(&self) -> &'static str {
+        "Voronoi"
+    }
 }

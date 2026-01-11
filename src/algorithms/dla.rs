@@ -7,7 +7,12 @@ pub struct DlaConfig {
 }
 
 impl Default for DlaConfig {
-    fn default() -> Self { Self { num_particles: 500, max_walk_steps: 1000 } }
+    fn default() -> Self {
+        Self {
+            num_particles: 500,
+            max_walk_steps: 1000,
+        }
+    }
 }
 
 pub struct Dla {
@@ -15,11 +20,15 @@ pub struct Dla {
 }
 
 impl Dla {
-    pub fn new(config: DlaConfig) -> Self { Self { config } }
+    pub fn new(config: DlaConfig) -> Self {
+        Self { config }
+    }
 }
 
 impl Default for Dla {
-    fn default() -> Self { Self::new(DlaConfig::default()) }
+    fn default() -> Self {
+        Self::new(DlaConfig::default())
+    }
 }
 
 impl Algorithm<Tile> for Dla {
@@ -37,7 +46,9 @@ impl Algorithm<Tile> for Dla {
 
             for _ in 0..self.config.max_walk_steps {
                 let has_neighbor = dirs.iter().any(|&(dx, dy)| {
-                    grid.get(x + dx, y + dy).map(|t| t.is_floor()).unwrap_or(false)
+                    grid.get(x + dx, y + dy)
+                        .map(|t| t.is_floor())
+                        .unwrap_or(false)
                 });
 
                 if has_neighbor {
@@ -55,5 +66,7 @@ impl Algorithm<Tile> for Dla {
         }
     }
 
-    fn name(&self) -> &'static str { "DLA" }
+    fn name(&self) -> &'static str {
+        "DLA"
+    }
 }

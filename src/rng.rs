@@ -10,7 +10,9 @@ pub struct Rng {
 
 impl Rng {
     pub fn new(seed: u64) -> Self {
-        Self { inner: ChaCha8Rng::seed_from_u64(seed) }
+        Self {
+            inner: ChaCha8Rng::seed_from_u64(seed),
+        }
     }
 
     pub fn range(&mut self, min: i32, max: i32) -> i32 {
@@ -30,8 +32,11 @@ impl Rng {
     }
 
     pub fn pick<'a, T>(&mut self, slice: &'a [T]) -> Option<&'a T> {
-        if slice.is_empty() { None } 
-        else { Some(&slice[self.range_usize(0, slice.len())]) }
+        if slice.is_empty() {
+            None
+        } else {
+            Some(&slice[self.range_usize(0, slice.len())])
+        }
     }
 
     pub fn shuffle<T>(&mut self, slice: &mut [T]) {
