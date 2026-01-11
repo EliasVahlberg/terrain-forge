@@ -109,14 +109,14 @@ impl SemanticExtractor {
         
         for region in regions {
             let marker_count = (self.config.max_markers_per_region as f32 * 
-                               (region.cells.len() as f32 / 100.0).min(1.0)) as usize;
+                               (region.cells.len() as f32 / self.config.marker_scaling_factor).min(1.0)) as usize;
             
             for _ in 0..marker_count {
                 if let Some((marker_type, weight)) = rng.pick(&self.config.marker_types) {
                     if rng.random() < (*weight as f64) {
-                        if let Some(&(x, y)) = rng.pick(&region.cells) {
+                        if let Some(position) = self.find_marker_position(region, &markers, rng) {
                             markers.push(
-                                Marker::new(x, y, marker_type)
+                                Marker::new(position.0, position.1, marker_type)
                                     .with_region(region.id)
                                     .with_weight(*weight)
                             );
@@ -127,6 +127,86 @@ impl SemanticExtractor {
         }
         
         markers
+    }
+    
+    /// Find appropriate position for marker based on placement strategy
+    fn find_marker_position(&self, region: &Region, existing_markers: &[Marker], rng: &mut Rng) -> Option<(u32, u32)> {
+        use crate::semantic::{PlacementStrategy};
+        
+        let candidates: Vec<(u32, u32)> = match self.config.marker_placement.strategy {
+            PlacementStrategy::Random => region.cells.clone(),
+            PlacementStrategy::Center => {
+                if let Some(center) = self.find_region_center(region) {
+                    vec![center]
+                } else {
+                    region.cells.clone()
+                }
+            },
+            PlacementStrategy::Edges => self.find_edge_positions(region),
+            PlacementStrategy::Corners => self.find_corner_positions(region),
+        };
+        
+        // Filter candidates based on distance constraints
+        let valid_candidates: Vec<_> = candidates.into_iter()
+            .filter(|&pos| self.is_valid_marker_position(pos, existing_markers))
+            .collect();
+            
+        rng.pick(&valid_candidates).copied()
+    }
+    
+    /// Check if position is valid for marker placement
+    fn is_valid_marker_position(&self, pos: (u32, u32), existing_markers: &[Marker]) -> bool {
+        let min_dist = self.config.marker_placement.min_marker_distance as f32;
+        
+        for marker in existing_markers {
+            let dx = pos.0 as f32 - marker.x as f32;
+            let dy = pos.1 as f32 - marker.y as f32;
+            let distance = (dx * dx + dy * dy).sqrt();
+            
+            if distance < min_dist {
+                return false;
+            }
+        }
+        
+        true
+    }
+    
+    /// Find center position of region
+    fn find_region_center(&self, region: &Region) -> Option<(u32, u32)> {
+        if region.cells.is_empty() {
+            return None;
+        }
+        
+        let sum_x: u32 = region.cells.iter().map(|(x, _)| x).sum();
+        let sum_y: u32 = region.cells.iter().map(|(_, y)| y).sum();
+        let count = region.cells.len() as u32;
+        
+        Some((sum_x / count, sum_y / count))
+    }
+    
+    /// Find edge positions in region
+    fn find_edge_positions(&self, region: &Region) -> Vec<(u32, u32)> {
+        // Simplified: return cells that have fewer neighbors
+        // In a real implementation, this would check actual grid boundaries
+        region.cells.clone() // Placeholder
+    }
+    
+    /// Find corner positions in region  
+    fn find_corner_positions(&self, region: &Region) -> Vec<(u32, u32)> {
+        if region.cells.len() < 4 {
+            return region.cells.clone();
+        }
+        
+        // Find extremes
+        let min_x = region.cells.iter().map(|(x, _)| x).min().unwrap();
+        let max_x = region.cells.iter().map(|(x, _)| x).max().unwrap();
+        let min_y = region.cells.iter().map(|(_, y)| y).min().unwrap();
+        let max_y = region.cells.iter().map(|(_, y)| y).max().unwrap();
+        
+        vec![(*min_x, *min_y), (*max_x, *min_y), (*min_x, *max_y), (*max_x, *max_y)]
+            .into_iter()
+            .filter(|pos| region.cells.contains(pos))
+            .collect()
     }
     
     /// Build connectivity graph between regions
@@ -143,8 +223,16 @@ impl SemanticExtractor {
         
         for region in regions {
             for &(x, y) in &region.cells {
-                // Check 4-connected neighbors
-                let neighbors = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+                // Use configurable connectivity type
+                let neighbors = match self.config.connectivity_type {
+                    crate::semantic::ConnectivityType::FourConnected => {
+                        vec![(0, 1), (1, 0), (0, -1), (-1, 0)]
+                    },
+                    crate::semantic::ConnectivityType::EightConnected => {
+                        vec![(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+                    },
+                };
+                
                 for (dx, dy) in neighbors {
                     let nx = x as i32 + dx;
                     let ny = y as i32 + dy;

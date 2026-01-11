@@ -15,6 +15,58 @@ pub struct SemanticConfig {
     pub marker_types: Vec<(String, f32)>,
     /// Maximum number of markers per region type
     pub max_markers_per_region: usize,
+    /// Region size scaling factor for marker density (default: 100.0)
+    pub marker_scaling_factor: f32,
+    /// Connectivity analysis type
+    pub connectivity_type: ConnectivityType,
+    /// Advanced region analysis options
+    pub region_analysis: RegionAnalysisConfig,
+    /// Marker placement strategy
+    pub marker_placement: MarkerPlacementConfig,
+}
+
+/// Type of connectivity analysis to perform
+#[derive(Debug, Clone)]
+pub enum ConnectivityType {
+    /// 4-connected (orthogonal neighbors only)
+    FourConnected,
+    /// 8-connected (includes diagonal neighbors)
+    EightConnected,
+}
+
+/// Configuration for advanced region analysis
+#[derive(Debug, Clone)]
+pub struct RegionAnalysisConfig {
+    /// Enable shape analysis (aspect ratio, compactness)
+    pub analyze_shape: bool,
+    /// Enable connectivity pattern analysis
+    pub analyze_connectivity_patterns: bool,
+    /// Minimum region size for detailed analysis
+    pub min_analysis_size: usize,
+}
+
+/// Configuration for marker placement strategies
+#[derive(Debug, Clone)]
+pub struct MarkerPlacementConfig {
+    /// Placement strategy for markers
+    pub strategy: PlacementStrategy,
+    /// Minimum distance between markers of same type
+    pub min_marker_distance: usize,
+    /// Avoid placing markers near walls
+    pub avoid_walls: bool,
+}
+
+/// Marker placement strategies
+#[derive(Debug, Clone)]
+pub enum PlacementStrategy {
+    /// Random placement within region
+    Random,
+    /// Place at region center
+    Center,
+    /// Place near region edges
+    Edges,
+    /// Place in corners/extremes
+    Corners,
 }
 
 impl SemanticConfig {
@@ -35,6 +87,18 @@ impl SemanticConfig {
                 ("Crystal".to_string(), 0.2),
             ],
             max_markers_per_region: 2,
+            marker_scaling_factor: 80.0, // Caves tend to be larger
+            connectivity_type: ConnectivityType::EightConnected, // Natural cave connections
+            region_analysis: RegionAnalysisConfig {
+                analyze_shape: true, // Cave shape matters
+                analyze_connectivity_patterns: true,
+                min_analysis_size: 15,
+            },
+            marker_placement: MarkerPlacementConfig {
+                strategy: PlacementStrategy::Random,
+                min_marker_distance: 5,
+                avoid_walls: true,
+            },
         }
     }
     
@@ -55,6 +119,18 @@ impl SemanticConfig {
                 ("Furniture".to_string(), 0.7),
             ],
             max_markers_per_region: 4,
+            marker_scaling_factor: 60.0, // Rooms are more compact
+            connectivity_type: ConnectivityType::FourConnected, // Structured connections
+            region_analysis: RegionAnalysisConfig {
+                analyze_shape: true, // Room rectangularity matters
+                analyze_connectivity_patterns: false,
+                min_analysis_size: 8,
+            },
+            marker_placement: MarkerPlacementConfig {
+                strategy: PlacementStrategy::Center, // Furniture in room centers
+                min_marker_distance: 4,
+                avoid_walls: true,
+            },
         }
     }
     
@@ -73,6 +149,18 @@ impl SemanticConfig {
                 ("Trap".to_string(), 0.3),
             ],
             max_markers_per_region: 1,
+            marker_scaling_factor: 30.0, // Mazes have smaller regions
+            connectivity_type: ConnectivityType::FourConnected, // Maze structure
+            region_analysis: RegionAnalysisConfig {
+                analyze_shape: false,
+                analyze_connectivity_patterns: true, // Junction analysis important
+                min_analysis_size: 5,
+            },
+            marker_placement: MarkerPlacementConfig {
+                strategy: PlacementStrategy::Corners, // Traps in corners
+                min_marker_distance: 8,
+                avoid_walls: false, // Maze walls are part of structure
+            },
         }
     }
 }
@@ -93,6 +181,18 @@ impl Default for SemanticConfig {
                 ("Enemy".to_string(), 0.5),
             ],
             max_markers_per_region: 3,
+            marker_scaling_factor: 100.0,
+            connectivity_type: ConnectivityType::FourConnected,
+            region_analysis: RegionAnalysisConfig {
+                analyze_shape: false,
+                analyze_connectivity_patterns: false,
+                min_analysis_size: 10,
+            },
+            marker_placement: MarkerPlacementConfig {
+                strategy: PlacementStrategy::Random,
+                min_marker_distance: 3,
+                avoid_walls: true,
+            },
         }
     }
 }
