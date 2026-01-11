@@ -72,6 +72,25 @@ cargo run -- compare -c cave dungeon    # Compare saved configs
 }
 ```
 
+### NEW: Room Accretion
+```json
+{
+  "name": "brogue_dungeon",
+  "width": 80,
+  "height": 60,
+  "algorithm": {
+    "type": "room_accretion",
+    "templates": [
+      { "Rectangle": { "min": 5, "max": 10 } },
+      { "Circle": { "min_radius": 3, "max_radius": 6 } },
+      { "Blob": { "size": 8, "smoothing": 2 } }
+    ],
+    "max_rooms": 12,
+    "loop_chance": 0.15
+  }
+}
+```
+
 ### Pipeline
 ```json
 {
@@ -107,6 +126,24 @@ cargo run -- compare -c cave dungeon    # Compare saved configs
   "height": 60,
   "algorithm": "bsp",
   "effects": ["erode", "erode", "bridge_gaps"]
+}
+```
+
+### NEW: Advanced Effects
+```json
+{
+  "name": "connected_regions",
+  "width": 80,
+  "height": 60,
+  "algorithm": "rooms",
+  "effects": [
+    {
+      "name": "connect_regions_spanning",
+      "config": {
+        "extra_connection_chance": 0.2
+      }
+    }
+  ]
 }
 ```
 

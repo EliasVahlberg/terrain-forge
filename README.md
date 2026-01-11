@@ -4,10 +4,12 @@ A modular procedural generation engine for terrain, dungeons, and maps in Rust.
 
 ## Features
 
-- **13 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Rooms, Voronoi, WFC, Percolation, Diamond Square, Fractal, Agent-based, Glass Seam
+- **14 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Rooms, Voronoi, WFC, Percolation, Diamond Square, Fractal, Agent-based, Glass Seam, Room Accretion
+- **Advanced Connectivity**: Region-aware connectors with loop control
 - **Noise Generation**: Perlin, Simplex, Value, Worley with FBM, Ridged, and modifiers
 - **Effects**: Morphology, spatial analysis, filters, connectivity
 - **Composition**: Pipeline chaining and layered generation
+- **Prefab System**: Rotatable prefabs with 90°/180°/270° variants
 - **Deterministic**: Seeded RNG for reproducible results
 - **Generic**: Works with custom cell types via traits
 
@@ -48,6 +50,9 @@ terrain-forge = "0.1"
 | `percolation` | Connected cluster generation |
 | `diamond_square` | Heightmap terrain |
 | `fractal` | Fractal terrain |
+| `agent` | Multi-agent carving |
+| `glass_seam` | Region connector |
+| `room_accretion` | Brogue-style organic dungeons |
 | `agent` | Agent-based carving |
 | `glass_seam` | Connects disconnected regions |
 
@@ -138,6 +143,9 @@ cd demo
 # Generate single algorithm
 cargo run -- gen bsp -s 12345 -o output.png
 
+# New: Room accretion (Brogue-style)
+cargo run -- gen room_accretion -s 12345
+
 # Pipeline composition
 cargo run -- gen "bsp > cellular" -s 42
 
@@ -147,6 +155,11 @@ cargo run -- gen "bsp | drunkard" -s 99
 # Run config file
 cargo run -- run configs/saltglass_overworld.json
 
+# New: Advanced features
+cargo run -- run configs/room_accretion.json
+cargo run -- run configs/region_connectors.json
+cargo run -- run configs/brogue_style.json
+
 # Compare algorithms
 cargo run -- compare bsp cellular maze -s 12345
 
@@ -154,9 +167,17 @@ cargo run -- compare bsp cellular maze -s 12345
 cargo run -- list
 ```
 
+## New in v0.2.0
+
+- **Room Accretion Algorithm**: Brogue-style organic dungeon generation with sliding room placement
+- **Advanced Connectivity**: `connect_regions_spanning()` with loop control for better dungeon flow
+- **Prefab Rotation**: 90°/180°/270° rotation support for prefabs
+- **Public Region Analysis**: `label_regions()` for custom connectivity logic
+
 ## Documentation
 
 See [docs/API.md](docs/API.md) for full API reference.
+See [docs/ROGUELIKE_GENERATION_ANALYSIS.md](docs/ROGUELIKE_GENERATION_ANALYSIS.md) for advanced techniques.
 
 ## License
 

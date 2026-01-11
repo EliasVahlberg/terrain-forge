@@ -112,11 +112,13 @@ for name in algorithms::list() {
 | `fractal` | Fractal terrain | - |
 | `agent` | Agent-based carving | `AgentConfig` |
 | `glass_seam` | Connects disconnected regions | - |
+| `room_accretion` | **NEW**: Brogue-style organic dungeons | `RoomAccretionConfig` |
 
 ### Direct Instantiation
 
 ```rust
 use terrain_forge::algorithms::{Bsp, BspConfig, CellularAutomata, CellularConfig};
+use terrain_forge::algorithms::{RoomAccretion, RoomAccretionConfig, RoomTemplate};
 
 // With custom config
 let algo = Bsp::new(BspConfig {
@@ -130,6 +132,17 @@ let algo = CellularAutomata::new(CellularConfig {
     iterations: 4,
     birth_limit: 5,
     death_limit: 4,
+});
+
+// NEW: Room Accretion (Brogue-style)
+let algo = RoomAccretion::new(RoomAccretionConfig {
+    templates: vec![
+        RoomTemplate::Rectangle { min: 5, max: 12 },
+        RoomTemplate::Circle { min_radius: 3, max_radius: 6 },
+        RoomTemplate::Blob { size: 8, smoothing: 2 },
+    ],
+    max_rooms: 15,
+    loop_chance: 0.1,
 });
 
 algo.generate(&mut grid, seed);
@@ -196,6 +209,36 @@ let value = fbm.get(x, y);
 let ridged = Ridged::new(Perlin::new(seed), octaves, lacunarity, persistence);
 ```
 
+## Prefabs
+
+Hand-designed patterns that can be placed in generated maps.
+
+```rust
+use terrain_forge::algorithms::{PrefabPlacer, PrefabConfig, Prefab};
+
+// Create prefabs from patterns
+let prefab = Prefab::new(&[
+    "###",
+    "#.#", 
+    "###"
+]);
+
+// NEW: Rotation support
+let rotated = prefab.rotate_90();   // 90° clockwise
+let rotated = prefab.rotate_180();  // 180°
+let rotated = prefab.rotate_270();  // 270° clockwise
+
+// Prefab placer with rotation
+let algo = PrefabPlacer::new(
+    PrefabConfig {
+        max_prefabs: 5,
+        min_spacing: 3,
+        allow_rotation: true,  // NEW: Enable rotation
+    },
+    vec![prefab]
+);
+```
+
 ## Effects
 
 Post-processing operations on grids.
@@ -221,6 +264,10 @@ effects::median_filter(&mut grid, radius);
 effects::bridge_gaps(&mut grid, max_distance);
 effects::remove_dead_ends(&mut grid, iterations);
 let chokepoints = effects::find_chokepoints(&grid);
+
+// NEW: Advanced connectivity
+let (labels, region_count) = effects::label_regions(&grid);
+let connectors = effects::connect_regions_spanning(&mut grid, loop_chance, &mut rng);
 
 // Transform
 effects::mirror(&mut grid, horizontal, vertical);

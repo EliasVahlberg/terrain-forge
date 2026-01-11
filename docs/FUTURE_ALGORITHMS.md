@@ -4,10 +4,11 @@ Roadmap for procedural generation algorithms and effects not yet implemented in 
 
 ## Currently Implemented
 
-**Algorithms (13):**
+**Algorithms (14):**
 - BSP, Cellular Automata, Drunkard Walk, Maze, Simple Rooms
 - Voronoi, DLA, WFC, Percolation
 - Diamond Square, Fractal, Agent-based, Glass Seam
+- **Room Accretion** ✅ (NEW in v0.2.0)
 
 **Noise (6):**
 - Perlin, Simplex, Value, Worley
@@ -18,8 +19,10 @@ Roadmap for procedural generation algorithms and effects not yet implemented in 
 - Spatial (distance transform, Dijkstra map)
 - Filters (Gaussian blur, median)
 - Connectivity (flood fill, region detection)
+- **Advanced Connectivity** ✅ (NEW: connect_regions_spanning, label_regions)
 - Transform (rotate, mirror)
 - Blend (union, intersect, mask)
+- **Prefab Rotation** ✅ (NEW: 90°/180°/270° support)
 
 **Constraints:**
 - Connectivity, Density, Border
@@ -190,26 +193,32 @@ Roadmap for procedural generation algorithms and effects not yet implemented in 
 ## Implementation Priority
 
 ### High Priority (Core Functionality)
-1. Simplex Noise - Better performance than Perlin
-2. Diamond-Square - Essential for heightmaps
-3. Delaunay/MST - Graph-based room connection
-4. Erosion/Dilation - Basic morphological ops
-5. Distance Transform - Foundation for many effects
-6. Dijkstra Map - Pathfinding and analysis
+1. ~~Room Accretion~~ ✅ **COMPLETED in v0.2.0**
+2. ~~Region-aware Connectors~~ ✅ **COMPLETED in v0.2.0**
+3. ~~Prefab Rotation~~ ✅ **COMPLETED in v0.2.0**
+4. Improved WFC - Pattern learning, backtracking
+5. Delaunay/MST - Graph-based room connection
+6. Distance Transform - Foundation for many effects
+7. Dijkstra Map - Pathfinding and analysis
 
 ### Medium Priority (Enhanced Features)
-7. Worley Noise - Cellular textures
-8. Ridged/Billow Noise - Terrain variety
-9. Gaussian Blur - Smoothing
-10. Domain Warping - Organic distortion
-11. Poisson Disk Sampling - Even distribution
-12. Prefab Placement - Designer control
+8. Worley Noise - Cellular textures
+9. Ridged/Billow Noise - Terrain variety
+10. Gaussian Blur - Smoothing
+11. Domain Warping - Organic distortion
+12. Poisson Disk Sampling - Even distribution
+13. Advanced Prefab System - File format, weighted selection
 
 ### Lower Priority (Advanced)
-13. L-Systems - Branching structures
-14. Hydraulic Erosion - Realistic terrain
-15. Grammar-Based - Complex rules
-16. Genetic/Evolutionary - Optimization
+14. L-Systems - Branching structures
+15. Hydraulic Erosion - Realistic terrain
+16. Grammar-Based - Complex rules
+17. Genetic/Evolutionary - Optimization
+
+### Next Release Candidates (v0.3.0)
+- **Improved WFC**: Pattern extraction from examples, backtracking
+- **Corridor Styles**: Straight, bent, organic corridor generation
+- **Multi-floor Support**: Stair placement, floor connectivity
 
 ---
 
