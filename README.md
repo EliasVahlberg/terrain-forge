@@ -7,26 +7,26 @@
 
 A modular procedural generation engine for terrain, dungeons, and maps in Rust.
 
-**🚀 Now with Pipeline Intelligence & Semantic Enhancements in v0.4.0!**
+**🚀 Now with Spatial Analysis & Quality of Life Features in v0.4.0!**
 
 ## Features
 
-### 🎯 **v0.4.0 - Advanced Intelligence**
-- **🧠 Pipeline Intelligence**: Conditional operations (if-then-else, while) with smart branching
-- **📋 Template System**: Reusable pipeline configurations with parameter substitution
-- **🎯 Hierarchical Markers**: Quest objectives, loot tiers, encounter zones with priorities
-- **📊 Requirement-Driven Generation**: Generate maps that meet specific semantic criteria
-- **🏗️ Multi-Floor Support**: Vertical connectivity analysis with automatic stair placement
+### 🎯 **v0.4.0 - Spatial Analysis & Quality of Life**
+- **📐 Spatial Analysis**: Distance transforms, advanced pathfinding, morphological operations
+- **🧠 Enhanced Wave Function Collapse**: Pattern learning, backtracking, constraint propagation
+- **🔗 Delaunay Triangulation**: Natural room connections using triangulation and MST algorithms
+- **🏗️ Advanced Prefab System**: JSON/TOML support, weighted selection, rotation/mirroring
+- **📊 Graph Analysis**: Connectivity analysis, shortest paths, clustering coefficients
 
 ### 🎯 **Core Features**
 - **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
-- **14 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Rooms, Voronoi, WFC, Percolation, Diamond Square, Fractal, Agent-based, Glass Seam, Room Accretion
+- **15 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Rooms, Voronoi, WFC, Percolation, Diamond Square, Fractal, Agent-based, Glass Seam, Room Accretion, Enhanced WFC
 - **🔗 Advanced Connectivity**: Region-aware connectors with spanning tree analysis
 - **🎨 Enhanced Demo Framework**: Semantic visualization with color-coded markers
 - **Noise Generation**: Perlin, Simplex, Value, Worley with FBM, Ridged, and modifiers
 - **Effects**: Morphology, spatial analysis, filters, connectivity
 - **Composition**: Pipeline chaining and layered generation
-- **Prefab System**: Rotatable prefabs with 90°/180°/270° variants
+- **Prefab System**: JSON/TOML support with rotation, mirroring, and weighted selection
 - **Deterministic**: Seeded RNG for reproducible results
 - **Generic**: Works with custom cell types via traits
 
@@ -43,98 +43,123 @@ fn main() {
 }
 ```
 
-### NEW: Hierarchical Markers
+### NEW: Enhanced Wave Function Collapse
 ```rust
-use terrain_forge::{semantic::*, SemanticExtractor, Grid, Rng, algorithms};
+use terrain_forge::{algorithms::*, Grid, Rng};
 
 fn main() {
     let mut grid = Grid::new(40, 30);
-    algorithms::get("bsp").unwrap().generate(&mut grid, 12345);
-    
-    let extractor = SemanticExtractor::for_rooms();
     let mut rng = Rng::new(12345);
-    let mut semantic = extractor.extract(&grid, &mut rng);
     
-    // Add hierarchical markers
-    semantic.markers.push(Marker::new(10, 10, MarkerType::QuestObjective { priority: 1 }));
-    semantic.markers.push(Marker::new(15, 15, MarkerType::LootTier { tier: 3 }));
-    semantic.markers.push(Marker::new(20, 20, MarkerType::BossRoom));
+    // Create example pattern for learning
+    let mut example = Grid::new(10, 10);
+    algorithms::get("bsp").unwrap().generate(&mut example, 42);
     
-    for marker in &semantic.markers {
-        println!("{} at ({}, {}) - Category: {}", 
-                 marker.tag(), marker.x, marker.y, marker.marker_type.category());
+    // Enhanced WFC with pattern learning
+    let mut wfc = EnhancedWfc::new(WfcConfig::default());
+    let patterns = wfc.learn_patterns(&example, 3); // 3x3 patterns
+    
+    // Generate with backtracking support
+    let mut backtracker = WfcBacktracker::new();
+    match wfc.generate_with_backtracking(&mut grid, &patterns, &mut backtracker, &mut rng) {
+        Ok(_) => println!("✅ Generated successfully with {} backtracks", backtracker.backtrack_count()),
+        Err(e) => println!("❌ Generation failed: {}", e),
     }
 }
 ```
 
-### NEW: Requirement-Driven Generation
+### NEW: Delaunay Triangulation
 ```rust
-use terrain_forge::{semantic::*, generate_with_requirements};
+use terrain_forge::{analysis::*, spatial::*, Grid, Rng};
 
 fn main() {
-    let mut requirements = SemanticRequirements::basic_dungeon();
-    requirements.required_markers.insert(MarkerType::LootTier { tier: 2 }, 2);
+    let mut grid = Grid::new(60, 40);
+    algorithms::get("rooms").unwrap().generate(&mut grid, 12345);
     
-    match generate_with_requirements("bsp", 60, 40, requirements, Some(5), 12345) {
-        Ok((grid, semantic)) => println!("✅ Generated valid dungeon!"),
-        Err(msg) => println!("❌ Failed: {}", msg),
+    // Extract room centers
+    let room_centers = find_room_centers(&grid);
+    
+    // Create Delaunay triangulation
+    let mut triangulation = DelaunayTriangulation::new();
+    for &(x, y) in &room_centers {
+        triangulation.add_point(x as f64, y as f64);
     }
+    
+    // Generate minimum spanning tree for natural connections
+    let mst = triangulation.minimum_spanning_tree();
+    
+    // Connect rooms using MST
+    for &(i, j) in &mst {
+        let (x1, y1) = room_centers[i];
+        let (x2, y2) = room_centers[j];
+        connect_points(&mut grid, x1, y1, x2, y2);
+    }
+    
+    println!("Connected {} rooms with {} corridors", room_centers.len(), mst.len());
 }
 ```
 
-### NEW: Pipeline Intelligence
+### NEW: Advanced Prefab System
 ```rust
-use terrain_forge::{pipeline::*, Grid, Rng};
+use terrain_forge::{algorithms::*, Grid, Rng};
+use serde_json;
 
 fn main() {
-    let mut pipeline = ConditionalPipeline::new();
-    
-    // Generate map
-    pipeline.add_operation(ConditionalOperation::simple(
-        PipelineOperation::Algorithm { name: "bsp".to_string(), seed: Some(12345) }
-    ));
-    
-    // Conditional logic based on density
-    pipeline.add_operation(ConditionalOperation::conditional(
-        PipelineOperation::Log { message: "Checking density".to_string() },
-        PipelineCondition::Density { min: Some(0.2), max: Some(0.6) },
-        vec![ConditionalOperation::simple(PipelineOperation::SetParameter { 
-            key: "quality".to_string(), value: "good".to_string() 
-        })],
-        vec![ConditionalOperation::simple(PipelineOperation::SetParameter { 
-            key: "quality".to_string(), value: "needs_work".to_string() 
-        })]
-    ));
-    
-    let mut grid = Grid::new(40, 30);
-    let mut context = PipelineContext::new();
+    let mut grid = Grid::new(80, 60);
     let mut rng = Rng::new(12345);
     
-    let result = pipeline.execute(&mut grid, &mut context, &mut rng);
-    println!("Quality: {}", context.get_parameter("quality").unwrap_or(&"unknown".to_string()));
+    // Create prefab library with JSON support
+    let mut library = PrefabLibrary::new();
+    
+    // Add prefabs with weights and transformations
+    library.add_prefab(PrefabData {
+        name: "treasure_room".to_string(),
+        pattern: vec![
+            "###".to_string(),
+            "#T#".to_string(),
+            "###".to_string(),
+        ],
+        weight: 2.0,
+        allow_rotation: true,
+        allow_mirroring: true,
+    });
+    
+    // Save/load library as JSON
+    let json = serde_json::to_string_pretty(&library).unwrap();
+    std::fs::write("prefab_library.json", json).unwrap();
+    
+    // Use advanced prefab placer
+    let placer = AdvancedPrefabPlacer::new(library);
+    placer.place_prefabs(&mut grid, 5, &mut rng);
+    
+    println!("Placed prefabs with rotation and mirroring support");
 }
 ```
 
-### NEW: Pipeline Templates
+### NEW: Spatial Analysis
 ```rust
-use terrain_forge::{pipeline::*, Grid, Rng};
+use terrain_forge::{spatial::*, Grid, Rng};
 
 fn main() {
-    let library = TemplateLibrary::new();
-    let template = library.get_template("simple_dungeon").unwrap();
-    
-    // Customize with parameters
-    let mut params = std::collections::HashMap::new();
-    params.insert("algorithm".to_string(), "cellular".to_string());
-    
-    let pipeline = template.instantiate(Some(params));
-    
     let mut grid = Grid::new(50, 40);
-    let mut context = PipelineContext::new();
-    let mut rng = Rng::new(54321);
+    algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
     
-    pipeline.execute(&mut grid, &mut context, &mut rng);
-    println!("Generated using template with {} steps", context.execution_history().len());
+    // Distance transforms with multiple metrics
+    let euclidean = DistanceTransform::euclidean().compute(&grid);
+    let manhattan = DistanceTransform::manhattan().compute(&grid);
+    let chebyshev = DistanceTransform::chebyshev().compute(&grid);
+    
+    // Advanced pathfinding
+    let goals = vec![(10, 10), (40, 30)];
+    let dijkstra_map = DijkstraMap::new(&goals).compute(&grid);
+    let flow_field = FlowField::from_dijkstra_map(&dijkstra_map);
+    
+    // Morphological operations
+    let mut processed = grid.clone();
+    morphology::erode(&mut processed, &morphology::StructuringElement::cross(), 2);
+    morphology::dilate(&mut processed, &morphology::StructuringElement::circle(3), 1);
+    
+    println!("Computed distance fields and flow fields for pathfinding");
 }
 ```
 
@@ -169,7 +194,7 @@ fn main() {
 
 ```toml
 [dependencies]
-terrain-forge = "0.3"
+terrain-forge = "0.4"
 ```
 
 ## Algorithms
@@ -184,12 +209,13 @@ terrain-forge = "0.3"
 | `voronoi` | Voronoi-based regions | ✅ `default()` |
 | `dla` | Diffusion-Limited Aggregation | ✅ `default()` |
 | `wfc` | Wave Function Collapse | ✅ `default()` |
+| `enhanced_wfc` | **NEW**: Enhanced WFC with pattern learning | ✅ `default()` |
 | `percolation` | Connected cluster generation | ✅ `default()` |
 | `diamond_square` | Heightmap terrain | ✅ `default()` |
 | `fractal` | Fractal terrain | ✅ `default()` |
 | `agent` | Multi-agent carving | ✅ `default()` |
 | `glass_seam` | Region connector | ✅ `default()` |
-| `room_accretion` | **NEW**: Brogue-style organic dungeons | ✅ `for_rooms()` |
+| `room_accretion` | Brogue-style organic dungeons | ✅ `for_rooms()` |
 
 **Note**: All algorithms support semantic analysis through `SemanticExtractor`. Algorithm-specific extractors (`for_caves()`, `for_rooms()`, `for_mazes()`) provide optimized analysis, while `default()` works with any terrain type.
 
@@ -321,12 +347,21 @@ cd demo
 # Generate single algorithm
 cargo run -- gen bsp -s 12345 -o output.png
 
-# NEW: Generate with semantic layers
+# NEW: Enhanced WFC with pattern learning
+cargo run -- gen enhanced_wfc -s 12345 --text --png
+
+# NEW: Delaunay triangulation connections
+cargo run -- gen delaunay_connections -s 12345 --text --png
+
+# NEW: Advanced prefab system
+cargo run -- gen advanced_prefabs -s 12345 --text --png
+
+# Generate with semantic layers
 cargo run -- gen cellular --semantic --text --png -s 12345
 cargo run -- gen maze --semantic --text --png -s 12345  
 cargo run -- gen rooms --semantic --text --png -s 12345
 
-# NEW: Room accretion (Brogue-style)
+# Room accretion (Brogue-style)
 cargo run -- gen room_accretion --semantic -s 12345
 
 # Pipeline composition
@@ -351,6 +386,13 @@ cargo run -- list
 ```
 
 ## What's New
+
+### v0.4.0 - Spatial Analysis & Quality of Life
+- **📐 Spatial Analysis Module**: Distance transforms (Euclidean, Manhattan, Chebyshev), advanced pathfinding with Dijkstra maps and flow fields, morphological operations (erosion, dilation, opening, closing)
+- **🧠 Enhanced Wave Function Collapse**: Pattern learning from example maps, backtracking support for constraint satisfaction, improved constraint propagation
+- **🔗 Delaunay Triangulation**: Natural room connections using Bowyer-Watson algorithm and minimum spanning tree generation for optimal dungeon layouts
+- **🏗️ Advanced Prefab System**: JSON/TOML serialization support, weighted prefab selection, rotation and mirroring transformations, persistent prefab libraries
+- **📊 Graph Analysis**: Connectivity analysis, shortest path algorithms, clustering coefficients, diameter calculations for level design metrics
 
 ### v0.3.0 - Semantic Layers
 - **🎯 Semantic Layers**: Game-agnostic metadata system for entity spawning and region analysis

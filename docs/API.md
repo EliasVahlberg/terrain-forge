@@ -1,13 +1,13 @@
 # TerrainForge API Reference
 
-*Version 0.4.0 - Pipeline Intelligence & Semantic Enhancements*
+*Version 0.4.0 - Spatial Analysis & Quality of Life Features*
 
 **What's New in v0.4.0:**
-- 🧠 **Pipeline Intelligence**: Conditional operations (if-then-else, while) with smart branching
-- 📋 **Template System**: Reusable pipeline configurations with parameter substitution  
-- 🎯 **Hierarchical Markers**: Quest objectives, loot tiers, encounter zones with priorities
-- 📊 **Requirement-Driven Generation**: Generate maps that meet specific semantic criteria
-- 🏗️ **Multi-Floor Support**: Vertical connectivity analysis with automatic stair placement
+- 📐 **Spatial Analysis Module**: Distance transforms, advanced pathfinding, morphological operations
+- 🧠 **Enhanced Wave Function Collapse**: Pattern learning, backtracking, constraint propagation
+- 🔗 **Delaunay Triangulation**: Natural room connections using triangulation and MST algorithms
+- 🏗️ **Advanced Prefab System**: JSON/TOML support, weighted selection, rotation/mirroring
+- 📊 **Graph Analysis**: Connectivity analysis, shortest paths, clustering coefficients
 
 **Previous Features (v0.3.0):**
 - 🎯 **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
@@ -125,12 +125,13 @@ for name in algorithms::list() {
 | `voronoi` | Voronoi-based regions | `VoronoiConfig` | ❌ |
 | `dla` | Diffusion-Limited Aggregation | `DlaConfig` | ❌ |
 | `wfc` | Wave Function Collapse | `WfcConfig` | ❌ |
+| `enhanced_wfc` | **NEW**: Enhanced WFC with pattern learning | `EnhancedWfcConfig` | ❌ |
 | `percolation` | Connected cluster generation | `PercolationConfig` | ❌ |
 | `diamond_square` | Heightmap terrain | `DiamondSquareConfig` | ❌ |
 | `fractal` | Fractal terrain | - | ❌ |
 | `agent` | Agent-based carving | `AgentConfig` | ❌ |
 | `glass_seam` | Connects disconnected regions | - | ❌ |
-| `room_accretion` | **NEW**: Brogue-style organic dungeons | `RoomAccretionConfig` | ✅ |
+| `room_accretion` | Brogue-style organic dungeons | `RoomAccretionConfig` | ✅ |
 
 ### Direct Instantiation
 
@@ -161,6 +162,14 @@ let algo = RoomAccretion::new(RoomAccretionConfig {
     ],
     max_rooms: 15,
     loop_chance: 0.1,
+});
+
+// NEW: Enhanced WFC with pattern learning
+let algo = EnhancedWfc::new(EnhancedWfcConfig {
+    pattern_size: 3,
+    enable_backtracking: true,
+    max_backtracks: 100,
+    constraint_propagation: true,
 });
 
 algo.generate(&mut grid, seed);
@@ -257,6 +266,226 @@ let algo = PrefabPlacer::new(
 );
 ```
 
+## NEW: Spatial Analysis (v0.4.0)
+
+Advanced spatial analysis algorithms for pathfinding, distance calculations, and morphological operations.
+
+### Distance Transforms
+
+```rust
+use terrain_forge::spatial::{DistanceTransform, DistanceMetric};
+
+// Different distance metrics
+let euclidean = DistanceTransform::new(DistanceMetric::Euclidean);
+let manhattan = DistanceTransform::new(DistanceMetric::Manhattan);
+let chebyshev = DistanceTransform::new(DistanceMetric::Chebyshev);
+
+// Compute distance field from walls
+let distances = euclidean.compute(&grid);  // Vec<Vec<f64>>
+
+// Multi-source distance transform
+let sources = vec![(10, 10), (30, 20)];
+let multi_distances = euclidean.compute_from_sources(&grid, &sources);
+```
+
+### Advanced Pathfinding
+
+```rust
+use terrain_forge::spatial::{DijkstraMap, FlowField};
+
+// Multi-goal pathfinding with Dijkstra maps
+let goals = vec![(5, 5), (25, 15)];
+let dijkstra = DijkstraMap::new(&goals);
+let cost_map = dijkstra.compute(&grid);
+
+// Generate flow field for smooth movement
+let flow_field = FlowField::from_dijkstra_map(&cost_map);
+let direction = flow_field.get_direction(x, y);  // Returns (dx, dy)
+
+// Custom movement costs
+let mut movement_costs = Grid::new(grid.width(), grid.height());
+// ... set custom costs ...
+let custom_dijkstra = DijkstraMap::with_costs(&goals, &movement_costs);
+```
+
+### Morphological Operations
+
+```rust
+use terrain_forge::spatial::{morphology, StructuringElement};
+
+// Structuring elements
+let cross = StructuringElement::cross();
+let circle = StructuringElement::circle(3);
+let square = StructuringElement::square(5);
+
+// Basic operations
+morphology::erode(&mut grid, &cross, 2);      // Remove thin features
+morphology::dilate(&mut grid, &circle, 1);    // Expand features
+morphology::open(&mut grid, &square, 1);      // Remove small objects
+morphology::close(&mut grid, &cross, 2);      // Fill small holes
+
+// Combined operations return new grids
+let opened = morphology::opening(&grid, &cross, 2);
+let closed = morphology::closing(&grid, &circle, 1);
+```
+
+## NEW: Graph Analysis (v0.4.0)
+
+Graph theory algorithms for connectivity analysis and level design metrics.
+
+### Delaunay Triangulation
+
+```rust
+use terrain_forge::analysis::{DelaunayTriangulation, Point};
+
+// Create triangulation
+let mut triangulation = DelaunayTriangulation::new();
+
+// Add points (room centers, etc.)
+triangulation.add_point(10.0, 15.0);
+triangulation.add_point(25.0, 30.0);
+triangulation.add_point(40.0, 20.0);
+
+// Get triangles
+let triangles = triangulation.triangles();  // Vec<(usize, usize, usize)>
+
+// Generate minimum spanning tree for natural connections
+let mst = triangulation.minimum_spanning_tree();
+println!("MST has {} edges", mst.len());
+
+// Connect points in grid using MST
+for &(i, j) in &mst {
+    let p1 = triangulation.points()[i];
+    let p2 = triangulation.points()[j];
+    connect_line(&mut grid, p1.x as i32, p1.y as i32, p2.x as i32, p2.y as i32);
+}
+```
+
+### Graph Connectivity Analysis
+
+```rust
+use terrain_forge::analysis::{Graph, GraphAnalysis};
+
+// Build graph from grid connectivity
+let graph = Graph::from_grid(&grid);
+
+// Analyze connectivity
+let analysis = GraphAnalysis::new(&graph);
+println!("Connected components: {}", analysis.connected_components());
+println!("Graph diameter: {}", analysis.diameter());
+println!("Average clustering: {:.3}", analysis.average_clustering_coefficient());
+
+// Shortest path between regions
+if let Some(path) = analysis.shortest_path(start_node, end_node) {
+    println!("Path length: {}", path.len());
+}
+
+// Find critical nodes (articulation points)
+let critical_nodes = analysis.articulation_points();
+println!("Critical connection points: {:?}", critical_nodes);
+```
+
+## NEW: Enhanced Wave Function Collapse (v0.4.0)
+
+Advanced WFC implementation with pattern learning and backtracking.
+
+### Pattern Learning
+
+```rust
+use terrain_forge::algorithms::{EnhancedWfc, WfcPatternExtractor, Pattern};
+
+// Learn patterns from example map
+let mut example_grid = Grid::new(20, 20);
+algorithms::get("bsp").unwrap().generate(&mut example_grid, 42);
+
+let extractor = WfcPatternExtractor::new(3); // 3x3 patterns
+let patterns = extractor.extract_patterns(&example_grid);
+println!("Learned {} unique patterns", patterns.len());
+
+// Generate using learned patterns
+let mut wfc = EnhancedWfc::new(EnhancedWfcConfig::default());
+let mut target_grid = Grid::new(40, 30);
+wfc.generate_from_patterns(&mut target_grid, &patterns, 12345);
+```
+
+### Backtracking Support
+
+```rust
+use terrain_forge::algorithms::{EnhancedWfc, WfcBacktracker};
+
+let mut wfc = EnhancedWfc::new(EnhancedWfcConfig {
+    enable_backtracking: true,
+    max_backtracks: 50,
+    ..Default::default()
+});
+
+let mut backtracker = WfcBacktracker::new();
+let mut rng = Rng::new(12345);
+
+match wfc.generate_with_backtracking(&mut grid, &patterns, &mut backtracker, &mut rng) {
+    Ok(_) => println!("✅ Success with {} backtracks", backtracker.backtrack_count()),
+    Err(e) => println!("❌ Failed: {}", e),
+}
+
+// Access backtracking statistics
+println!("Max depth reached: {}", backtracker.max_depth_reached());
+println!("Constraint violations: {}", backtracker.constraint_violations());
+```
+
+## NEW: Advanced Prefab System (v0.4.0)
+
+Enhanced prefab system with JSON serialization, weighted selection, and transformations.
+
+### Prefab Libraries
+
+```rust
+use terrain_forge::algorithms::{PrefabLibrary, PrefabData, PrefabTransform};
+use serde_json;
+
+// Create prefab library
+let mut library = PrefabLibrary::new();
+
+// Add prefabs with metadata
+library.add_prefab(PrefabData {
+    name: "treasure_room".to_string(),
+    pattern: vec![
+        "###".to_string(),
+        "#T#".to_string(),
+        "###".to_string(),
+    ],
+    weight: 2.0,
+    allow_rotation: true,
+    allow_mirroring: true,
+    tags: vec!["treasure".to_string(), "small".to_string()],
+});
+
+// Save/load as JSON
+let json = serde_json::to_string_pretty(&library)?;
+std::fs::write("prefabs.json", json)?;
+let loaded: PrefabLibrary = serde_json::from_str(&std::fs::read_to_string("prefabs.json")?)?;
+```
+
+### Weighted Selection and Transformations
+
+```rust
+use terrain_forge::algorithms::{AdvancedPrefabPlacer, PrefabTransform};
+
+let placer = AdvancedPrefabPlacer::new(library);
+
+// Place prefabs with weighted random selection
+placer.place_prefabs(&mut grid, 5, &mut rng);
+
+// Manual prefab placement with transformations
+let prefab = library.get_prefab("treasure_room").unwrap();
+let transformed = prefab.apply_transform(PrefabTransform {
+    rotation: 90,
+    mirror_horizontal: true,
+    mirror_vertical: false,
+});
+
+placer.place_prefab_at(&mut grid, &transformed, 15, 20);
+```
+
 ## Effects
 
 Post-processing operations on grids.
@@ -264,15 +493,16 @@ Post-processing operations on grids.
 ```rust
 use terrain_forge::effects;
 
-// Morphological operations
+// Morphological operations (now enhanced)
 effects::erode(&mut grid, iterations);
 effects::dilate(&mut grid, iterations);
 effects::open(&mut grid, iterations);   // Erode then dilate
 effects::close(&mut grid, iterations);  // Dilate then erode
 
-// Spatial analysis
+// NEW: Advanced spatial analysis
 let distances = effects::distance_transform(&grid);  // Vec<Vec<u32>>
 let dijkstra = effects::dijkstra_map(&grid, &sources);
+let flow_field = effects::flow_field(&grid, &goals);
 
 // Filters
 effects::gaussian_blur(&mut grid, radius);
@@ -283,11 +513,15 @@ effects::bridge_gaps(&mut grid, max_distance);
 effects::remove_dead_ends(&mut grid, iterations);
 let chokepoints = effects::find_chokepoints(&grid);
 
-// NEW: Advanced connectivity
+// Advanced connectivity
 let (labels, region_count) = effects::label_regions(&grid);
 let connectors = effects::connect_regions_spanning(&mut grid, loop_chance, &mut rng);
 
-// NEW: Semantic analysis integration
+// NEW: Delaunay-based connections
+let room_centers = effects::find_room_centers(&grid);
+let connections = effects::connect_delaunay(&mut grid, &room_centers);
+
+// Semantic analysis integration
 let semantic_masks = effects::analyze_semantic_regions(&grid);  // Returns Masks struct
 
 // Transform
@@ -547,7 +781,30 @@ let shortest_path = find_path_between_regions(
 );
 ```
 
-## NEW: Pipeline Intelligence (v0.4.0)
+## Demo Framework (Enhanced in v0.3.0)
+
+The demo framework supports semantic layer visualization and enhanced output formats.
+
+### Basic Usage
+
+```bash
+# Generate and display terrain
+cargo run --bin demo -- gen bsp --text --png
+
+# NEW: Enhanced WFC with pattern learning
+cargo run --bin demo -- gen enhanced_wfc --text --png
+
+# NEW: Delaunay triangulation connections  
+cargo run --bin demo -- gen delaunay_connections --text --png
+
+# NEW: Advanced prefab system
+cargo run --bin demo -- gen advanced_prefabs --text --png
+
+# Generate with semantic layers
+cargo run --bin demo -- gen bsp --semantic --text --png
+```
+
+## Example
 
 ### `ConditionalPipeline`
 
@@ -756,45 +1013,74 @@ for &(x, y, from_floor, to_floor) in &connectivity.stairs {
 ```rust
 use terrain_forge::{Grid, Tile, Algorithm, algorithms, constraints};
 use terrain_forge::compose::Pipeline;
-use terrain_forge::effects;
+use terrain_forge::spatial::*;
+use terrain_forge::analysis::*;
 use terrain_forge::semantic::*;
-use terrain_forge::pipeline::*;
 
 fn main() {
-    // NEW: Pipeline Intelligence
-    let mut pipeline = ConditionalPipeline::new();
-    pipeline.add_operation(ConditionalOperation::simple(
-        PipelineOperation::Algorithm { name: "bsp".to_string(), seed: Some(12345) }
-    ));
-    pipeline.add_operation(ConditionalOperation::conditional(
-        PipelineOperation::Log { message: "Checking quality".to_string() },
-        PipelineCondition::Density { min: Some(0.2), max: Some(0.6) },
-        vec![ConditionalOperation::simple(PipelineOperation::SetParameter { 
-            key: "quality".to_string(), value: "good".to_string() 
-        })],
-        vec![ConditionalOperation::simple(PipelineOperation::SetParameter { 
-            key: "quality".to_string(), value: "poor".to_string() 
-        })]
-    ));
+    // Generate base terrain
+    let mut grid = Grid::new(60, 40);
+    algorithms::get("bsp").unwrap().generate(&mut grid, 12345);
     
-    let mut grid = Grid::new(40, 30);
-    let mut context = PipelineContext::new();
-    let mut rng = Rng::new(12345);
-    let result = pipeline.execute(&mut grid, &mut context, &mut rng);
+    // NEW: Spatial analysis
+    let euclidean = DistanceTransform::euclidean();
+    let distances = euclidean.compute(&grid);
     
-    // NEW: Hierarchical markers
+    // NEW: Advanced pathfinding
+    let goals = vec![(10, 10), (50, 30)];
+    let dijkstra_map = DijkstraMap::new(&goals).compute(&grid);
+    let flow_field = FlowField::from_dijkstra_map(&dijkstra_map);
+    
+    // NEW: Morphological operations
+    let mut processed = grid.clone();
+    morphology::open(&mut processed, &morphology::StructuringElement::cross(), 1);
+    
+    // NEW: Delaunay triangulation for room connections
+    let room_centers = find_room_centers(&grid);
+    let mut triangulation = DelaunayTriangulation::new();
+    for &(x, y) in &room_centers {
+        triangulation.add_point(x as f64, y as f64);
+    }
+    let mst = triangulation.minimum_spanning_tree();
+    
+    // NEW: Enhanced WFC with pattern learning
+    let mut example = Grid::new(15, 15);
+    algorithms::get("cellular").unwrap().generate(&mut example, 42);
+    
+    let extractor = WfcPatternExtractor::new(3);
+    let patterns = extractor.extract_patterns(&example);
+    
+    let mut wfc = EnhancedWfc::new(EnhancedWfcConfig::default());
+    let mut wfc_grid = Grid::new(30, 20);
+    wfc.generate_from_patterns(&mut wfc_grid, &patterns, 54321);
+    
+    // NEW: Advanced prefab system
+    let mut library = PrefabLibrary::new();
+    library.add_prefab(PrefabData {
+        name: "shrine".to_string(),
+        pattern: vec!["###".to_string(), "#S#".to_string(), "###".to_string()],
+        weight: 1.5,
+        allow_rotation: true,
+        allow_mirroring: false,
+        tags: vec!["special".to_string()],
+    });
+    
+    let placer = AdvancedPrefabPlacer::new(library);
+    placer.place_prefabs(&mut grid, 3, &mut Rng::new(99999));
+    
+    // Semantic analysis
     let extractor = SemanticExtractor::for_rooms();
-    let mut semantic = extractor.extract(&grid, &mut rng);
-    semantic.markers.push(Marker::new(10, 10, MarkerType::QuestObjective { priority: 1 }));
-    semantic.markers.push(Marker::new(15, 15, MarkerType::LootTier { tier: 3 }));
+    let mut rng = Rng::new(12345);
+    let semantic = extractor.extract(&grid, &mut rng);
     
-    // NEW: Requirement validation
-    let mut requirements = SemanticRequirements::basic_dungeon();
-    requirements.required_markers.insert(MarkerType::LootTier { tier: 3 }, 1);
-    let valid = requirements.validate(&semantic);
+    // Graph analysis
+    let graph = Graph::from_grid(&grid);
+    let analysis = GraphAnalysis::new(&graph);
     
-    println!("Pipeline quality: {}", context.get_parameter("quality").unwrap_or(&"unknown".to_string()));
-    println!("Requirements met: {}", valid);
-    println!("Generated {} hierarchical markers", semantic.markers.len());
+    println!("Generated terrain with {} rooms", room_centers.len());
+    println!("Learned {} WFC patterns", patterns.len());
+    println!("MST connections: {}", mst.len());
+    println!("Graph diameter: {}", analysis.diameter());
+    println!("Semantic markers: {}", semantic.markers.len());
 }
 ```
