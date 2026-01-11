@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-01-11
+
+### Fixed
+- **API Modernization** - Removed all deprecated `generate_with_semantic()` usage
+  - Updated semantic tests to use decoupled `SemanticExtractor` API
+  - Fixed demo CLI to use `Algorithm::generate()` + `SemanticExtractor::extract()`
+  - Updated all documentation examples to current v0.3.0 API
+- **Code Quality** - Fixed clippy warnings and formatting issues
+  - Implemented `Default` trait for `SemanticExtractor` instead of custom method
+  - Removed unnecessary type casts and field reassignments
+  - Applied consistent code formatting across all files
+- **CI Compliance** - All tests pass with no warnings on stable/beta Rust
+
+### Changed
+- **Documentation** - Updated README algorithms table with specific extractor methods
+  - Added `for_caves()`, `for_rooms()`, `for_mazes()` method documentation
+  - Clarified algorithm-specific vs default semantic extractors
+  - All code examples now use current v0.3.0 decoupled API
+
 ## [0.3.0] - 2026-01-11
 
 ### Added
