@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 use terrain_forge::{
-    algorithms::{self, *},
+    algorithms::{self, *, PrefabLibrary, PrefabData},
     compose::{BlendMode, LayeredGenerator, Pipeline},
     effects, Algorithm, Grid, Tile,
 };
@@ -149,6 +149,11 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
             })),
             "wfc" => Box::new(Wfc::new(WfcConfig {
                 floor_weight: get_f64(params, "floor_weight", 0.4),
+                pattern_size: get_usize(params, "pattern_size", 3),
+                enable_backtracking: params
+                    .get("enable_backtracking")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false),
             })),
             "percolation" => Box::new(Percolation::new(PercolationConfig {
                 fill_probability: get_f64(params, "fill_probability", 0.45),
@@ -194,6 +199,26 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 } else {
                     vec![Prefab::rect(5, 5)]
                 };
+                
+                // Convert Vec<Prefab> to PrefabLibrary
+                let mut library = PrefabLibrary::new();
+                for (i, prefab) in prefabs.into_iter().enumerate() {
+                    library.add_prefab(PrefabData {
+                        name: format!("prefab_{}", i),
+                        pattern: prefab.pattern().iter().map(|row| row.iter().collect()).collect(),
+                        weight: 1.0,
+                        allow_rotation: params
+                            .get("allow_rotation")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(true),
+                        allow_mirroring: params
+                            .get("allow_mirroring")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                        tags: vec![],
+                    });
+                }
+                
                 Box::new(PrefabPlacer::new(
                     PrefabConfig {
                         max_prefabs: get_usize(params, "max_prefabs", 3),
@@ -202,8 +227,16 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                             .get("allow_rotation")
                             .and_then(|v| v.as_bool())
                             .unwrap_or(true),
+                        allow_mirroring: params
+                            .get("allow_mirroring")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                        weighted_selection: params
+                            .get("weighted_selection")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
                     },
-                    prefabs,
+                    library,
                 ))
             }
             _ => algorithms::get(type_name).unwrap_or_else(|| Box::new(Bsp::default())),
