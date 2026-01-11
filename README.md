@@ -2,6 +2,7 @@
 
 <div align="center">
   <img src="demo/output/showcase/hires/pipeline_epic.png" alt="Epic Pipeline Showcase">
+  <p><em>BSP → Cellular pipeline generating structured caves (240×180, 85 regions, 24 markers)</em></p>
 </div>
 
 A modular procedural generation engine for terrain, dungeons, and maps in Rust.
