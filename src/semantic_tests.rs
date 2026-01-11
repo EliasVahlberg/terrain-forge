@@ -153,4 +153,56 @@ mod tests {
             semantic.markers.iter().map(|m| &m.tag).collect();
         println!("Marker types: {:?}", marker_types);
     }
+
+    #[test]
+    fn test_decoupled_semantic_extraction() {
+        use crate::{SemanticExtractor, SemanticConfig, algorithms, compose::Pipeline};
+        
+        // Test 1: Extract from single algorithm
+        let mut grid1 = Grid::new(60, 40);
+        algorithms::get("cellular").unwrap().generate(&mut grid1, 12345);
+        
+        let extractor = SemanticExtractor::for_caves();
+        let semantic1 = extractor.extract(&grid1, &mut Rng::new(12345));
+        
+        println!("Cellular cave extraction: {} regions", semantic1.regions.len());
+        
+        // Test 2: Extract from pipeline composition
+        let mut grid2 = Grid::new(60, 40);
+        let pipeline = Pipeline::new()
+            .add(algorithms::get("bsp").unwrap())
+            .add(algorithms::get("cellular").unwrap());
+        pipeline.generate(&mut grid2, 54321);
+        
+        let extractor2 = SemanticExtractor::for_rooms();
+        let semantic2 = extractor2.extract(&grid2, &mut Rng::new(54321));
+        
+        println!("Pipeline extraction: {} regions", semantic2.regions.len());
+        
+        // Test 3: Custom configuration for any grid
+        let custom_config = SemanticConfig {
+            size_thresholds: vec![
+                (500, "Mega Structure".to_string()),
+                (100, "Major Area".to_string()),
+                (25, "Minor Area".to_string()),
+                (0, "Tiny Space".to_string()),
+            ],
+            marker_types: vec![
+                ("Boss".to_string(), 0.05),
+                ("Treasure".to_string(), 0.3),
+                ("Hazard".to_string(), 0.4),
+            ],
+            max_markers_per_region: 1,
+        };
+        
+        let custom_extractor = SemanticExtractor::new(custom_config);
+        let semantic3 = custom_extractor.extract(&grid1, &mut Rng::new(99999));
+        
+        println!("Custom extraction: {} regions with custom types", semantic3.regions.len());
+        
+        // Verify the system works with any grid source
+        assert!(!semantic1.regions.is_empty());
+        assert!(!semantic2.regions.is_empty());
+        assert!(!semantic3.regions.is_empty());
+    }
 }
