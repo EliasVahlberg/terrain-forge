@@ -319,7 +319,14 @@ pub fn save_text(text: &str, path: &str) -> Result<(), Box<dyn std::error::Error
 
 /// Render regions as colored PNG
 pub fn render_regions_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImage {
-    let mut img = ImageBuffer::new(grid.width() as u32, grid.height() as u32);
+    render_regions_png_scaled(grid, semantic, 1)
+}
+
+/// Render regions as colored PNG with scaling
+pub fn render_regions_png_scaled(grid: &Grid<Tile>, semantic: &SemanticLayers, scale: u32) -> RgbImage {
+    let width = grid.width() as u32 * scale;
+    let height = grid.height() as u32 * scale;
+    let mut img = ImageBuffer::new(width, height);
     
     // Create region lookup map
     let mut region_map = HashMap::new();
@@ -349,7 +356,13 @@ pub fn render_regions_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbIm
         } else {
             FLOOR_COLOR
         };
-        img.put_pixel(x as u32, y as u32, color);
+        
+        // Fill scaled block
+        for dx in 0..scale {
+            for dy in 0..scale {
+                img.put_pixel(x as u32 * scale + dx, y as u32 * scale + dy, color);
+            }
+        }
     }
     
     img
