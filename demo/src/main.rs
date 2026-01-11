@@ -217,14 +217,24 @@ fn generate_with_semantic_viz(
     masks: bool,
     connectivity: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // Try semantic generation for supported algorithms
-    let algorithm_name = match &cfg.algorithm {
-        Some(config::AlgorithmSpec::Name(name)) => name.as_str(),
-        Some(config::AlgorithmSpec::WithParams { type_name, .. }) => type_name.as_str(),
-        None => "unknown",
+    let (tiles, semantic) = if cfg.pipeline.is_some() || cfg.layers.is_some() {
+        // For pipelines/layers, generate first then extract semantics
+        let (grid, _) = generate(cfg, seed);
+        let mut rng = terrain_forge::Rng::new(seed);
+        
+        // Use cellular config for complex pipelines (most likely to have interesting regions)
+        let extractor = terrain_forge::SemanticExtractor::for_caves();
+        let semantic = extractor.extract(&grid, &mut rng);
+        (grid, Some(semantic))
+    } else {
+        // For single algorithms, use the existing function
+        let algorithm_name = match &cfg.algorithm {
+            Some(config::AlgorithmSpec::Name(name)) => name.as_str(),
+            Some(config::AlgorithmSpec::WithParams { type_name, .. }) => type_name.as_str(),
+            None => "unknown",
+        };
+        terrain_forge::generate_with_semantic(algorithm_name, cfg.width, cfg.height, seed)
     };
-
-    let (tiles, semantic) = terrain_forge::generate_with_semantic(algorithm_name, cfg.width, cfg.height, seed);
 
     if let Some(semantic) = &semantic {
         // Print semantic information
