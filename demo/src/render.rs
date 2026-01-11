@@ -1,10 +1,14 @@
 //! PNG and text rendering
 
 use image::{ImageBuffer, Rgb, RgbImage};
-use terrain_forge::{Grid, Tile};
+use terrain_forge::{Grid, Tile, GenerationResult};
 
 const FLOOR_COLOR: Rgb<u8> = Rgb([200, 200, 200]);
 const WALL_COLOR: Rgb<u8> = Rgb([40, 40, 40]);
+const LOOT_COLOR: Rgb<u8> = Rgb([255, 215, 0]);      // Gold
+const BOSS_COLOR: Rgb<u8> = Rgb([255, 0, 0]);        // Red
+const LIGHT_COLOR: Rgb<u8> = Rgb([255, 255, 0]);     // Yellow
+const MARKER_COLOR: Rgb<u8> = Rgb([0, 255, 0]);      // Green (default)
 
 pub fn render_grid(grid: &Grid<Tile>) -> RgbImage {
     let mut img = ImageBuffer::new(grid.width() as u32, grid.height() as u32);
@@ -127,6 +131,66 @@ fn get_char_bitmap(c: char) -> Option<[u8; 7]> {
         '&' => [0b01100, 0b10010, 0b10100, 0b01000, 0b10101, 0b10010, 0b01101],
         _ => [0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000],
     })
+}
+
+pub fn render_grid_with_semantic(result: &GenerationResult) -> RgbImage {
+    let mut img = render_grid(&result.tiles);
+    
+    if let Some(semantic) = &result.semantic {
+        // Overlay markers
+        for marker in &semantic.markers {
+            let color = match marker.tag.as_str() {
+                "loot_slot" => LOOT_COLOR,
+                "boss_spawn" => BOSS_COLOR,
+                "light_anchor" => LIGHT_COLOR,
+                _ => MARKER_COLOR,
+            };
+            
+            if marker.x < img.width() && marker.y < img.height() {
+                img.put_pixel(marker.x, marker.y, color);
+            }
+        }
+    }
+    
+    img
+}
+
+pub fn render_text_with_semantic(result: &GenerationResult) -> String {
+    let mut out = String::new();
+    
+    if let Some(semantic) = &result.semantic {
+        // Create marker lookup
+        let mut marker_map = std::collections::HashMap::new();
+        for marker in &semantic.markers {
+            marker_map.insert((marker.x, marker.y), &marker.tag);
+        }
+        
+        for y in 0..result.tiles.height() {
+            for x in 0..result.tiles.width() {
+                let tile = result.tiles[(x, y)];
+                
+                if let Some(tag) = marker_map.get(&(x as u32, y as u32)) {
+                    // Show marker with specific character
+                    let marker_char = match tag.as_str() {
+                        "loot_slot" => '$',
+                        "boss_spawn" => 'B',
+                        "light_anchor" => '*',
+                        _ => '?',
+                    };
+                    out.push(marker_char);
+                } else if tile.is_floor() {
+                    out.push('.');
+                } else {
+                    out.push('#');
+                }
+            }
+            out.push('\n');
+        }
+    } else {
+        out = render_text(&result.tiles);
+    }
+    
+    out
 }
 
 pub fn save_png(img: &RgbImage, path: &str) -> Result<(), Box<dyn std::error::Error>> {

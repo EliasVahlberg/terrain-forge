@@ -251,10 +251,13 @@ let noise = Fbm::new(Perlin::new(seed), 4, 2.0, 0.5);
 2. **Corridor Styles** - Straight, bent, organic variations
 3. **Prefab File Format** - .des-style external vault definitions
 
+#### High Priority (Next Major Version)
+4. **Semantic Layers & Entity Spawning** - Region metadata, spawn markers, connectivity graphs
+
 #### User-Implemented (Game-Specific)
-4. **Lock-and-Key Generation** - Mission graph → dungeon realization
-5. **Multi-floor Dungeons** - Stair placement, floor connectivity
-6. **Theming System** - Apply visual/content themes to regions
+5. **Lock-and-Key Generation** - Mission graph → dungeon realization (enabled by semantic layers)
+6. **Multi-floor Dungeons** - Stair placement, floor connectivity
+7. **Theming System** - Apply visual/content themes to regions
 
 #### Future (Major Undertaking)
 7. **Advanced WFC** - Full constraint solver with backtracking
@@ -510,3 +513,53 @@ For games like Saltglass Steppe, TerrainForge v0.2.0 provides all necessary tool
 - [DCSS Level Design](http://crawl.akrasiac.org/docs/develop/levels/introduction.txt) - Vault system documentation
 
 *Content was rephrased for compliance with licensing restrictions.*
+
+---
+
+## Semantic Layers & Entity Spawning (v0.3.0 Proposal)
+
+Based on requirements from Saltglass Steppe development, TerrainForge could extend beyond tile generation to include semantic annotations for entity placement.
+
+### Proposed Features
+
+**Data Structures**:
+```rust
+pub struct GenerationResult {
+    pub tiles: Grid<Tile>,
+    pub regions: Vec<Region>,           // Rooms, corridors, clearings
+    pub markers: Vec<Marker>,           // Spawn slots with tags
+    pub masks: Masks,                   // Walkable, no-spawn zones
+    pub connectivity: ConnectivityGraph, // Region adjacency
+}
+
+pub struct Region {
+    pub id: u32,
+    pub kind: String,                   // "room", "corridor", "clearing"
+    pub bbox: Rect,
+    pub cells: Vec<(u32, u32)>,
+    pub tags: Vec<String>,              // "boss_room", "treasure_vault"
+}
+
+pub struct Marker {
+    pub x: u32, pub y: u32,
+    pub tag: String,                    // "loot_slot", "enemy_spawn"
+    pub weight: f32,
+    pub region_id: Option<u32>,
+    pub tags: Vec<String>,
+}
+```
+
+**Marker Generation**:
+- Per-algorithm hooks: rooms emit `loot_slot`, corridors emit `patrol_path`
+- Sampling utilities: Poisson distribution, farthest-point sampling
+- Constraint filters: distance requirements, reachability validation
+
+**Benefits**:
+- Games avoid rediscovering structure the generator already knew
+- Enables sophisticated spawning: balanced loot distribution, enemy patrol routes
+- Maintains separation: TerrainForge provides slots, games provide spawn tables
+- Deterministic: seeded RNG ensures reproducible marker placement
+
+**Implementation Complexity**: ~800-1200 LOC building on existing region detection and spatial utilities.
+
+**Library Fit**: Excellent - extends current capabilities without changing core philosophy. Enables advanced user features like lock-and-key dungeons while keeping game logic in user code.

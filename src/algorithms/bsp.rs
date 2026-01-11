@@ -1,4 +1,5 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use crate::semantic::{SemanticGenerator, SemanticLayers, Marker, Masks, placement};
 
 #[derive(Debug, Clone)]
 pub struct BspConfig {
@@ -112,4 +113,49 @@ impl Algorithm<Tile> for Bsp {
     }
 
     fn name(&self) -> &'static str { "BSP" }
+}
+
+impl SemanticGenerator<Tile> for Bsp {
+    fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
+        let mut regions = placement::extract_regions(grid);
+        
+        // Tag regions as rooms or corridors based on size
+        for region in &mut regions {
+            let area = region.area();
+            if area >= self.config.min_room_size * self.config.min_room_size {
+                region.kind = "room".to_string();
+                region.add_tag("bsp_room");
+            } else {
+                region.kind = "corridor".to_string();
+                region.add_tag("connector");
+            }
+        }
+        
+        // Generate markers for rooms
+        let room_regions: Vec<_> = regions.iter().filter(|r| r.kind == "room").cloned().collect();
+        let mut markers = placement::distribute_markers(&room_regions, "loot_slot", room_regions.len() * 2, rng);
+        
+        // Add light anchors to larger rooms
+        for region in &room_regions {
+            if region.area() > 50 {
+                if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
+                    markers.push(
+                        Marker::new(x, y, "light_anchor")
+                            .with_region(region.id)
+                            .with_weight(2.0)
+                    );
+                }
+            }
+        }
+        
+        let masks = Masks::from_tiles(grid);
+        let connectivity = placement::build_connectivity(grid, &regions);
+        
+        SemanticLayers {
+            regions,
+            markers,
+            masks,
+            connectivity,
+        }
+    }
 }

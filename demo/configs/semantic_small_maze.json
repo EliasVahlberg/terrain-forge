@@ -1,0 +1,11 @@
+{
+  "name": "semantic_small_maze",
+  "width": 40,
+  "height": 30,
+  "algorithm": {
+    "type": "bsp",
+    "min_room_size": 4,
+    "max_depth": 5,
+    "room_padding": 1
+  }
+}

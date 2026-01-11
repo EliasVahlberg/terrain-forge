@@ -1,0 +1,15 @@
+{
+  "name": "semantic_organic_caves",
+  "width": 80,
+  "height": 50,
+  "algorithm": {
+    "type": "room_accretion",
+    "templates": [
+      { "Blob": { "size": 12, "smoothing": 3 } },
+      { "Circle": { "min_radius": 4, "max_radius": 8 } },
+      { "Rectangle": { "min": 6, "max": 14 } }
+    ],
+    "max_rooms": 8,
+    "loop_chance": 0.2
+  }
+}

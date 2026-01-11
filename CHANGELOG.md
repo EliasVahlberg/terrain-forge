@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-11
+
+### Added
+- **Semantic Layers** - Entity spawning and region metadata system
+  - `Region` - Distinct map areas with kind, cells, and tags
+  - `Marker` - Entity spawn points with position, tag, weight, and metadata
+  - `Masks` - Spatial reasoning with walkable/no-spawn grids
+  - `ConnectivityGraph` - Region adjacency information
+  - `SemanticLayers` - Complete semantic information container
+  - `GenerationResult` - Extended result with optional semantic data
+- `SemanticGenerator<T>` trait for algorithms to provide semantic information
+- `generate_with_semantic()` convenience API for semantic generation
+- Semantic support for BSP and Room Accretion algorithms:
+  - Automatic region classification (room/corridor)
+  - Diverse marker types: `loot_slot`, `boss_spawn`, `light_anchor`
+  - Size-based marker distribution
+  - Connectivity graph building
+- Demo framework semantic visualization:
+  - `--semantic` flag for PNG and text output
+  - Color-coded markers in PNG mode
+  - ASCII markers in text mode (`$`, `B`, `*`)
+  - Semantic analysis reporting
+- New demo configurations:
+  - `semantic_bsp.json` - BSP with semantic layers
+  - `semantic_organic.json` - Organic caves
+  - `semantic_large_rooms.json` - Large room layouts
+  - `semantic_small_maze.json` - Compact mazes
+
+### Changed
+- Updated demo framework CLI to support semantic visualization
+- Enhanced test suite with semantic layer integration tests
+- Updated documentation to reflect semantic capabilities
+
 ## [0.2.0] - 2026-01-11
 
 ### Added

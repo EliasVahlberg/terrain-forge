@@ -328,9 +328,34 @@ While the demo framework is feature-complete for current TerrainForge capabiliti
 - **Performance Benchmarks**: Algorithm timing comparisons
 - **Fuzzing**: Random parameter space exploration
 
-### Integration Features
-- **Game Engine Export**: Unity/Godot/Bevy format support
-- **Tilemap Generation**: Sprite-based output
-- **Metadata Export**: Room/region annotations
+### Library Extensions
+- **Semantic Layers**: Region metadata, spawn markers, connectivity graphs
+- **Advanced Sampling**: Poisson distribution, constraint-based placement
+- **Entity Integration**: Game-agnostic spawn slot generation
+
+### Semantic Layer Support
+
+The most significant potential enhancement would be **semantic layers** - extending TerrainForge output beyond tiles to include entity spawning metadata:
+
+```json
+{
+  "name": "semantic_dungeon",
+  "algorithm": "room_accretion",
+  "semantic_layers": {
+    "regions": true,
+    "markers": ["loot_slot", "enemy_spawn", "light_anchor"],
+    "masks": ["walkable", "no_spawn"],
+    "connectivity": true
+  }
+}
+```
+
+This would enable the demo framework to:
+- **Visualize regions**: Color-coded room/corridor/clearing identification
+- **Show spawn markers**: Overlay entity placement slots on generated maps
+- **Export metadata**: JSON output with semantic annotations for game integration
+- **Validate constraints**: Ensure proper marker distribution and connectivity
+
+**Implementation Impact**: Would require extending the config parser to handle semantic layer requests and updating the renderer to visualize the additional data layers.
 
 These enhancements would be implemented as the library grows and user needs evolve, maintaining the framework's role as both testing harness and integration example.

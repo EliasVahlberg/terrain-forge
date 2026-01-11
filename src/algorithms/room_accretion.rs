@@ -1,4 +1,5 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use crate::semantic::{SemanticGenerator, SemanticLayers, Marker, Masks, placement};
 
 #[derive(Debug, Clone)]
 pub struct RoomAccretionConfig {
@@ -86,6 +87,81 @@ impl Algorithm<Tile> for RoomAccretion {
 
     fn name(&self) -> &'static str {
         "RoomAccretion"
+    }
+}
+
+impl SemanticGenerator<Tile> for RoomAccretion {
+    fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
+        let mut regions = placement::extract_regions(grid);
+        
+        // Tag regions based on size and shape
+        for region in &mut regions {
+            let area = region.area();
+            if area > 30 {
+                region.kind = "room".to_string();
+                region.add_tag("accretion_room");
+                
+                // Tag by approximate template type
+                if area > 100 {
+                    region.add_tag("large_room");
+                } else if area < 50 {
+                    region.add_tag("small_room");
+                }
+            } else {
+                region.kind = "corridor".to_string();
+                region.add_tag("connector");
+            }
+        }
+        
+        // Generate diverse markers for rooms
+        let room_regions: Vec<_> = regions.iter().filter(|r| r.kind == "room").cloned().collect();
+        let mut markers = Vec::new();
+        
+        for region in &room_regions {
+            let area = region.area();
+            
+            // Loot slots proportional to room size
+            let loot_count = (area / 25).max(1).min(4);
+            for _ in 0..loot_count {
+                if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
+                    markers.push(
+                        Marker::new(x, y, "loot_slot")
+                            .with_region(region.id)
+                    );
+                }
+            }
+            
+            // Special markers for larger rooms
+            if area > 80 {
+                if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
+                    markers.push(
+                        Marker::new(x, y, "boss_spawn")
+                            .with_region(region.id)
+                            .with_weight(3.0)
+                    );
+                }
+            }
+            
+            // Light anchors for medium+ rooms
+            if area > 40 {
+                if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
+                    markers.push(
+                        Marker::new(x, y, "light_anchor")
+                            .with_region(region.id)
+                    );
+                }
+            }
+        }
+        
+        let masks = Masks::from_tiles(grid);
+        let connectivity = placement::build_connectivity(grid, &regions);
+        
+        SemanticLayers {
+            regions,
+            markers,
+            masks,
+            connectivity,
+        }
     }
 }
 

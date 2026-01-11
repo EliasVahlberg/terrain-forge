@@ -8,7 +8,7 @@ echo "=== TerrainForge Demo Test Suite ==="
 echo ""
 
 # Create output directories
-mkdir -p output/{single,compositions,configs,compare}
+mkdir -p output/{single,compositions,configs,compare,semantic}
 
 SEED=12345
 
@@ -47,6 +47,21 @@ cargo run -q -- run configs/prefab_rotation.json -o output/configs/prefab_rotati
 cargo run -q -- run configs/brogue_style.json -o output/configs/brogue_style.png
 
 echo ""
+echo "--- Semantic Layers ---"
+cargo run -q -- gen bsp --semantic -s $SEED -o output/semantic/bsp_semantic.png
+cargo run -q -- gen room_accretion --semantic -s $SEED -o output/semantic/room_accretion_semantic.png
+cargo run -q -- run configs/semantic_bsp.json --semantic -o output/semantic/semantic_bsp.png
+cargo run -q -- run configs/semantic_organic.json --semantic -o output/semantic/semantic_organic.png
+cargo run -q -- run configs/semantic_large_rooms.json --semantic -o output/semantic/semantic_large_rooms.png
+cargo run -q -- run configs/semantic_small_maze.json --semantic -o output/semantic/semantic_small_maze.png
+
+echo ""
+echo "--- Semantic Text Outputs ---"
+cargo run -q -- gen bsp --semantic --text -s $SEED -o output/semantic/bsp_semantic.txt
+cargo run -q -- gen room_accretion --semantic --text -s $SEED -o output/semantic/room_accretion_semantic.txt
+cargo run -q -- run configs/semantic_organic.json --semantic --text -o output/semantic/semantic_organic.txt
+
+echo ""
 echo "--- Comparisons ---"
 cargo run -q -- compare bsp cellular maze drunkard voronoi rooms -s $SEED -o output/compare/algorithms.png
 cargo run -q -- compare dla wfc percolation diamond_square fractal agent -s $SEED -o output/compare/algorithms2.png
@@ -54,3 +69,4 @@ cargo run -q -- compare dla wfc percolation diamond_square fractal agent -s $SEE
 echo ""
 echo "=== Done ==="
 find output -name "*.png" | wc -l | xargs echo "Generated PNG files:"
+find output -name "*.txt" | wc -l | xargs echo "Generated text files:"
