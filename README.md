@@ -75,20 +75,22 @@ terrain-forge = "0.3"
 
 | Algorithm | Description | Semantic Support |
 |-----------|-------------|------------------|
-| `bsp` | Binary Space Partitioning - structured rooms | ✅ |
-| `cellular` | Cellular Automata - organic caves | ✅ |
-| `drunkard` | Drunkard's Walk - winding corridors | ❌ |
-| `maze` | Perfect maze generation | ✅ |
-| `rooms` | Simple rectangular rooms | ✅ |
-| `voronoi` | Voronoi-based regions | ❌ |
-| `dla` | Diffusion-Limited Aggregation | ❌ |
-| `wfc` | Wave Function Collapse | ❌ |
-| `percolation` | Connected cluster generation | ❌ |
-| `diamond_square` | Heightmap terrain | ❌ |
-| `fractal` | Fractal terrain | ❌ |
-| `agent` | Multi-agent carving | ❌ |
-| `glass_seam` | Region connector | ❌ |
-| `room_accretion` | **NEW**: Brogue-style organic dungeons | ✅ |
+| `bsp` | Binary Space Partitioning - structured rooms | ✅ `for_rooms()` |
+| `cellular` | Cellular Automata - organic caves | ✅ `for_caves()` |
+| `drunkard` | Drunkard's Walk - winding corridors | ✅ `default()` |
+| `maze` | Perfect maze generation | ✅ `for_mazes()` |
+| `rooms` | Simple rectangular rooms | ✅ `for_rooms()` |
+| `voronoi` | Voronoi-based regions | ✅ `default()` |
+| `dla` | Diffusion-Limited Aggregation | ✅ `default()` |
+| `wfc` | Wave Function Collapse | ✅ `default()` |
+| `percolation` | Connected cluster generation | ✅ `default()` |
+| `diamond_square` | Heightmap terrain | ✅ `default()` |
+| `fractal` | Fractal terrain | ✅ `default()` |
+| `agent` | Multi-agent carving | ✅ `default()` |
+| `glass_seam` | Region connector | ✅ `default()` |
+| `room_accretion` | **NEW**: Brogue-style organic dungeons | ✅ `for_rooms()` |
+
+**Note**: All algorithms support semantic analysis through `SemanticExtractor`. Algorithm-specific extractors (`for_caves()`, `for_rooms()`, `for_mazes()`) provide optimized analysis, while `default()` works with any terrain type.
 
 ## Usage
 

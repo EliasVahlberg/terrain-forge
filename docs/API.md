@@ -425,12 +425,8 @@ Extend algorithms to generate semantic information alongside terrain.
 ```rust
 use terrain_forge::semantic::SemanticGenerator;
 
-pub trait SemanticGenerator<C: Cell> {
-    fn generate_with_semantic(
-        &self, 
-        grid: &mut Grid<C>, 
-        seed: u64
-    ) -> SemanticLayers;
+pub trait Algorithm<C: Cell> {
+    fn generate(&self, grid: &mut Grid<C>, seed: u64);
 }
 ```
 
@@ -446,19 +442,23 @@ let mut grid = Grid::new(80, 60);
 
 // BSP - structured rooms and corridors
 let bsp = Bsp::default();
-let semantic = bsp.generate_with_semantic(&mut grid, 12345);
+bsp.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
 
 // Cellular Automata - cave chambers and tunnels  
 let cellular = CellularAutomata::default();
-let semantic = cellular.generate_with_semantic(&mut grid, 12345);
+cellular.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_caves().extract(&grid, &mut rng);
 
 // Maze - junctions and dead ends
 let maze = Maze::default();
-let semantic = maze.generate_with_semantic(&mut grid, 12345);
+maze.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_mazes().extract(&grid, &mut rng);
 
 // Simple Rooms - rectangular room detection
 let rooms = SimpleRooms::default();
-let semantic = rooms.generate_with_semantic(&mut grid, 12345);
+rooms.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
 ```
 
 // Access semantic information
@@ -485,12 +485,23 @@ println!("Found {} connected regions", semantic.connectivity.adjacencies.len());
 ### Convenience API
 
 ```rust
-use terrain_forge::generate_with_semantic;
+use terrain_forge::{Algorithm, Grid, Rng, SemanticExtractor};
 
-// One-line semantic generation - now supports 5 algorithms
-let (mut grid, semantic) = generate_with_semantic("cellular", 80, 60, 12345)?;
-let (mut grid, semantic) = generate_with_semantic("maze", 80, 60, 12345)?;
-let (mut grid, semantic) = generate_with_semantic("rooms", 80, 60, 12345)?;
+// Decoupled semantic generation - works with any algorithm
+let mut grid = Grid::new(80, 60);
+let mut rng = Rng::new(12345);
+
+let cellular = CellularAutomata::default();
+cellular.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_caves().extract(&grid, &mut rng);
+
+let maze = Maze::default();  
+maze.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_mazes().extract(&grid, &mut rng);
+
+let rooms = SimpleRooms::default();
+rooms.generate(&mut grid, 12345);
+let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
 
 // Access all semantic data
 let room_count = semantic.masks.room_centers.len();
@@ -545,8 +556,10 @@ fn main() {
     
     // NEW: Semantic generation
     let mut semantic_grid = Grid::new(80, 60);
+    let mut rng = Rng::new(12345);
     let bsp = terrain_forge::algorithms::Bsp::default();
-    let semantic = bsp.generate_with_semantic(&mut semantic_grid, 12345);
+    bsp.generate(&mut semantic_grid, 12345);
+    let semantic = SemanticExtractor::for_rooms().extract(&mut semantic_grid, &mut rng);
     
     println!("Generated {} markers", semantic.markers.len());
     println!("Found {} room centers", semantic.masks.room_centers.len());

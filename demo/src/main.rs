@@ -246,13 +246,28 @@ fn generate_with_semantic_viz(
         let semantic = extractor.extract(&grid, &mut rng);
         (grid, Some(semantic))
     } else {
-        // For single algorithms, use the existing function
-        let algorithm_name = match &cfg.algorithm {
-            Some(config::AlgorithmSpec::Name(name)) => name.as_str(),
-            Some(config::AlgorithmSpec::WithParams { type_name, .. }) => type_name.as_str(),
-            None => "unknown",
+        // For single algorithms, generate and extract semantics
+        let (grid, _) = generate(cfg, seed);
+        let mut rng = terrain_forge::Rng::new(seed);
+        
+        let extractor = match &cfg.algorithm {
+            Some(config::AlgorithmSpec::Name(name)) => match name.as_str() {
+                "cellular" => terrain_forge::SemanticExtractor::for_caves(),
+                "bsp" | "rooms" | "room_accretion" => terrain_forge::SemanticExtractor::for_rooms(),
+                "maze" => terrain_forge::SemanticExtractor::for_mazes(),
+                _ => terrain_forge::SemanticExtractor::default(),
+            },
+            Some(config::AlgorithmSpec::WithParams { type_name, .. }) => match type_name.as_str() {
+                "cellular" => terrain_forge::SemanticExtractor::for_caves(),
+                "bsp" | "rooms" | "room_accretion" => terrain_forge::SemanticExtractor::for_rooms(),
+                "maze" => terrain_forge::SemanticExtractor::for_mazes(),
+                _ => terrain_forge::SemanticExtractor::default(),
+            },
+            None => terrain_forge::SemanticExtractor::default(),
         };
-        terrain_forge::generate_with_semantic(algorithm_name, cfg.width, cfg.height, seed)
+        
+        let semantic = extractor.extract(&grid, &mut rng);
+        (grid, Some(semantic))
     };
 
     if let Some(semantic) = &semantic {
