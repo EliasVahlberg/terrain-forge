@@ -233,7 +233,9 @@ pub fn visualize_semantic_layers(grid: &Grid<Tile>, semantic: &SemanticLayers) -
 
 /// Create region ID visualization (useful for debugging)
 pub fn visualize_region_ids(grid: &Grid<Tile>, semantic: &SemanticLayers) -> String {
-    let mut config = VisualizationConfig::default();
-    config.show_region_ids = true;
+    let config = VisualizationConfig {
+        show_region_ids: true,
+        ..Default::default()
+    };
     visualize_regions(grid, semantic, &config)
 }

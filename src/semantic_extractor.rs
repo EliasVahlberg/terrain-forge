@@ -19,11 +19,6 @@ impl SemanticExtractor {
         Self { config }
     }
 
-    /// Create extractor with default configuration
-    pub fn default() -> Self {
-        Self::new(SemanticConfig::default())
-    }
-
     /// Create extractor optimized for cave systems
     pub fn for_caves() -> Self {
         Self::new(SemanticConfig::cave_system())
@@ -71,7 +66,7 @@ impl SemanticExtractor {
         let width = grid.width();
 
         for region_id in 1..=count {
-            let mut region = Region::new(region_id as u32, "Unknown");
+            let mut region = Region::new(region_id, "Unknown");
 
             // Collect all cells belonging to this region
             for (x, y, _) in grid.iter() {
@@ -287,6 +282,12 @@ impl SemanticExtractor {
         }
 
         map
+    }
+}
+
+impl Default for SemanticExtractor {
+    fn default() -> Self {
+        Self::new(SemanticConfig::default())
     }
 }
 
