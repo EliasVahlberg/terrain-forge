@@ -33,6 +33,12 @@ enum Command {
         text: bool,
         #[arg(long)]
         semantic: bool,
+        #[arg(long)]
+        regions: bool,
+        #[arg(long)]
+        masks: bool,
+        #[arg(long)]
+        connectivity: bool,
     },
     /// Run a saved config file
     Run {
@@ -46,6 +52,12 @@ enum Command {
         text: bool,
         #[arg(long)]
         semantic: bool,
+        #[arg(long)]
+        regions: bool,
+        #[arg(long)]
+        masks: bool,
+        #[arg(long)]
+        connectivity: bool,
     },
     /// Compare multiple algorithms or configs
     Compare {
@@ -74,6 +86,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             height,
             text,
             semantic,
+            regions,
+            masks,
+            connectivity,
         } => {
             let seed = seed.unwrap_or_else(random_seed);
             let mut cfg = config::parse_shorthand(&spec);
@@ -81,8 +96,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             cfg.height = height;
             cfg.seed = Some(seed);
 
-            if semantic {
-                generate_with_semantic_viz(&cfg, seed, &output, text)?;
+            if semantic || regions || masks || connectivity {
+                generate_with_semantic_viz(&cfg, seed, &output, text, regions, masks, connectivity)?;
             } else {
                 let (grid, elapsed) = generate(&cfg, seed);
 
@@ -104,12 +119,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             text,
             semantic,
+            regions,
+            masks,
+            connectivity,
         } => {
             let cfg = config::Config::load(&path)?;
             let seed = seed.or(cfg.seed).unwrap_or_else(random_seed);
 
-            if semantic {
-                generate_with_semantic_viz(&cfg, seed, &output, text)?;
+            if semantic || regions || masks || connectivity {
+                generate_with_semantic_viz(&cfg, seed, &output, text, regions, masks, connectivity)?;
             } else {
                 let (grid, elapsed) = generate(&cfg, seed);
 
@@ -195,6 +213,9 @@ fn generate_with_semantic_viz(
     seed: u64,
     output: &str,
     text: bool,
+    regions: bool,
+    masks: bool,
+    connectivity: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Try semantic generation for supported algorithms
     let algorithm_name = match &cfg.algorithm {
@@ -244,6 +265,24 @@ fn generate_with_semantic_viz(
         let text_output = render::render_text_with_semantic(&tiles, &semantic);
         render::save_text(&text_output, &txt_path)?;
         println!("Saved semantic visualization to {}", txt_path);
+    } else if regions {
+        if let Some(semantic) = &semantic {
+            let img = render::render_regions_png(&tiles, semantic);
+            render::save_png(&img, output)?;
+            println!("Saved regions visualization to {}", output);
+        }
+    } else if masks {
+        if let Some(semantic) = &semantic {
+            let img = render::render_masks_png(&tiles, semantic);
+            render::save_png(&img, output)?;
+            println!("Saved masks visualization to {}", output);
+        }
+    } else if connectivity {
+        if let Some(semantic) = &semantic {
+            let img = render::render_connectivity_png(&tiles, semantic);
+            render::save_png(&img, output)?;
+            println!("Saved connectivity visualization to {}", output);
+        }
     } else {
         let img = render::render_grid_with_semantic(&tiles, &semantic);
         render::save_png(&img, output)?;

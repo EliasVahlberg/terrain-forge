@@ -2,6 +2,7 @@
 
 use image::{ImageBuffer, Rgb, RgbImage};
 use terrain_forge::{Grid, Tile, SemanticLayers};
+use std::collections::HashMap;
 
 const FLOOR_COLOR: Rgb<u8> = Rgb([200, 200, 200]);
 const WALL_COLOR: Rgb<u8> = Rgb([40, 40, 40]);
@@ -9,6 +10,23 @@ const LOOT_COLOR: Rgb<u8> = Rgb([255, 215, 0]); // Gold
 const BOSS_COLOR: Rgb<u8> = Rgb([255, 0, 0]); // Red
 const LIGHT_COLOR: Rgb<u8> = Rgb([255, 255, 0]); // Yellow
 const MARKER_COLOR: Rgb<u8> = Rgb([0, 255, 0]); // Green (default)
+
+// Region colors
+const CHAMBER_COLOR: Rgb<u8> = Rgb([100, 150, 255]);
+const TUNNEL_COLOR: Rgb<u8> = Rgb([150, 100, 255]);
+const ALCOVE_COLOR: Rgb<u8> = Rgb([255, 150, 100]);
+const CREVICE_COLOR: Rgb<u8> = Rgb([100, 255, 150]);
+const HALL_COLOR: Rgb<u8> = Rgb([200, 100, 100]);
+const ROOM_COLOR: Rgb<u8> = Rgb([100, 200, 100]);
+const CLOSET_COLOR: Rgb<u8> = Rgb([100, 100, 200]);
+const JUNCTION_COLOR: Rgb<u8> = Rgb([255, 100, 100]);
+const CORRIDOR_COLOR: Rgb<u8> = Rgb([100, 255, 255]);
+const DEADEND_COLOR: Rgb<u8> = Rgb([255, 255, 100]);
+
+// Mask colors
+const WALKABLE_COLOR: Rgb<u8> = Rgb([0, 255, 0]);
+const NO_SPAWN_COLOR: Rgb<u8> = Rgb([255, 0, 0]);
+const CONNECTIVITY_COLOR: Rgb<u8> = Rgb([0, 0, 255]);
 
 pub fn render_grid(grid: &Grid<Tile>) -> RgbImage {
     let mut img = ImageBuffer::new(grid.width() as u32, grid.height() as u32);
@@ -297,4 +315,141 @@ pub fn save_png(img: &RgbImage, path: &str) -> Result<(), Box<dyn std::error::Er
 pub fn save_text(text: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
     std::fs::write(path, text)?;
     Ok(())
+}
+
+/// Render regions as colored PNG
+pub fn render_regions_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImage {
+    let mut img = ImageBuffer::new(grid.width() as u32, grid.height() as u32);
+    
+    // Create region lookup map
+    let mut region_map = HashMap::new();
+    for region in &semantic.regions {
+        for &(x, y) in &region.cells {
+            region_map.insert((x as usize, y as usize), &region.kind);
+        }
+    }
+    
+    for (x, y, tile) in grid.iter() {
+        let color = if tile.is_wall() {
+            WALL_COLOR
+        } else if let Some(region_kind) = region_map.get(&(x, y)) {
+            match region_kind.as_str() {
+                "Chamber" => CHAMBER_COLOR,
+                "Tunnel" => TUNNEL_COLOR,
+                "Alcove" => ALCOVE_COLOR,
+                "Crevice" => CREVICE_COLOR,
+                "Hall" => HALL_COLOR,
+                "Room" => ROOM_COLOR,
+                "Closet" => CLOSET_COLOR,
+                "Junction" => JUNCTION_COLOR,
+                "Corridor" => CORRIDOR_COLOR,
+                "DeadEnd" => DEADEND_COLOR,
+                _ => FLOOR_COLOR,
+            }
+        } else {
+            FLOOR_COLOR
+        };
+        img.put_pixel(x as u32, y as u32, color);
+    }
+    
+    img
+}
+
+/// Render masks as colored PNG
+pub fn render_masks_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImage {
+    let mut img = ImageBuffer::new(grid.width() as u32, grid.height() as u32);
+    
+    for (x, y, tile) in grid.iter() {
+        let color = if tile.is_wall() {
+            WALL_COLOR
+        } else {
+            // Check masks
+            let walkable = y < semantic.masks.walkable.len() && 
+                          x < semantic.masks.walkable[y].len() && 
+                          semantic.masks.walkable[y][x];
+            let no_spawn = y < semantic.masks.no_spawn.len() && 
+                          x < semantic.masks.no_spawn[y].len() && 
+                          semantic.masks.no_spawn[y][x];
+            
+            if no_spawn {
+                NO_SPAWN_COLOR
+            } else if walkable {
+                WALKABLE_COLOR
+            } else {
+                FLOOR_COLOR
+            }
+        };
+        img.put_pixel(x as u32, y as u32, color);
+    }
+    
+    img
+}
+
+/// Render connectivity graph as PNG with region connections
+pub fn render_connectivity_png(grid: &Grid<Tile>, semantic: &SemanticLayers) -> RgbImage {
+    let mut img = render_regions_png(grid, semantic);
+    
+    // Create region center map
+    let mut region_centers = HashMap::new();
+    for region in &semantic.regions {
+        if !region.cells.is_empty() {
+            let sum_x: u32 = region.cells.iter().map(|(x, _)| x).sum();
+            let sum_y: u32 = region.cells.iter().map(|(_, y)| y).sum();
+            let count = region.cells.len() as u32;
+            let center = (sum_x / count, sum_y / count);
+            region_centers.insert(region.id, center);
+        }
+    }
+    
+    // Draw connectivity edges
+    for &(from, to) in &semantic.connectivity.edges {
+        if let (Some(&(x1, y1)), Some(&(x2, y2))) = 
+            (region_centers.get(&from), region_centers.get(&to)) {
+            draw_line(&mut img, x1, y1, x2, y2, CONNECTIVITY_COLOR);
+        }
+    }
+    
+    // Draw region centers
+    for &(x, y) in region_centers.values() {
+        if x < img.width() && y < img.height() {
+            img.put_pixel(x, y, CONNECTIVITY_COLOR);
+            // Draw a small cross
+            if x > 0 { img.put_pixel(x - 1, y, CONNECTIVITY_COLOR); }
+            if x < img.width() - 1 { img.put_pixel(x + 1, y, CONNECTIVITY_COLOR); }
+            if y > 0 { img.put_pixel(x, y - 1, CONNECTIVITY_COLOR); }
+            if y < img.height() - 1 { img.put_pixel(x, y + 1, CONNECTIVITY_COLOR); }
+        }
+    }
+    
+    img
+}
+
+/// Simple line drawing function
+fn draw_line(img: &mut RgbImage, x1: u32, y1: u32, x2: u32, y2: u32, color: Rgb<u8>) {
+    let dx = (x2 as i32 - x1 as i32).abs();
+    let dy = (y2 as i32 - y1 as i32).abs();
+    let sx = if x1 < x2 { 1 } else { -1 };
+    let sy = if y1 < y2 { 1 } else { -1 };
+    let mut err = dx - dy;
+    
+    let mut x = x1 as i32;
+    let mut y = y1 as i32;
+    
+    loop {
+        if x >= 0 && y >= 0 && (x as u32) < img.width() && (y as u32) < img.height() {
+            img.put_pixel(x as u32, y as u32, color);
+        }
+        
+        if x == x2 as i32 && y == y2 as i32 { break; }
+        
+        let e2 = 2 * err;
+        if e2 > -dy {
+            err -= dy;
+            x += sx;
+        }
+        if e2 < dx {
+            err += dx;
+            y += sy;
+        }
+    }
 }
