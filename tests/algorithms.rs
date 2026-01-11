@@ -2,8 +2,8 @@
 
 use terrain_forge::{Grid, Tile, algorithms};
 
-// Algorithms that don't respect borders (heightmap-based)
-const BORDERLESS: &[&str] = &["diamond_square", "fractal"];
+// Algorithms that don't respect borders (heightmap-based or room-based)
+const BORDERLESS: &[&str] = &["diamond_square", "fractal", "room_accretion"];
 
 // Algorithms that need pre-existing content
 const NEEDS_CONTENT: &[&str] = &["glass_seam"];

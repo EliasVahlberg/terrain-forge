@@ -14,6 +14,7 @@ mod prefab;
 mod agent;
 mod fractal;
 mod glass_seam;
+mod room_accretion;
 
 pub use bsp::{Bsp, BspConfig};
 pub use cellular::{CellularAutomata, CellularConfig};
@@ -29,6 +30,7 @@ pub use prefab::{PrefabPlacer, PrefabConfig, Prefab};
 pub use agent::{AgentBased, AgentConfig};
 pub use fractal::Fractal;
 pub use glass_seam::GlassSeam;
+pub use room_accretion::{RoomAccretion, RoomAccretionConfig, RoomTemplate};
 
 use crate::{Algorithm, Tile};
 
@@ -48,6 +50,7 @@ pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
         "agent" => Some(Box::new(AgentBased::default())),
         "fractal" => Some(Box::new(Fractal)),
         "glass_seam" | "gsb" => Some(Box::new(GlassSeam::default())),
+        "room_accretion" | "accretion" => Some(Box::new(RoomAccretion::default())),
         _ => None,
     }
 }
@@ -57,6 +60,6 @@ pub fn list() -> &'static [&'static str] {
     &[
         "bsp", "cellular", "drunkard", "maze", "rooms", "voronoi",
         "dla", "wfc", "percolation", "diamond_square", "agent", 
-        "fractal", "glass_seam",
+        "fractal", "glass_seam", "room_accretion",
     ]
 }
