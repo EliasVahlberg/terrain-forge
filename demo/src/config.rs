@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 use terrain_forge::{
-    algorithms::{self, *, PrefabLibrary, PrefabData},
+    algorithms::{self, *},
     compose::{BlendMode, LayeredGenerator, Pipeline},
     effects, Algorithm, Grid, Tile,
 };
@@ -202,21 +202,9 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 
                 // Convert Vec<Prefab> to PrefabLibrary
                 let mut library = PrefabLibrary::new();
-                for (i, prefab) in prefabs.into_iter().enumerate() {
-                    library.add_prefab(PrefabData {
-                        name: format!("prefab_{}", i),
-                        pattern: prefab.pattern().iter().map(|row| row.iter().collect()).collect(),
-                        weight: 1.0,
-                        allow_rotation: params
-                            .get("allow_rotation")
-                            .and_then(|v| v.as_bool())
-                            .unwrap_or(true),
-                        allow_mirroring: params
-                            .get("allow_mirroring")
-                            .and_then(|v| v.as_bool())
-                            .unwrap_or(false),
-                        tags: vec![],
-                    });
+                for mut prefab in prefabs {
+                    prefab.weight = 1.0;
+                    library.add_prefab(prefab);
                 }
                 
                 Box::new(PrefabPlacer::new(
