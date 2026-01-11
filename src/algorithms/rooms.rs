@@ -1,4 +1,4 @@
-use crate::semantic::{placement, Masks, SemanticGenerator, SemanticLayers};
+use crate::semantic::{placement, Masks, SemanticConfig, SemanticGenerator, SemanticLayers};
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
@@ -115,22 +115,12 @@ fn carve_v(grid: &mut Grid<Tile>, y1: usize, y2: usize, x: usize) {
     }
 }
 impl SemanticGenerator<Tile> for SimpleRooms {
-    fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
+    fn generate_semantic_with_config(&self, grid: &Grid<Tile>, rng: &mut Rng, config: &SemanticConfig) -> SemanticLayers {
         let mut regions = placement::extract_regions(grid);
         
-        // Classify rectangular regions
-        for region in &mut regions {
-            let size = region.cells.len();
-            region.kind = if size > 100 {
-                "Room".to_string()
-            } else if size > 20 {
-                "Chamber".to_string()
-            } else {
-                "Corridor".to_string()
-            };
-        }
+        placement::classify_regions_by_size(&mut regions, config);
         
-        let markers = placement::distribute_markers(&regions, "PlayerStart", 1, rng);
+        let markers = placement::generate_configurable_markers(&regions, config, rng);
         let masks = Masks::from_tiles(grid);
         let connectivity = placement::build_connectivity(grid, &regions);
         

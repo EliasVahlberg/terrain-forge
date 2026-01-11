@@ -1,4 +1,4 @@
-use crate::semantic::{placement, Marker, Masks, SemanticGenerator, SemanticLayers};
+use crate::semantic::{placement, Masks, SemanticConfig, SemanticGenerator, SemanticLayers};
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
@@ -176,46 +176,15 @@ impl Algorithm<Tile> for Bsp {
 }
 
 impl SemanticGenerator<Tile> for Bsp {
-    fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
+    fn generate_semantic_with_config(&self, grid: &Grid<Tile>, rng: &mut Rng, config: &SemanticConfig) -> SemanticLayers {
         let mut regions = placement::extract_regions(grid);
-
-        // Tag regions as rooms or corridors based on size
-        for region in &mut regions {
-            let area = region.area();
-            if area >= self.config.min_room_size * self.config.min_room_size {
-                region.kind = "room".to_string();
-                region.add_tag("bsp_room");
-            } else {
-                region.kind = "corridor".to_string();
-                region.add_tag("connector");
-            }
-        }
-
-        // Generate markers for rooms
-        let room_regions: Vec<_> = regions
-            .iter()
-            .filter(|r| r.kind == "room")
-            .cloned()
-            .collect();
-        let mut markers =
-            placement::distribute_markers(&room_regions, "loot_slot", room_regions.len() * 2, rng);
-
-        // Add light anchors to larger rooms
-        for region in &room_regions {
-            if region.area() > 50 {
-                if let Some(&(x, y)) = region.cells.get(rng.range_usize(0, region.cells.len())) {
-                    markers.push(
-                        Marker::new(x, y, "light_anchor")
-                            .with_region(region.id)
-                            .with_weight(2.0),
-                    );
-                }
-            }
-        }
-
+        
+        placement::classify_regions_by_size(&mut regions, config);
+        
+        let markers = placement::generate_configurable_markers(&regions, config, rng);
         let masks = Masks::from_tiles(grid);
         let connectivity = placement::build_connectivity(grid, &regions);
-
+        
         SemanticLayers {
             regions,
             markers,

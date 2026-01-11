@@ -1,4 +1,4 @@
-use crate::semantic::{placement, Masks, SemanticGenerator, SemanticLayers};
+use crate::semantic::{placement, Masks, SemanticConfig, SemanticGenerator, SemanticLayers};
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
@@ -104,33 +104,12 @@ fn carve_between(grid: &mut Grid<Tile>, x1: usize, y1: usize, x2: usize, y2: usi
     }
 }
 impl SemanticGenerator<Tile> for Maze {
-    fn generate_semantic(&self, grid: &Grid<Tile>, rng: &mut Rng) -> SemanticLayers {
+    fn generate_semantic_with_config(&self, grid: &Grid<Tile>, rng: &mut Rng, config: &SemanticConfig) -> SemanticLayers {
         let mut regions = placement::extract_regions(grid);
         
-        // Analyze maze structure for junctions and dead ends
-        for region in &mut regions {
-            let mut junction_count = 0;
-            let mut dead_end_count = 0;
-            
-            for &(x, y) in &region.cells {
-                let neighbors = count_floor_neighbors(grid, x as i32, y as i32);
-                if neighbors == 1 {
-                    dead_end_count += 1;
-                } else if neighbors > 2 {
-                    junction_count += 1;
-                }
-            }
-            
-            region.kind = if junction_count > dead_end_count {
-                "Junction".to_string()
-            } else if dead_end_count > 0 {
-                "DeadEnd".to_string()
-            } else {
-                "Corridor".to_string()
-            };
-        }
+        placement::classify_regions_by_size(&mut regions, config);
         
-        let markers = placement::distribute_markers(&regions, "PlayerStart", 1, rng);
+        let markers = placement::generate_configurable_markers(&regions, config, rng);
         let masks = Masks::from_tiles(grid);
         let connectivity = placement::build_connectivity(grid, &regions);
         
