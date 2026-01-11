@@ -1,10 +1,11 @@
 //! Distance Transform Demo
-//! 
+//!
 //! Demonstrates distance field generation with different metrics
 
 use terrain_forge::{
-    algorithms, Grid, Tile,
+    algorithms,
     spatial::{distance_field, DistanceMetric},
+    Grid, Tile,
 };
 
 fn main() {

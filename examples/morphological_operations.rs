@@ -1,10 +1,11 @@
 //! Morphological Operations Demo
-//! 
+//!
 //! Demonstrates shape analysis with erosion, dilation, opening, and closing
 
 use terrain_forge::{
-    algorithms, Grid, Tile,
+    algorithms,
     spatial::{morphological_transform, MorphologyOp, StructuringElement},
+    Grid, Tile,
 };
 
 fn main() {
@@ -78,14 +79,18 @@ fn main() {
     let original_floors = grid.count(|t| t.is_floor());
     let eroded_floors = eroded.count(|t| t.is_floor());
     let dilated_floors = dilated.count(|t| t.is_floor());
-    
+
     println!("   Original floors: {}", original_floors);
-    println!("   After erosion: {} ({:.1}% reduction)", 
-             eroded_floors, 
-             100.0 * (original_floors - eroded_floors) as f32 / original_floors as f32);
-    println!("   After dilation: {} ({:.1}% increase)", 
-             dilated_floors,
-             100.0 * (dilated_floors - original_floors) as f32 / original_floors as f32);
+    println!(
+        "   After erosion: {} ({:.1}% reduction)",
+        eroded_floors,
+        100.0 * (original_floors - eroded_floors) as f32 / original_floors as f32
+    );
+    println!(
+        "   After dilation: {} ({:.1}% increase)",
+        dilated_floors,
+        100.0 * (dilated_floors - original_floors) as f32 / original_floors as f32
+    );
 }
 
 fn print_grid(grid: &Grid<Tile>) {

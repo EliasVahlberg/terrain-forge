@@ -90,6 +90,7 @@ pub mod effects;
 pub mod noise;
 pub mod pipeline;
 pub mod semantic;
+pub mod spatial;
 
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};

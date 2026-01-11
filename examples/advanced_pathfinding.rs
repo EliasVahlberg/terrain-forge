@@ -1,10 +1,11 @@
 //! Advanced Pathfinding Demo
-//! 
+//!
 //! Demonstrates Dijkstra maps and flow fields for AI pathfinding
 
 use terrain_forge::{
-    algorithms, Grid, Tile,
+    algorithms,
     spatial::{dijkstra_map, flow_field_from_dijkstra, PathfindingConstraints},
+    Grid, Tile,
 };
 
 fn main() {
@@ -43,7 +44,7 @@ fn main() {
     custom_constraints.movement_cost.insert((-1, 1), 2.0);
     custom_constraints.movement_cost.insert((1, -1), 2.0);
     custom_constraints.movement_cost.insert((1, 1), 2.0);
-    
+
     let dijkstra_custom = dijkstra_map(&grid, &goals, &custom_constraints);
     print_dijkstra_map(&dijkstra_custom);
 
