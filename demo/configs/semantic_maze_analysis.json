@@ -1,0 +1,15 @@
+{
+  "algorithm": "maze",
+  "width": 60,
+  "height": 40,
+  "seed": 98765,
+  "config": {
+    "corridor_width": 1
+  },
+  "semantic": true,
+  "output": {
+    "text": true,
+    "png": true,
+    "path": "output/semantic/"
+  }
+}

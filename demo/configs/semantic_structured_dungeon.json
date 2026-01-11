@@ -1,0 +1,17 @@
+{
+  "algorithm": "bsp",
+  "width": 80,
+  "height": 50,
+  "seed": 54321,
+  "config": {
+    "min_room_size": 8,
+    "max_depth": 6,
+    "room_padding": 2
+  },
+  "semantic": true,
+  "output": {
+    "text": true,
+    "png": true,
+    "path": "output/semantic/"
+  }
+}

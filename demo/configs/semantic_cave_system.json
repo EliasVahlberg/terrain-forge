@@ -1,0 +1,18 @@
+{
+  "algorithm": "cellular",
+  "width": 80,
+  "height": 50,
+  "seed": 12345,
+  "config": {
+    "initial_floor_chance": 0.45,
+    "iterations": 5,
+    "birth_limit": 5,
+    "death_limit": 4
+  },
+  "semantic": true,
+  "output": {
+    "text": true,
+    "png": true,
+    "path": "output/semantic/"
+  }
+}

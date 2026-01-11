@@ -1,64 +1,135 @@
-# Semantic Layers Demo Results
+# Semantic Extraction Demo Results
 
-## Overview
-TerrainForge v0.3.0 semantic layers provide entity spawn markers, region metadata, and connectivity information for game integration.
+This directory contains examples of TerrainForge's **decoupled semantic extraction system**. Unlike the previous coupled approach, semantic analysis now works with **any grid source** - algorithms, pipelines, or external tools.
 
-## Generated Outputs
+## Architecture
 
-### PNG Visualizations (6 files)
-- `bsp_semantic.png` - BSP algorithm with semantic markers
-- `room_accretion_semantic.png` - Room accretion with diverse markers
-- `semantic_bsp.png` - Custom BSP configuration (60x40)
-- `semantic_organic.png` - Organic caves with mixed room types (80x50)
-- `semantic_large_rooms.png` - Large room configuration (100x60)
-- `semantic_small_maze.png` - Small maze configuration (40x30)
-
-### Text Visualizations (3 files)
-- `bsp_semantic.txt` - ASCII with semantic markers ($, *, B)
-- `room_accretion_semantic.txt` - Room accretion with marker overlay
-- `semantic_organic.txt` - Organic caves text representation
-
-## Marker Types
-
-### Visual Representation
-- **PNG Mode**: Gold (loot), Red (boss), Yellow (light), Green (other)
-- **Text Mode**: `$` (loot), `B` (boss), `*` (light), `?` (other)
-
-### Distribution Examples
-- **BSP (seed 12345)**: 2 loot_slot, 1 light_anchor
-- **Room Accretion (seed 12345)**: 9 loot_slot, 3 light_anchor, 2 boss_spawn
-- **Large Rooms**: Up to 26 markers across 6 regions
-
-## Region Analysis
-
-### Region Types
-- **room**: Main gameplay areas with diverse markers
-- **corridor**: Connection areas with fewer markers
-
-### Connectivity
-- All regions tracked in connectivity graph
-- Edge detection for adjacent regions
-- Foundation for advanced pathfinding and game logic
-
-## Usage Commands
-
-```bash
-# PNG with semantic overlay
-cargo run -- gen room_accretion --semantic -s 12345 -o semantic.png
-
-# Text with marker symbols
-cargo run -- gen bsp --semantic --text -s 12345 -o semantic.txt
-
-# Custom configuration
-cargo run -- run configs/semantic_organic.json --semantic -o organic.png
+```
+1. Generate Grid (any method) → 2. Extract Semantics → 3. Use Results
 ```
 
-## Integration Benefits
+## Examples Generated
 
-1. **Balanced Spawning**: Markers distributed proportionally by room size
-2. **Diverse Content**: Multiple marker types (loot, boss, light) per region
-3. **Spatial Reasoning**: Walkable masks and region boundaries
-4. **Deterministic**: Seeded generation ensures reproducible results
-5. **Game-Agnostic**: Provides slots, not specific entities
+### 1. Cave System Analysis (`cave_system.txt`)
+- **Algorithm**: Cellular Automata
+- **Semantic Config**: Cave-optimized (Chamber/Tunnel/Alcove/Crevice)
+- **Markers**: Crystal, Enemy, Treasure (cave-appropriate)
+- **Results**: 20 regions, 11 markers
+- **Use Case**: Underground cave exploration games
 
-The semantic layers enable sophisticated game mechanics like balanced loot distribution, boss encounter placement, and procedural lighting systems while maintaining TerrainForge's focus on generation rather than game-specific logic.
+### 2. Structured Dungeon (`structured_dungeon.txt`)
+- **Algorithm**: BSP (Binary Space Partitioning)
+- **Semantic Config**: Room-optimized (Hall/Room/Chamber/Closet)
+- **Markers**: Furniture, PlayerStart (room-appropriate)
+- **Results**: 1 region, 3 markers
+- **Use Case**: Traditional dungeon crawlers
+
+### 3. Maze Analysis (`maze_analysis.txt`)
+- **Algorithm**: Perfect Maze
+- **Semantic Config**: Maze-optimized (Junction/Corridor/DeadEnd)
+- **Markers**: Treasure, Trap (maze-appropriate)
+- **Results**: 1 region, 1 marker
+- **Use Case**: Puzzle games, labyrinth exploration
+
+### 4. Organic Rooms (`organic_rooms.txt`)
+- **Algorithm**: Room Accretion (Brogue-style)
+- **Semantic Config**: Room-optimized
+- **Markers**: Enemy, Furniture, Exit, PlayerStart
+- **Results**: 5 regions, 10 markers
+- **Use Case**: Organic dungeon layouts
+
+### 5. Pipeline Composition (`pipeline_semantic.txt`)
+- **Generation**: BSP → Cellular (pipeline)
+- **Semantic Config**: Default
+- **Demonstrates**: Semantic extraction works with composed algorithms
+- **Use Case**: Complex generation workflows
+
+## Key Features Demonstrated
+
+### 🎯 **Algorithm-Agnostic**
+- Same semantic extraction works with any algorithm
+- No need to implement semantic generation per algorithm
+- Works with pipelines and external grids
+
+### 🔧 **Configurable Classifications**
+- Cave systems: Chamber/Tunnel/Alcove/Crevice
+- Room systems: Hall/Room/Chamber/Closet  
+- Maze systems: Junction/Corridor/DeadEnd
+- Custom: Define your own region types
+
+### 🎮 **Game-Specific Markers**
+- Cave markers: Crystal, Enemy, Treasure
+- Room markers: Furniture, PlayerStart, Exit
+- Maze markers: Treasure, Trap
+- Custom: Define your own marker types with probabilities
+
+### 📊 **Rich Analysis**
+- Region classification by size and context
+- Marker placement with probability weights
+- Connectivity graph between regions
+- Spatial masks for gameplay logic
+
+## Usage Examples
+
+### Basic Extraction
+```rust
+use terrain_forge::{SemanticExtractor, Grid};
+
+// Generate any grid
+let mut grid = Grid::new(80, 60);
+algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
+
+// Extract semantics
+let extractor = SemanticExtractor::for_caves();
+let semantic = extractor.extract(&grid, &mut rng);
+```
+
+### Custom Configuration
+```rust
+let config = SemanticConfig {
+    size_thresholds: vec![
+        (100, "Boss Room".to_string()),
+        (25, "Normal Room".to_string()),
+        (0, "Closet".to_string()),
+    ],
+    marker_types: vec![
+        ("Boss".to_string(), 0.1),
+        ("Treasure".to_string(), 0.4),
+        ("Trap".to_string(), 0.3),
+    ],
+    max_markers_per_region: 2,
+};
+
+let extractor = SemanticExtractor::new(config);
+let semantic = extractor.extract(&grid, &mut rng);
+```
+
+### Pipeline + Semantic
+```rust
+// 1. Generate with pipeline
+let pipeline = Pipeline::new()
+    .add(algorithms::get("bsp").unwrap())
+    .add(algorithms::get("cellular").unwrap());
+pipeline.generate(&mut grid, seed);
+
+// 2. Extract semantics separately
+let semantic = SemanticExtractor::for_caves().extract(&grid, &mut rng);
+```
+
+## Benefits of Decoupled Architecture
+
+1. **Reusability**: One semantic system works with all generation methods
+2. **Flexibility**: Easy to experiment with different semantic configurations
+3. **Maintainability**: Single codebase for semantic analysis
+4. **Extensibility**: Works with external grids from other frameworks
+5. **Performance**: Semantic analysis only when needed
+
+## File Format
+
+Each `.txt` file contains:
+- Grid visualization with semantic markers overlaid
+- Detailed analysis of regions and markers
+- Statistics about connectivity and classification
+- Color-coded markers for different entity types
+
+The semantic extraction system transforms raw terrain into rich, game-ready metadata for entity spawning, AI navigation, and gameplay mechanics.
