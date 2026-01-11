@@ -197,7 +197,7 @@ pub fn visualize_semantic_layers(grid: &Grid<Tile>, semantic: &SemanticLayers) -
     // Marker breakdown
     let mut marker_counts = HashMap::new();
     for marker in &semantic.markers {
-        *marker_counts.entry(&marker.tag).or_insert(0) += 1;
+        *marker_counts.entry(marker.tag()).or_insert(0) += 1;
     }
     output.push_str("Marker Types:\n");
     for (tag, count) in &marker_counts {

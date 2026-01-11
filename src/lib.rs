@@ -77,7 +77,6 @@
 mod algorithm;
 mod grid;
 mod rng;
-mod semantic;
 mod semantic_extractor;
 mod semantic_visualization;
 
@@ -88,6 +87,7 @@ pub mod algorithms;
 pub mod compose;
 pub mod constraints;
 pub mod effects;
+pub mod semantic;
 pub mod noise;
 
 pub use algorithm::Algorithm;
@@ -145,4 +145,76 @@ pub fn generate_with_semantic(
     let semantic = extractor.extract(&grid, &mut rng);
 
     (grid, Some(semantic))
+}
+
+/// Generate a map that meets specific semantic requirements
+///
+/// This function attempts to generate a map that satisfies the given semantic requirements
+/// by trying different seeds and validating the results. It provides a simple wrapper
+/// around the existing generation system with requirement validation.
+///
+/// # Arguments
+/// * `algorithm_name` - Name of the generation algorithm to use
+/// * `width` - Grid width
+/// * `height` - Grid height  
+/// * `requirements` - Semantic requirements that must be met
+/// * `max_attempts` - Maximum number of generation attempts (default: 10)
+/// * `base_seed` - Base seed for generation attempts
+///
+/// # Returns
+/// * `Ok((grid, semantic))` - Successfully generated map meeting requirements
+/// * `Err(String)` - Failed to meet requirements after max attempts
+///
+/// # Example
+/// ```rust
+/// use terrain_forge::{generate_with_requirements, semantic::SemanticRequirements};
+///
+/// let requirements = SemanticRequirements::basic_dungeon();
+/// match generate_with_requirements("bsp", 80, 60, requirements, Some(5), 12345) {
+///     Ok((grid, semantic)) => println!("Generated valid dungeon!"),
+///     Err(msg) => println!("Failed: {}", msg),
+/// }
+/// ```
+pub fn generate_with_requirements(
+    algorithm_name: &str,
+    width: usize,
+    height: usize,
+    requirements: semantic::SemanticRequirements,
+    max_attempts: Option<usize>,
+    base_seed: u64,
+) -> Result<(Grid<Tile>, semantic::SemanticLayers), String> {
+    let max_attempts = max_attempts.unwrap_or(10);
+    
+    for attempt in 0..max_attempts {
+        let seed = base_seed.wrapping_add(attempt as u64);
+        let mut grid = Grid::new(width, height);
+        let mut rng = Rng::new(seed);
+
+        // Generate using specified algorithm
+        if let Some(algo) = algorithms::get(algorithm_name) {
+            algo.generate(&mut grid, seed);
+        } else {
+            return Err(format!("Unknown algorithm: {}", algorithm_name));
+        }
+
+        // Extract semantic layers
+        let extractor = match algorithm_name {
+            "cellular" => SemanticExtractor::for_caves(),
+            "bsp" | "rooms" | "room_accretion" => SemanticExtractor::for_rooms(),
+            "maze" => SemanticExtractor::for_mazes(),
+            _ => SemanticExtractor::default(),
+        };
+
+        let semantic = extractor.extract(&grid, &mut rng);
+
+        // Validate requirements
+        if requirements.validate(&semantic) {
+            return Ok((grid, semantic));
+        }
+    }
+
+    Err(format!(
+        "Failed to generate map meeting requirements after {} attempts",
+        max_attempts
+    ))
 }

@@ -76,7 +76,7 @@ mod tests {
 
         // Should have markers
         for marker in &semantic.markers {
-            println!("Marker: {} at ({}, {})", marker.tag, marker.x, marker.y);
+            println!("Marker: {} at ({}, {})", marker.tag(), marker.x, marker.y);
         }
     }
 
