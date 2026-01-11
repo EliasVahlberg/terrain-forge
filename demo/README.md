@@ -139,6 +139,13 @@ cargo run -- gen "bsp > cellular" -s 123 -w 80 -H 60 --scale 3    # 240x180
 ./scripts/demo.sh hires
 ```
 
+#### High-Resolution Examples
+
+| Massive Cellular (200x150) | Epic Pipeline (240x180) | Ultra Pipeline (240x180) |
+|---|---|---|
+| ![Massive](demo/output/showcase/hires/cellular_massive.png) | ![Epic](demo/output/showcase/hires/pipeline_epic.png) | ![Ultra](demo/output/showcase/hires/pipeline_ultra.png) |
+| *176 regions, 53 markers* | *85 regions, 24 markers* | *37 regions, 5 markers* |
+
 ## Key Features Demonstrated
 
 ✅ **13 Generation Algorithms** - Complete algorithm coverage  

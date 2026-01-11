@@ -1,5 +1,7 @@
 # TerrainForge
 
+![Epic Pipeline Showcase](demo/output/showcase/hires/pipeline_epic.png)
+
 A modular procedural generation engine for terrain, dungeons, and maps in Rust.
 
 **🎯 Now with Semantic Layers in v0.3.0!**
