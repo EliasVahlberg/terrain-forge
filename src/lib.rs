@@ -115,6 +115,18 @@ pub fn generate_with_semantic(
             let algo = algorithms::RoomAccretion::default();
             Some(algo.generate_semantic(&grid, &mut rng))
         }
+        "cellular" => {
+            let algo = algorithms::CellularAutomata::default();
+            Some(algo.generate_semantic(&grid, &mut rng))
+        }
+        "rooms" => {
+            let algo = algorithms::SimpleRooms::default();
+            Some(algo.generate_semantic(&grid, &mut rng))
+        }
+        "maze" => {
+            let algo = algorithms::Maze::default();
+            Some(algo.generate_semantic(&grid, &mut rng))
+        }
         _ => None,
     };
 

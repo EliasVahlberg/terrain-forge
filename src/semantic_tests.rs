@@ -78,4 +78,52 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_cellular_semantic() {
+        let result = generate_with_semantic("cellular", 60, 40, 11111);
+
+        if let Some(semantic) = result.semantic {
+            // Should have cave regions
+            assert!(!semantic.regions.is_empty());
+            let chambers: Vec<_> = semantic
+                .regions
+                .iter()
+                .filter(|r| r.kind == "Chamber")
+                .collect();
+            println!("Cellular generated {} chambers", chambers.len());
+        }
+    }
+
+    #[test]
+    fn test_rooms_semantic() {
+        let result = generate_with_semantic("rooms", 60, 40, 22222);
+
+        if let Some(semantic) = result.semantic {
+            // Should have room regions
+            assert!(!semantic.regions.is_empty());
+            let rooms: Vec<_> = semantic
+                .regions
+                .iter()
+                .filter(|r| r.kind == "Room")
+                .collect();
+            println!("Simple rooms generated {} rooms", rooms.len());
+        }
+    }
+
+    #[test]
+    fn test_maze_semantic() {
+        let result = generate_with_semantic("maze", 60, 40, 33333);
+
+        if let Some(semantic) = result.semantic {
+            // Should have maze regions
+            assert!(!semantic.regions.is_empty());
+            let junctions: Vec<_> = semantic
+                .regions
+                .iter()
+                .filter(|r| r.kind == "Junction")
+                .collect();
+            println!("Maze generated {} junctions", junctions.len());
+        }
+    }
 }

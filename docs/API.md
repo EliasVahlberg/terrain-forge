@@ -111,10 +111,10 @@ for name in algorithms::list() {
 | Name | Description | Config | Semantic Support |
 |------|-------------|--------|------------------|
 | `bsp` | Binary Space Partitioning - structured rooms | `BspConfig` | ✅ |
-| `cellular` | Cellular Automata - organic caves | `CellularConfig` | ❌ |
+| `cellular` | Cellular Automata - organic caves | `CellularConfig` | ✅ |
 | `drunkard` | Drunkard's Walk - winding corridors | `DrunkardConfig` | ❌ |
-| `maze` | Perfect maze generation | `MazeConfig` | ❌ |
-| `rooms` | Simple rectangular rooms | `SimpleRoomsConfig` | ❌ |
+| `maze` | Perfect maze generation | `MazeConfig` | ✅ |
+| `rooms` | Simple rectangular rooms | `SimpleRoomsConfig` | ✅ |
 | `voronoi` | Voronoi-based regions | `VoronoiConfig` | ❌ |
 | `dla` | Diffusion-Limited Aggregation | `DlaConfig` | ❌ |
 | `wfc` | Wave Function Collapse | `WfcConfig` | ❌ |
@@ -436,17 +436,30 @@ pub trait SemanticGenerator<C: Cell> {
 
 ### Semantic-Enabled Algorithms
 
-**BSP** and **Room Accretion** algorithms now support semantic generation:
+**BSP**, **Room Accretion**, **Cellular Automata**, **Simple Rooms**, and **Maze** algorithms now support semantic generation:
 
 ```rust
-use terrain_forge::algorithms::{Bsp, RoomAccretion};
+use terrain_forge::algorithms::{Bsp, RoomAccretion, CellularAutomata, SimpleRooms, Maze};
 use terrain_forge::semantic::SemanticGenerator;
 
 let mut grid = Grid::new(80, 60);
-let algo = Bsp::default();
 
-// Generate with semantic layers
-let semantic = algo.generate_with_semantic(&mut grid, 12345);
+// BSP - structured rooms and corridors
+let bsp = Bsp::default();
+let semantic = bsp.generate_with_semantic(&mut grid, 12345);
+
+// Cellular Automata - cave chambers and tunnels  
+let cellular = CellularAutomata::default();
+let semantic = cellular.generate_with_semantic(&mut grid, 12345);
+
+// Maze - junctions and dead ends
+let maze = Maze::default();
+let semantic = maze.generate_with_semantic(&mut grid, 12345);
+
+// Simple Rooms - rectangular room detection
+let rooms = SimpleRooms::default();
+let semantic = rooms.generate_with_semantic(&mut grid, 12345);
+```
 
 // Access semantic information
 for (x, y, marker) in &semantic.markers {
@@ -474,8 +487,10 @@ println!("Found {} connected regions", semantic.connectivity.adjacencies.len());
 ```rust
 use terrain_forge::generate_with_semantic;
 
-// One-line semantic generation
-let (mut grid, semantic) = generate_with_semantic("bsp", 80, 60, 12345)?;
+// One-line semantic generation - now supports 5 algorithms
+let (mut grid, semantic) = generate_with_semantic("cellular", 80, 60, 12345)?;
+let (mut grid, semantic) = generate_with_semantic("maze", 80, 60, 12345)?;
+let (mut grid, semantic) = generate_with_semantic("rooms", 80, 60, 12345)?;
 
 // Access all semantic data
 let room_count = semantic.masks.room_centers.len();

@@ -67,10 +67,10 @@ terrain-forge = "0.3"
 | Algorithm | Description | Semantic Support |
 |-----------|-------------|------------------|
 | `bsp` | Binary Space Partitioning - structured rooms | ✅ |
-| `cellular` | Cellular Automata - organic caves | ❌ |
+| `cellular` | Cellular Automata - organic caves | ✅ |
 | `drunkard` | Drunkard's Walk - winding corridors | ❌ |
-| `maze` | Perfect maze generation | ❌ |
-| `rooms` | Simple rectangular rooms | ❌ |
+| `maze` | Perfect maze generation | ✅ |
+| `rooms` | Simple rectangular rooms | ✅ |
 | `voronoi` | Voronoi-based regions | ❌ |
 | `dla` | Diffusion-Limited Aggregation | ❌ |
 | `wfc` | Wave Function Collapse | ❌ |
@@ -135,26 +135,36 @@ Generate game-agnostic metadata for entity spawning and region analysis:
 
 ```rust
 use terrain_forge::semantic::{SemanticGenerator, Region, Marker};
-use terrain_forge::algorithms::Bsp;
+use terrain_forge::algorithms::{Bsp, CellularAutomata, Maze};
 
+// Different algorithms provide different semantic insights
 let mut grid = Grid::new(80, 60);
-let algo = Bsp::default();
-let semantic = algo.generate_with_semantic(&mut grid, 12345);
 
-// Entity spawning
+// Cave system analysis
+let cellular = CellularAutomata::default();
+let semantic = cellular.generate_with_semantic(&mut grid, 12345);
+
+// Maze structure analysis  
+let maze = Maze::default();
+let semantic = maze.generate_with_semantic(&mut grid, 12345);
+
+// Entity spawning works the same across all algorithms
 for (x, y, marker) in &semantic.markers {
-    match marker {
-        Marker::PlayerStart => spawn_player(x, y),
-        Marker::Exit => place_exit(x, y),
-        Marker::Treasure => place_loot(x, y),
-        Marker::Enemy => spawn_monster(x, y),
+    match marker.tag.as_str() {
+        "PlayerStart" => spawn_player(x, y),
+        "Exit" => place_exit(x, y),
+        "Treasure" => place_loot(x, y),
         _ => {}
     }
 }
 
-// Region analysis
-println!("Found {} room centers", semantic.masks.room_centers.len());
-println!("Connectivity graph has {} regions", semantic.connectivity.adjacencies.len());
+// Algorithm-specific region analysis
+match semantic.regions.first().map(|r| r.kind.as_str()) {
+    Some("Chamber") => println!("Cave chamber detected"),
+    Some("Junction") => println!("Maze junction detected"), 
+    Some("Room") => println!("Rectangular room detected"),
+    _ => {}
+}
 ```
 
 ### Constraints
@@ -197,7 +207,9 @@ cd demo
 cargo run -- gen bsp -s 12345 -o output.png
 
 # NEW: Generate with semantic layers
-cargo run -- gen bsp --semantic --text --png -s 12345
+cargo run -- gen cellular --semantic --text --png -s 12345
+cargo run -- gen maze --semantic --text --png -s 12345  
+cargo run -- gen rooms --semantic --text --png -s 12345
 
 # NEW: Room accretion (Brogue-style)
 cargo run -- gen room_accretion --semantic -s 12345
