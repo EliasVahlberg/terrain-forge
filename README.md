@@ -2,10 +2,14 @@
 
 A modular procedural generation engine for terrain, dungeons, and maps in Rust.
 
+**🎯 Now with Semantic Layers in v0.3.0!**
+
 ## Features
 
+- **🎯 Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
 - **14 Generation Algorithms**: BSP, Cellular Automata, DLA, Drunkard Walk, Maze, Rooms, Voronoi, WFC, Percolation, Diamond Square, Fractal, Agent-based, Glass Seam, Room Accretion
-- **Advanced Connectivity**: Region-aware connectors with loop control
+- **🔗 Advanced Connectivity**: Region-aware connectors with spanning tree analysis
+- **🎨 Enhanced Demo Framework**: Semantic visualization with color-coded markers
 - **Noise Generation**: Perlin, Simplex, Value, Worley with FBM, Ridged, and modifiers
 - **Effects**: Morphology, spatial analysis, filters, connectivity
 - **Composition**: Pipeline chaining and layered generation
@@ -28,33 +32,54 @@ fn main() {
 }
 ```
 
+### NEW: Semantic Generation
+
+```rust
+use terrain_forge::semantic::SemanticGenerator;
+use terrain_forge::algorithms::Bsp;
+
+fn main() {
+    let mut grid = Grid::new(80, 60);
+    let algo = Bsp::default();
+    
+    // Generate with semantic layers
+    let semantic = algo.generate_with_semantic(&mut grid, 12345);
+    
+    println!("Generated {} markers", semantic.markers.len());
+    println!("Found {} room centers", semantic.masks.room_centers.len());
+    
+    // Access entity spawn points
+    for (x, y, marker) in &semantic.markers {
+        println!("Marker {:?} at ({}, {})", marker, x, y);
+    }
+}
+```
+
 ## Installation
 
 ```toml
 [dependencies]
-terrain-forge = "0.1"
+terrain-forge = "0.3"
 ```
 
 ## Algorithms
 
-| Algorithm | Description |
-|-----------|-------------|
-| `bsp` | Binary Space Partitioning - structured rooms |
-| `cellular` | Cellular Automata - organic caves |
-| `drunkard` | Drunkard's Walk - winding corridors |
-| `maze` | Perfect maze generation |
-| `rooms` | Simple rectangular rooms |
-| `voronoi` | Voronoi-based regions |
-| `dla` | Diffusion-Limited Aggregation |
-| `wfc` | Wave Function Collapse |
-| `percolation` | Connected cluster generation |
-| `diamond_square` | Heightmap terrain |
-| `fractal` | Fractal terrain |
-| `agent` | Multi-agent carving |
-| `glass_seam` | Region connector |
-| `room_accretion` | Brogue-style organic dungeons |
-| `agent` | Agent-based carving |
-| `glass_seam` | Connects disconnected regions |
+| Algorithm | Description | Semantic Support |
+|-----------|-------------|------------------|
+| `bsp` | Binary Space Partitioning - structured rooms | ✅ |
+| `cellular` | Cellular Automata - organic caves | ❌ |
+| `drunkard` | Drunkard's Walk - winding corridors | ❌ |
+| `maze` | Perfect maze generation | ❌ |
+| `rooms` | Simple rectangular rooms | ❌ |
+| `voronoi` | Voronoi-based regions | ❌ |
+| `dla` | Diffusion-Limited Aggregation | ❌ |
+| `wfc` | Wave Function Collapse | ❌ |
+| `percolation` | Connected cluster generation | ❌ |
+| `diamond_square` | Heightmap terrain | ❌ |
+| `fractal` | Fractal terrain | ❌ |
+| `agent` | Multi-agent carving | ❌ |
+| `glass_seam` | Region connector | ❌ |
+| `room_accretion` | **NEW**: Brogue-style organic dungeons | ✅ |
 
 ## Usage
 
@@ -104,6 +129,34 @@ let fbm = Fbm::new(noise, 4, 2.0, 0.5);
 let layered = fbm.get(10.5, 20.3);
 ```
 
+### Semantic Layers
+
+Generate game-agnostic metadata for entity spawning and region analysis:
+
+```rust
+use terrain_forge::semantic::{SemanticGenerator, Region, Marker};
+use terrain_forge::algorithms::Bsp;
+
+let mut grid = Grid::new(80, 60);
+let algo = Bsp::default();
+let semantic = algo.generate_with_semantic(&mut grid, 12345);
+
+// Entity spawning
+for (x, y, marker) in &semantic.markers {
+    match marker {
+        Marker::PlayerStart => spawn_player(x, y),
+        Marker::Exit => place_exit(x, y),
+        Marker::Treasure => place_loot(x, y),
+        Marker::Enemy => spawn_monster(x, y),
+        _ => {}
+    }
+}
+
+// Region analysis
+println!("Found {} room centers", semantic.masks.room_centers.len());
+println!("Connectivity graph has {} regions", semantic.connectivity.adjacencies.len());
+```
+
 ### Constraints
 
 ```rust
@@ -143,8 +196,11 @@ cd demo
 # Generate single algorithm
 cargo run -- gen bsp -s 12345 -o output.png
 
-# New: Room accretion (Brogue-style)
-cargo run -- gen room_accretion -s 12345
+# NEW: Generate with semantic layers
+cargo run -- gen bsp --semantic --text --png -s 12345
+
+# NEW: Room accretion (Brogue-style)
+cargo run -- gen room_accretion --semantic -s 12345
 
 # Pipeline composition
 cargo run -- gen "bsp > cellular" -s 42
@@ -155,10 +211,10 @@ cargo run -- gen "bsp | drunkard" -s 99
 # Run config file
 cargo run -- run configs/saltglass_overworld.json
 
-# New: Advanced features
-cargo run -- run configs/room_accretion.json
-cargo run -- run configs/region_connectors.json
-cargo run -- run configs/brogue_style.json
+# NEW: Semantic configuration files
+cargo run -- run configs/semantic_bsp.json
+cargo run -- run configs/semantic_large_rooms.json
+cargo run -- run configs/semantic_organic.json
 
 # Compare algorithms
 cargo run -- compare bsp cellular maze -s 12345
@@ -167,8 +223,16 @@ cargo run -- compare bsp cellular maze -s 12345
 cargo run -- list
 ```
 
-## New in v0.2.0
+## What's New
 
+### v0.3.0 - Semantic Layers
+- **🎯 Semantic Layers**: Game-agnostic metadata system for entity spawning and region analysis
+- **🏗️ Room Accretion Algorithm**: Enhanced with semantic support for diverse marker types
+- **🎨 Enhanced Demo Framework**: Semantic visualization with color-coded markers and PNG output
+- **🔗 Connectivity Analysis**: Advanced region connectivity with spanning tree generation
+- **📊 Spatial Analysis**: Automated detection of rooms, corridors, junctions, and chokepoints
+
+### v0.2.0 - Advanced Features
 - **Room Accretion Algorithm**: Brogue-style organic dungeon generation with sliding room placement
 - **Advanced Connectivity**: `connect_regions_spanning()` with loop control for better dungeon flow
 - **Prefab Rotation**: 90°/180°/270° rotation support for prefabs
