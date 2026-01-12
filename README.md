@@ -6,6 +6,8 @@
 [![Documentation](https://docs.rs/terrain-forge/badge.svg)](https://docs.rs/terrain-forge)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/EliasVahlberg/terrain-forge/ci.yml?branch=master)](https://github.com/EliasVahlberg/terrain-forge/actions)
 
+![TerrainForge Showcase](demo/output/showcase/hires/pipeline_epic_2x.png)
+
 A comprehensive Rust library for procedural terrain and dungeon generation with semantic analysis capabilities.
 
 ## Features
@@ -45,6 +47,16 @@ Key features:
 - **Edge pruning pipeline** with Delaunay triangulation, angular sector, and occlusion filters  
 - **Multi-terminal support** for connecting spawn points, exits, and POIs
 - **Configurable optimization profiles** from real-time to quality-focused generation
+
+### Connectivity Demonstration
+
+| Before GSB | After GSB |
+|------------|-----------|
+| ![Before GSB](docs/examples/glass_seam_bridging/semantic_cellular_before.png) | ![After GSB](docs/examples/glass_seam_bridging/semantic_cellular_after.png) |
+| **97 disconnected regions** (highly fragmented) | **23 connected regions** (76% reduction) |
+| **0.21 connectivity** • **29.1% floors** | **0.78 connectivity** • **31.2% floors** |
+
+*Color-coded semantic analysis showing dramatic connectivity improvement (+0.57 connectivity, +2.1% floors) on cellular automata caves (160×120 grid)*
 
 ## Algorithms
 

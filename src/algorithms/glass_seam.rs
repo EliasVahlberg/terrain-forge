@@ -16,24 +16,31 @@ impl Default for GlassSeam {
 impl Algorithm<Tile> for GlassSeam {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
         let mut rng = Rng::new(seed);
-        let (w, h) = (grid.width(), grid.height());
 
-        // Initialize with pattern
-        for y in 0..h {
-            for x in 0..w {
-                if (x + y) % 7 < 3 {
-                    grid.set(x as i32, y as i32, Tile::Floor);
-                }
-            }
-        }
+        // Glass Seam Bridging should only connect existing regions, not create new patterns
+        // The grid should already have floor tiles from a previous algorithm
 
-        // Ensure connectivity
-        ensure_connectivity(grid, (5, 5), self.coverage_threshold, &mut rng);
+        // Find spawn point (first floor tile)
+        let spawn = find_spawn_point(grid).unwrap_or((5, 5));
+
+        // Ensure connectivity between existing regions
+        ensure_connectivity(grid, spawn, self.coverage_threshold, &mut rng);
     }
 
     fn name(&self) -> &'static str {
         "GlassSeam"
     }
+}
+
+fn find_spawn_point(grid: &Grid<Tile>) -> Option<(usize, usize)> {
+    for y in 0..grid.height() {
+        for x in 0..grid.width() {
+            if grid[(x, y)].is_floor() {
+                return Some((x, y));
+            }
+        }
+    }
+    None
 }
 
 fn ensure_connectivity(

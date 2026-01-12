@@ -38,6 +38,13 @@ fn all_algorithms_produce_floors() {
         let algo = algorithms::get(name).expect(name);
 
         let mut grid = Grid::<Tile>::new(50, 50);
+
+        // Glass Seam Bridging requires existing floor tiles to connect
+        if *name == "glass_seam" {
+            // Pre-populate with some disconnected regions
+            algorithms::get("cellular").unwrap().generate(&mut grid, 42);
+        }
+
         algo.generate(&mut grid, 42);
 
         let floors = grid.count(|t| t.is_floor());
