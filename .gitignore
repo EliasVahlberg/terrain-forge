@@ -22,3 +22,5 @@ Thumbs.db
 *.tmp
 *.temp
 feature_requests
+demo/output/backup/
+demo/test_semantic.txt

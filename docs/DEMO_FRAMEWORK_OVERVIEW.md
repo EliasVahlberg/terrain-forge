@@ -10,19 +10,16 @@ The demo framework is implemented as a separate Rust crate that depends on Terra
 
 ```
 demo/
-├── Cargo.toml           # Separate crate depending on terrain-forge
+├── Cargo.toml            # Separate crate depending on terrain-forge
+├── manifest.toml         # Manifest of demos/runs (semantic, png, hires, showcase)
+├── scripts/demo.sh       # Manifest-driven runner
 ├── src/
-│   ├── main.rs          # CLI entry point with clap
-│   ├── config.rs        # JSON config parsing and algorithm building
-│   ├── generate.rs      # Generation orchestration
-│   ├── render.rs        # PNG and text output
-│   └── compare.rs       # Side-by-side comparison
-├── configs/             # Saved configuration files
-│   ├── brogue_style.json
-│   ├── region_connectors.json
-│   ├── room_accretion.json
-│   └── prefab_rotation.json
-└── run_tests.sh         # Batch testing script
+│   ├── main.rs           # CLI entry point with clap
+│   ├── config.rs         # JSON config parsing and algorithm building
+│   ├── render.rs         # PNG and text output
+│   └── manifest.rs       # Manifest loading helpers
+├── configs/              # Saved configuration files
+└── output/               # Generated assets grouped by demo id
 ```
 
 ## Usage
@@ -39,8 +36,10 @@ cargo run -- run configs/brogue_style.json
 # Compare multiple algorithms
 cargo run -- compare bsp cellular room_accretion
 
-# Batch test all configs
-./run_tests.sh
+# List manifest demos / run a subset
+./scripts/demo.sh --list
+./scripts/demo.sh semantic
+./scripts/demo.sh png --run cellular_views
 ```
 
 ### Output Formats
@@ -245,26 +244,16 @@ fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec], rng: &mut Rng) {
 
 ## Test Suite
 
-The framework includes comprehensive testing via `run_tests.sh`:
+Use the manifest runner to regenerate demo outputs for quick regression coverage:
 
 ```bash
-#!/bin/bash
-# Generate all demo configurations
-configs=(
-    "brogue_style"
-    "region_connectors" 
-    "room_accretion"
-    "prefab_rotation"
-    # ... more configs
-)
-
-for config in "${configs[@]}"; do
-    echo "Testing $config..."
-    cargo run --release -- run "configs/$config.json" -s 12345 --png
-done
+./scripts/demo.sh --list
+./scripts/demo.sh semantic
+./scripts/demo.sh png
+./scripts/demo.sh showcase
 ```
 
-This generates 28+ demo outputs covering all major features.
+For deeper validation, run targeted configs directly with `cargo run -- run <config>`, or add a dedicated QA demo block to `manifest.toml`.
 
 ## Validation System
 

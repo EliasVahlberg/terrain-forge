@@ -29,4 +29,4 @@ let (grid, semantic) = generate_pipeline("cellular > rooms > voronoi", 80, 60, s
 
 **✨ Key Features:** 13+ algorithms • Semantic analysis • PNG visualizations • Pipeline composition • Framework agnostic
 
-*Generate examples: `cd demo && ./scripts/generate_showcase.sh`*
+*Generate examples: `cd demo && ./scripts/demo.sh showcase`*

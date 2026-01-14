@@ -5,10 +5,16 @@ Interactive demonstration of TerrainForge's procedural generation algorithms and
 ## Quick Start
 
 ```bash
-# Run all demos
-./scripts/demo.sh all
+# List demos defined in the manifest
+./scripts/demo.sh --list
 
-# Generate basic terrain
+# Run the semantic suite
+./scripts/demo.sh semantic
+
+# Run a single entry from a suite
+./scripts/demo.sh png --run cellular_views
+
+# Generate basic terrain directly
 cargo run -- gen cellular -s 12345
 
 # Generate with semantic analysis
@@ -20,35 +26,28 @@ cargo run -- gen cellular --regions -s 12345 -o cave.png
 
 ## Demo Runner
 
-Use the unified demo runner for easy access to all demonstrations:
+Use the manifest-driven demo runner for easy access to all demonstrations:
 
 ```bash
-./scripts/demo.sh <command>
+./scripts/demo.sh --list                # show available demos
+./scripts/demo.sh <demo-id>             # run every run in a demo
+./scripts/demo.sh <demo-id> --run <id>  # run a specific entry
+./scripts/demo.sh all                   # run every demo in the manifest
+
+# Common demos
+./scripts/demo.sh composites            # composite pipelines from DEMO_USECASES/COMPOSITE_DEMOS
+./scripts/demo.sh semantic              # semantic analysis suite
+./scripts/demo.sh png                   # visualization suite
 ```
 
-**Commands:**
-- `semantic` - Comprehensive semantic analysis demo
-- `png` - PNG visualization generation
-- `hires` - High-resolution showcase (200x150+)
-- `viz` - Advanced visualization examples  
-- `simple` - Basic visualization tutorial
-- `test` - Algorithm validation tests
-- `all` - Run all demos
-- `clean` - Clean output directories
+Manifest location: `demo/manifest.toml`. Output root: `demo/output/<demo-id>/`.
 
 ## Demo Scripts
 
 ### Unified Runner
-- **`scripts/demo.sh`** - Master script to run all demos
+- **`scripts/demo.sh`** - Manifest-powered runner (wraps the `terrain-forge-demo demo` subcommand)
 
-### Individual Scripts
-- **`scripts/run_semantic_demo.sh`** - Comprehensive semantic analysis across all algorithms
-- **`scripts/run_png_demo.sh`** - PNG visualization generation (regions, masks, connectivity)
-- **`scripts/generate_showcase.sh`** - Create impressive showcase visualizations
-- **`scripts/generate_hires_showcase.sh`** - High-resolution examples (200x150+)
-- **`scripts/run_tests.sh`** - Algorithm validation and testing
-- **`scripts/run_visualization_demo.sh`** - Advanced visualization examples
-- **`scripts/simple_viz_demo.sh`** - Basic visualization tutorial
+Legacy per-feature scripts have been removed; their steps are captured in `manifest.toml`.
 
 ## CLI Usage
 
@@ -97,6 +96,8 @@ Pre-configured examples in `configs/`:
 - `semantic_cave_system.json` - Cave system analysis
 - `semantic_structured_dungeon.json` - Dungeon analysis
 - `semantic_maze_analysis.json` - Maze analysis
+
+Composite inspiration: `DEMO_USECASES.md` lists narrative use cases for chaining algorithms.
 
 ## Examples
 

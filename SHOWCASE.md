@@ -58,4 +58,4 @@ let (grid, semantic) = generate_pipeline("cellular > rooms > voronoi", 80, 60, s
 ✅ **Framework Agnostic** - Works with any grid source or game engine  
 ✅ **Configurable Systems** - Algorithm-specific optimizations and parameters
 
-*Generate these examples yourself: `cd demo && ./scripts/generate_showcase.sh`*
+*Generate these examples yourself: `cd demo && ./scripts/demo.sh showcase`*

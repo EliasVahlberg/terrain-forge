@@ -1,0 +1,330 @@
+version = 1
+output_root = "demo/output"
+
+[[demo]]
+id = "semantic"
+title = "Semantic Analysis Suite"
+description = "Comprehensive semantic analysis across core algorithms and a sample pipeline."
+tags = ["semantic", "text", "regions", "masks", "connectivity"]
+
+[[demo.runs]]
+name = "cave_system"
+spec = "cellular"
+seed = 12345
+width = 80
+height = 50
+outputs = ["text", "regions"]
+description = "Cave-specific classifications and markers."
+
+[[demo.runs]]
+name = "structured_dungeon"
+spec = "bsp"
+seed = 54321
+outputs = ["text", "masks"]
+description = "Room classifications with mask visualization."
+
+[[demo.runs]]
+name = "maze_analysis"
+spec = "maze"
+seed = 98765
+outputs = ["text", "connectivity"]
+description = "Maze junctions and corridor connectivity focus."
+
+[[demo.runs]]
+name = "organic_rooms"
+spec = "room_accretion"
+seed = 33333
+outputs = ["text", "regions"]
+description = "Organic room layouts with semantic markers."
+
+[[demo.runs]]
+name = "pipeline_semantic"
+spec = "bsp > cellular"
+seed = 11111
+outputs = ["text"]
+description = "Pipeline composition with decoupled semantic extraction."
+
+[[demo]]
+id = "composites"
+title = "Composite Pipelines"
+description = "Composite algorithm demos drawn from COMPOSITE_DEMOS and DEMO_USECASES."
+tags = ["composite", "pipeline", "semantic", "regions", "masks", "connectivity"]
+
+[[demo.runs]]
+name = "saltglass_overworld"
+spec = "bsp > voronoi > glass_seam"
+seed = 4242
+width = 140
+height = 90
+outputs = ["regions", "connectivity"]
+description = "Overworld biomes with looped roads and seam connectivity."
+
+[[demo.runs]]
+name = "trade_route_survey"
+spec = "rooms | voronoi"
+seed = 777
+width = 120
+height = 80
+outputs = ["regions", "masks"]
+description = "Hub-and-hinterland partitioning to spot choke points."
+
+[[demo.runs]]
+name = "layered_stronghold"
+spec = "bsp > rooms > cellular"
+seed = 13579
+width = 120
+height = 80
+outputs = ["regions"]
+description = "Ordered entry with organic lower levels for raid progression."
+
+[[demo.runs]]
+name = "vault_with_fissures"
+spec = "rooms > glass_seam > drunkard"
+seed = 24680
+width = 110
+height = 75
+outputs = ["masks", "connectivity"]
+description = "Structured vault fractured then reconnected by seams."
+
+[[demo.runs]]
+name = "breathing_caverns"
+spec = "cellular > percolation"
+seed = 2024
+width = 120
+height = 80
+outputs = ["regions"]
+description = "Dense caves opened into air pockets for ecology beats."
+
+[[demo.runs]]
+name = "stratified_caves"
+spec = "cellular > voronoi"
+seed = 9090
+width = 120
+height = 80
+outputs = ["regions", "semantic"]
+description = "Strata/biomes inside one cave; weighted region labeling."
+
+[[demo.runs]]
+name = "siege_approaches"
+spec = "agent > bsp"
+seed = 8842
+width = 100
+height = 70
+outputs = ["connectivity", "regions"]
+description = "Approach tunnels into ordered courtyards for tactics."
+
+[[demo.runs]]
+name = "ritual_nexus"
+spec = "wfc > glass_seam"
+seed = 5150
+width = 50
+height = 35
+outputs = ["masks", "semantic"]
+description = "Patterned chambers with enforced connectivity; puzzle-ready."
+
+[[demo.runs]]
+name = "epic_canyon_run"
+spec = "drunkard > glass_seam"
+seed = 240180
+width = 240
+height = 180
+outputs = ["connectivity"]
+description = "Long winding paths stabilized by seam bridging; large format."
+
+[[demo.runs]]
+name = "hybrid_megadungeon"
+spec = "bsp > rooms | cellular > voronoi"
+seed = 321
+width = 200
+height = 140
+outputs = ["regions", "semantic"]
+description = "Room clusters with organic sub-biomes; great for slides."
+
+[[demo.runs]]
+name = "constraint_stress_test"
+spec = "rooms > percolation"
+seed = 6060
+width = 110
+height = 75
+outputs = ["connectivity", "text"]
+description = "Benchmark connectivity/density across seeds."
+
+[[demo.runs]]
+name = "semantic_storyboard"
+spec = "bsp > cellular"
+seed = 1122
+width = 140
+height = 90
+outputs = ["regions", "text"]
+description = "Semantic layers for documentation/art direction boards."
+
+[[demo]]
+id = "png"
+title = "PNG Visualization"
+description = "Region, mask, connectivity, and semantic PNG outputs."
+tags = ["png", "regions", "masks", "connectivity", "semantic"]
+
+[[demo.runs]]
+name = "cave_regions"
+spec = "cellular"
+seed = 12345
+width = 50
+height = 35
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "room_masks"
+spec = "bsp"
+seed = 54321
+width = 50
+height = 35
+outputs = ["masks"]
+
+[[demo.runs]]
+name = "connectivity_graph"
+spec = "room_accretion"
+seed = 98765
+width = 50
+height = 35
+outputs = ["connectivity"]
+
+[[demo.runs]]
+name = "cellular_views"
+spec = "cellular"
+seed = 77777
+width = 45
+height = 30
+outputs = ["regions", "masks", "connectivity", "semantic"]
+description = "Side-by-side visualizations for one seed."
+
+[[demo.runs]]
+name = "bsp_regions"
+spec = "bsp"
+seed = 77777
+width = 45
+height = 30
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "maze_regions"
+spec = "maze"
+seed = 77777
+width = 45
+height = 30
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "rooms_regions"
+spec = "rooms"
+seed = 77777
+width = 45
+height = 30
+outputs = ["regions"]
+
+[[demo]]
+id = "hires"
+title = "High-Resolution Showcase"
+description = "Large-format maps for slides and marketing."
+tags = ["hires", "showcase"]
+
+[[demo.runs]]
+name = "cellular_massive"
+spec = "cellular"
+seed = 42
+width = 200
+height = 150
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "pipeline_epic"
+spec = "bsp > cellular"
+seed = 123
+width = 240
+height = 180
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "pipeline_ultra"
+spec = "cellular > rooms > voronoi"
+seed = 789
+width = 240
+height = 180
+outputs = ["connectivity"]
+
+[[demo]]
+id = "showcase"
+title = "General Showcase"
+description = "Balanced outputs for README-style visuals."
+tags = ["showcase", "regions", "masks", "connectivity", "semantic"]
+
+[[demo.runs]]
+name = "cellular_regions"
+spec = "cellular"
+seed = 42
+width = 120
+height = 90
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "bsp_masks"
+spec = "bsp"
+seed = 42
+width = 120
+height = 90
+outputs = ["masks"]
+
+[[demo.runs]]
+name = "rooms_regions"
+spec = "room_accretion"
+seed = 42
+width = 120
+height = 90
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "maze_connectivity"
+spec = "maze"
+seed = 42
+width = 120
+height = 90
+outputs = ["connectivity"]
+
+[[demo.runs]]
+name = "pipeline_bsp_cellular"
+spec = "bsp > cellular"
+seed = 123
+width = 160
+height = 120
+outputs = ["regions"]
+
+[[demo.runs]]
+name = "pipeline_rooms_voronoi"
+spec = "rooms | voronoi"
+seed = 456
+width = 160
+height = 120
+outputs = ["masks"]
+
+[[demo.runs]]
+name = "pipeline_complex"
+spec = "cellular > rooms > voronoi"
+seed = 789
+width = 160
+height = 120
+outputs = ["connectivity"]
+
+[[demo.runs]]
+name = "cellular_semantic_text"
+spec = "cellular"
+seed = 42
+width = 120
+height = 90
+outputs = ["text"]
+
+[[demo.runs]]
+name = "pipeline_semantic_text"
+spec = "bsp > cellular"
+seed = 123
+width = 160
+height = 120
+outputs = ["text"]
