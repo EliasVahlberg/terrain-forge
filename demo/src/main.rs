@@ -6,9 +6,7 @@ mod render;
 
 use clap::{Parser, Subcommand};
 use std::{fs, time::Instant};
-use terrain_forge::{
-    algorithms, constraints, Grid, SemanticExtractor, SemanticLayers, Tile,
-};
+use terrain_forge::{algorithms, constraints, Grid, SemanticExtractor, SemanticLayers, Tile};
 
 #[derive(Parser)]
 #[command(name = "terrain-forge-demo")]
@@ -260,7 +258,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            let id = id.ok_or_else(|| "Please provide a demo id, use --all, or use --list".to_string())?;
+            let id =
+                id.ok_or_else(|| "Please provide a demo id, use --all, or use --list".to_string())?;
             let demo = manifest_data
                 .find_demo(&id)
                 .ok_or_else(|| format!("Demo id '{}' not found in manifest", id))?;
@@ -508,9 +507,7 @@ fn execute_run(run: &manifest::Run, demo_dir: &str) -> Result<(), Box<dyn std::e
     }
 
     let cfg = build_config_for_run(run, width, height, seed)?;
-    let need_semantic = outputs
-        .iter()
-        .any(|o| *o != manifest::OutputKind::Grid);
+    let need_semantic = outputs.iter().any(|o| *o != manifest::OutputKind::Grid);
     let (grid, semantic, gen_time) = generate_grid_and_semantic(&cfg, seed, need_semantic);
 
     for out in outputs {
@@ -519,13 +516,7 @@ fn execute_run(run: &manifest::Run, demo_dir: &str) -> Result<(), Box<dyn std::e
         } else {
             "png"
         };
-        let path = format!(
-            "{}/{}_{}.{}",
-            demo_dir,
-            run.name,
-            output_slug(&out),
-            ext
-        );
+        let path = format!("{}/{}_{}.{}", demo_dir, run.name, output_slug(&out), ext);
 
         match out {
             manifest::OutputKind::Grid => {
@@ -565,7 +556,11 @@ fn execute_run(run: &manifest::Run, demo_dir: &str) -> Result<(), Box<dyn std::e
             }
         }
     }
-    println!("    Completed '{}' in {:.2?}", run.name, run_start.elapsed());
+    println!(
+        "    Completed '{}' in {:.2?}",
+        run.name,
+        run_start.elapsed()
+    );
     Ok(())
 }
 
@@ -618,13 +613,7 @@ fn print_demo_list(manifest: &manifest::Manifest) {
         } else {
             format!(" [{}]", demo.tags.join(", "))
         };
-        println!(
-            "  {}{} ({} runs){}",
-            demo.id,
-            title,
-            demo.runs.len(),
-            tags
-        );
+        println!("  {}{} ({} runs){}", demo.id, title, demo.runs.len(), tags);
     }
 }
 
