@@ -6,7 +6,7 @@
 [![Documentation](https://docs.rs/terrain-forge/badge.svg)](https://docs.rs/terrain-forge)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/EliasVahlberg/terrain-forge/ci.yml?branch=master)](https://github.com/EliasVahlberg/terrain-forge/actions)
 
-![TerrainForge Showcase](demo/output/hires/pipeline_epic_regions.png)
+![TerrainForge Showcase](demo/output/showcase/hires/pipeline_epic_2x.png)
 
 A comprehensive Rust library for procedural terrain and dungeon generation with semantic analysis capabilities.
 
