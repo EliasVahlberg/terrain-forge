@@ -87,7 +87,7 @@ _Color-coded semantic analysis showing dramatic connectivity improvement (+0.57 
 
 - **[Usage Guide](USAGE.md)** - Comprehensive examples and API documentation
 - **[Patch Notes](PATCHNOTES.md)** - Detailed version history and changes
-- **[API Documentation](https://docs.rs/terrain-forge)** - Complete API reference
+- **[API Documentation](https://docs.rs/terrain-forge/0.5.0)** - Complete API reference
 
 ## Version History
 
