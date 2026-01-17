@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-17
+
+### Added
+- **Glass Seam Bridging Algorithm**: Novel connectivity algorithm with Perimeter Gradient Descent optimization, edge pruning pipeline, multi-terminal support, and configurable optimization profiles
+- **Connectivity Utilities**: Path carving helpers (`shortest_path`, `carve_path`, `clear_rect`) and marker-to-marker connection (`connect_markers`) with line/path modes
+- **Glass Seam Terminals**: Required terminal support via `GlassSeamConfig` with `required_points`, `carve_radius`, and MST-based linking
+- **Noise Fill Algorithm**: Thresholded noise-based generation with selectable noise source (Perlin, Simplex, Value, Worley)
+- **Demo Coverage**: New feature coverage entries for marker connectivity and Glass Seam terminals
+
+### Changed
+- Added demo rendering for marker terminals in region PNGs.
+
 ## [0.4.0] - 2026-01-11
 
 ### Added
