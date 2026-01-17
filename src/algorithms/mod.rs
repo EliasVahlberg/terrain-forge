@@ -9,6 +9,7 @@ mod drunkard;
 mod fractal;
 mod glass_seam;
 mod maze;
+mod noise_fill;
 mod percolation;
 mod prefab;
 mod room_accretion;
@@ -25,6 +26,7 @@ pub use drunkard::{DrunkardConfig, DrunkardWalk};
 pub use fractal::Fractal;
 pub use glass_seam::{GlassSeam, GlassSeamConfig};
 pub use maze::{Maze, MazeConfig};
+pub use noise_fill::{NoiseFill, NoiseFillConfig, NoiseType};
 pub use percolation::{Percolation, PercolationConfig};
 pub use prefab::{Prefab, PrefabConfig, PrefabData, PrefabLibrary, PrefabPlacer, PrefabTransform};
 pub use room_accretion::{RoomAccretion, RoomAccretionConfig, RoomTemplate};
@@ -49,6 +51,7 @@ pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
         "diamond_square" => Some(Box::new(DiamondSquare::default())),
         "agent" => Some(Box::new(AgentBased::default())),
         "fractal" => Some(Box::new(Fractal)),
+        "noise_fill" | "noise" => Some(Box::new(NoiseFill::default())),
         "glass_seam" | "gsb" => Some(Box::new(GlassSeam::default())),
         "room_accretion" | "accretion" => Some(Box::new(RoomAccretion::default())),
         _ => None,
@@ -70,6 +73,7 @@ pub fn list() -> &'static [&'static str] {
         "diamond_square",
         "agent",
         "fractal",
+        "noise_fill",
         "glass_seam",
         "room_accretion",
     ]

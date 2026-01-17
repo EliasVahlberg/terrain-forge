@@ -6,6 +6,7 @@
 - **Glass Seam Bridging Algorithm**: Novel connectivity algorithm with Perimeter Gradient Descent optimization, edge pruning pipeline, multi-terminal support, and configurable optimization profiles
 - **Connectivity Utilities**: Path carving helpers (`shortest_path`, `carve_path`, `clear_rect`) and marker-to-marker connection (`connect_markers`) with line/path modes
 - **Glass Seam Terminals**: Required terminal support via `GlassSeamConfig` with `required_points`, `carve_radius`, and MST-based linking
+- **Noise Fill Algorithm**: Thresholded noise-based generation with selectable noise source (Perlin, Simplex, Value, Worley)
 - **Demo Coverage**: New feature coverage entries for marker connectivity and Glass Seam terminals
 
 ### API Changes

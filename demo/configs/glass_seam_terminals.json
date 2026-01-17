@@ -4,9 +4,10 @@
   "height": 70,
   "pipeline": [
     {
-      "type": "drunkard",
-      "floor_percent": 0.6,
-      "max_iterations": 60000
+      "type": "noise_fill",
+      "noise": "perlin",
+      "frequency": 0.08,
+      "threshold": 0.15
     },
     {
       "type": "glass_seam",

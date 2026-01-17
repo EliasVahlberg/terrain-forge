@@ -189,6 +189,11 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 steps_per_agent: get_usize(params, "steps_per_agent", 200),
                 turn_chance: get_f64(params, "turn_chance", 0.3),
             })),
+            "noise_fill" | "noise" => Box::new(NoiseFill::new(NoiseFillConfig {
+                noise: parse_noise_type(params.get("noise")),
+                frequency: get_f64(params, "frequency", 0.08),
+                threshold: get_f64(params, "threshold", 0.0),
+            })),
             "glass_seam" => Box::new(GlassSeam {
                 config: GlassSeamConfig {
                     coverage_threshold: get_f64(params, "coverage_threshold", 0.75),
@@ -311,6 +316,21 @@ fn parse_point(value: Option<&serde_json::Value>) -> Option<(usize, usize)> {
     let x = array[0].as_u64()? as usize;
     let y = array[1].as_u64()? as usize;
     Some((x, y))
+}
+
+fn parse_noise_type(value: Option<&serde_json::Value>) -> NoiseType {
+    let Some(value) = value else {
+        return NoiseType::Perlin;
+    };
+    let Some(name) = value.as_str() else {
+        return NoiseType::Perlin;
+    };
+    match name.trim().to_ascii_lowercase().as_str() {
+        "simplex" => NoiseType::Simplex,
+        "value" => NoiseType::Value,
+        "worley" | "cellular" => NoiseType::Worley,
+        _ => NoiseType::Perlin,
+    }
 }
 
 fn parse_room_templates(val: &serde_json::Value) -> Vec<RoomTemplate> {

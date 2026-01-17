@@ -12,7 +12,7 @@ A comprehensive Rust library for procedural terrain and dungeon generation with 
 
 ## Features
 
-- **15 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, and more
+- **16 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, Noise Fill, and more
 - **Spatial Analysis**: Distance transforms, pathfinding, morphological operations
 - **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
 - **Advanced Prefab System**: JSON/TOML support with transformations
@@ -76,6 +76,7 @@ _Color-coded semantic analysis showing dramatic connectivity improvement (+0.57 
 | `percolation`    | Physics-based generation                     | ✅ `default()`   |
 | `diamond_square` | Fractal heightmaps                           | ✅ `default()`   |
 | `fractal`        | Fractal terrain                              | ✅ `default()`   |
+| `noise_fill`     | Noise-driven threshold fill                  | ✅ `default()`   |
 | `agent`          | Multi-agent carving                          | ✅ `default()`   |
 | `glass_seam`     | Region connector                             | ✅ `default()`   |
 | `room_accretion` | Brogue-style organic dungeons                | ✅ `for_rooms()` |
