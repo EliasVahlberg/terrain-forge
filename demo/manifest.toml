@@ -354,13 +354,21 @@ outputs = ["regions"]
 description = "Diamond-square fractal plateaus rendered via region overlay."
 
 [[demo.runs]]
-name = "fractal_gallery"
-spec = "fractal"
-seed = 1337
-width = 100
-height = 70
+name = "fractal_mandelbrot"
+config = "demo/configs/basic_mandelbrot.json"
 outputs = ["regions"]
-description = "Mandelbrot / Julia hybrid floors showcasing fractal generator."
+width = 300
+height = 300
+description = "Showcasing mandelbrot fractal generator."
+
+[[demo.runs]]
+name = "fractal_julia"
+config = "demo/configs/basic_julia.json"
+outputs = ["regions"]
+seed = 9001
+width = 300
+height = 300
+description = "Showcasing julia fractal generator."
 
 [[demo.runs]]
 name = "prefab_rotation_showcase"
@@ -374,7 +382,7 @@ config = "demo/configs/requirements_bsp.json"
 seed = 424242
 width = 96
 height = 72
-outputs = ["semantic", "text"]
+outputs = ["semantic"]
 description = "Requirement-driven BSP dungeon proving marker/region constraints."
 
 [[demo.runs]]
@@ -413,7 +421,7 @@ description = "Mirror/rotate/scatter coverage."
 [[demo.runs]]
 name = "validation_density"
 config = "demo/configs/validation_density.json"
-outputs = ["text"]
+outputs = ["regions"]
 description = "Constraint report with density/connectivity validation."
 
 [[demo.runs]]

@@ -25,6 +25,10 @@ const CLOSET_COLOR: Rgb<u8> = Rgb([100, 100, 200]);
 const JUNCTION_COLOR: Rgb<u8> = Rgb([255, 100, 100]);
 const CORRIDOR_COLOR: Rgb<u8> = Rgb([100, 255, 255]);
 const DEADEND_COLOR: Rgb<u8> = Rgb([255, 255, 100]);
+const LARGE_COLOR: Rgb<u8> = Rgb([120, 180, 120]);
+const MEDIUM_COLOR: Rgb<u8> = Rgb([120, 120, 180]);
+const SMALL_COLOR: Rgb<u8> = Rgb([180, 120, 120]);
+const TINY_COLOR: Rgb<u8> = Rgb([180, 180, 120]);
 
 // Mask colors
 const WALKABLE_COLOR: Rgb<u8> = Rgb([0, 255, 0]);
@@ -401,6 +405,10 @@ pub fn render_regions_png_scaled(
                 "Junction" => JUNCTION_COLOR,
                 "Corridor" => CORRIDOR_COLOR,
                 "DeadEnd" => DEADEND_COLOR,
+                "Large" => LARGE_COLOR,
+                "Medium" => MEDIUM_COLOR,
+                "Small" => SMALL_COLOR,
+                "Tiny" => TINY_COLOR,
                 _ => FLOOR_COLOR,
             }
         } else {

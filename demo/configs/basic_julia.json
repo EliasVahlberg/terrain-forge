@@ -1,0 +1,11 @@
+{
+  "name": "basic_julia",
+  "width": 300,
+  "height": 300,
+  "seed": 12345,
+  "algorithm": {
+    "type": "fractal",
+    "fractal_type": "julia",
+    "max_iterations": 60
+  }
+}

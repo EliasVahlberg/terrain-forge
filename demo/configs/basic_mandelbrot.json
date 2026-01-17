@@ -1,0 +1,11 @@
+{
+  "name": "basic_mandelbrot",
+  "width": 300,
+  "height": 300,
+  "seed": 12345,
+  "algorithm": {
+    "type": "fractal",
+    "fractal_type": "mandelbrot",
+    "max_iterations": 60
+  }
+}

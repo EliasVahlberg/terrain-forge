@@ -212,6 +212,14 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 steps_per_agent: get_usize(params, "steps_per_agent", 200),
                 turn_chance: get_f64(params, "turn_chance", 0.3),
             })),
+            "fractal" => Box::new(Fractal::new(FractalConfig {
+                fractal_type: params
+                    .get("fractal_type")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("mandelbrot")
+                    .to_string(),
+                max_iterations: get_usize(params, "max_iterations", 100),
+            })),
             "noise_fill" | "noise" => Box::new(NoiseFill::new(NoiseFillConfig {
                 noise: parse_noise_type(params.get("noise")),
                 frequency: get_f64(params, "frequency", 0.08),
@@ -228,7 +236,6 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                         .unwrap_or(true),
                 },
             }),
-            "fractal" => Box::new(Fractal),
             "room_accretion" => {
                 let templates = if let Some(templates_val) = params.get("templates") {
                     parse_room_templates(templates_val)

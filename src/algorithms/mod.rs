@@ -23,7 +23,7 @@ pub use cellular::{CellularAutomata, CellularConfig};
 pub use diamond_square::{DiamondSquare, DiamondSquareConfig};
 pub use dla::{Dla, DlaConfig};
 pub use drunkard::{DrunkardConfig, DrunkardWalk};
-pub use fractal::Fractal;
+pub use fractal::{Fractal, FractalConfig};
 pub use glass_seam::{GlassSeam, GlassSeamConfig};
 pub use maze::{Maze, MazeConfig};
 pub use noise_fill::{NoiseFill, NoiseFillConfig, NoiseType};
@@ -50,7 +50,7 @@ pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
         "percolation" => Some(Box::new(Percolation::default())),
         "diamond_square" => Some(Box::new(DiamondSquare::default())),
         "agent" => Some(Box::new(AgentBased::default())),
-        "fractal" => Some(Box::new(Fractal)),
+        "fractal" => Some(Box::new(Fractal::default())),
         "noise_fill" | "noise" => Some(Box::new(NoiseFill::default())),
         "glass_seam" | "gsb" => Some(Box::new(GlassSeam::default())),
         "room_accretion" | "accretion" => Some(Box::new(RoomAccretion::default())),

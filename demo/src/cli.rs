@@ -31,7 +31,7 @@ pub enum Command {
         spec: String,
         #[arg(short, long)]
         seed: Option<u64>,
-        #[arg(short, long, default_value = "output.png")]
+        #[arg(short, long, default_value = "demo/output/output.png")]
         output: String,
         #[arg(short, long, default_value = "80")]
         width: usize,
@@ -60,7 +60,7 @@ pub enum Command {
         config: String,
         #[arg(short, long)]
         seed: Option<u64>,
-        #[arg(short, long, default_value = "output.png")]
+        #[arg(short, long, default_value = "demo/output/output.png")]
         output: String,
         #[arg(short, long)]
         text: bool,
