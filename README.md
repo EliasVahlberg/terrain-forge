@@ -10,6 +10,8 @@
 
 A comprehensive Rust library for procedural terrain and dungeon generation with semantic analysis capabilities.
 
+Crates.io: https://crates.io/crates/terrain-forge
+
 ## Features
 
 - **16 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, Noise Fill, and more
