@@ -23,7 +23,7 @@ pub use diamond_square::{DiamondSquare, DiamondSquareConfig};
 pub use dla::{Dla, DlaConfig};
 pub use drunkard::{DrunkardConfig, DrunkardWalk};
 pub use fractal::Fractal;
-pub use glass_seam::GlassSeam;
+pub use glass_seam::{GlassSeam, GlassSeamConfig};
 pub use maze::{Maze, MazeConfig};
 pub use percolation::{Percolation, PercolationConfig};
 pub use prefab::{Prefab, PrefabConfig, PrefabData, PrefabLibrary, PrefabPlacer, PrefabTransform};

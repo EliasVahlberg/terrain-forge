@@ -147,11 +147,27 @@ cargo run -- gen "bsp > cellular" -s 123 -w 80 -H 60 --scale 3    # 240x180
 | ![Massive](demo/output/showcase/hires/cellular_massive.png) | ![Epic](demo/output/showcase/hires/pipeline_epic.png) | ![Ultra](demo/output/showcase/hires/pipeline_ultra.png) |
 | *176 regions, 53 markers* | *85 regions, 24 markers* | *37 regions, 5 markers* |
 
-## Key Features Demonstrated
+## Coverage Status
 
-✅ **13 Generation Algorithms** - Complete algorithm coverage  
-✅ **Semantic Analysis** - Region classification and marker placement  
-✅ **PNG Visualizations** - Color-coded visual outputs  
-✅ **Pipeline Composition** - Algorithm chaining and combination  
-✅ **Configurable Systems** - Algorithm-specific optimizations  
-✅ **Framework Agnostic** - Works with any grid source
+Status key: Covered, Partial, Missing.
+
+- Algorithms: Covered (all 14 core algorithms + prefab).
+- Output kinds: Covered (text/regions/masks/connectivity/semantic/grid).
+- Composition: Partial (pipeline covered; layers union covered; intersect/mask missing).
+- Constraints/requirements: Partial (min_regions + required_markers; validation connectivity/density). `max_regions`, `required_connections`, and `min_walkable_area` are not enforced in the library yet.
+- Effects: Partial (morphology, filters, transforms, connectivity helpers like `connect_regions_spanning`, `connect_markers`, `clear_rect`). `edge_detect`, `label_regions`, and `find_chokepoints` are not demoed via config yet.
+- Noise: Partial (Perlin via `domain_warp`). Simplex/Value/Worley/FBM/Ridged not demoed.
+- Analysis + spatial modules: Missing (no demo entries exercise these modules yet).
+- Pipeline intelligence: Missing (PipelineCondition/Template APIs not demoed).
+- Prefab options: Partial (rotation covered; mirroring/weighted selection/library not demoed).
+
+New coverage entries added to `feature_coverage`:
+- `grid_output_smoke`
+- `effects_morphology`
+- `effects_filters`
+- `effects_transforms`
+- `validation_density`
+- `requirements_markers`
+- `marker_connect_line`
+- `marker_connect_path`
+- `glass_seam_terminals`

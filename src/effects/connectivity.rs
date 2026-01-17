@@ -1,7 +1,16 @@
 //! Connectivity effects
 
+use crate::semantic::{MarkerType, SemanticLayers};
+use crate::spatial::{shortest_path, PathfindingConstraints};
 use crate::{Grid, Rng, Tile};
 use std::collections::{HashSet, VecDeque};
+
+/// Methods for connecting semantic markers
+#[derive(Debug, Clone, Copy)]
+pub enum MarkerConnectMethod {
+    Line,
+    Path,
+}
 
 /// Label disconnected regions and return labels array and region count
 pub fn label_regions(grid: &Grid<Tile>) -> (Vec<u32>, u32) {
@@ -18,6 +27,67 @@ pub fn label_regions(grid: &Grid<Tile>) -> (Vec<u32>, u32) {
         }
     }
     (labels, label)
+}
+
+/// Carve a path into the grid with an optional radius around each step.
+pub fn carve_path(grid: &mut Grid<Tile>, path: &[(usize, usize)], radius: usize) {
+    if path.is_empty() {
+        return;
+    }
+
+    for &(x, y) in path {
+        carve_point(grid, x as i32, y as i32, radius);
+    }
+}
+
+/// Clear a rectangular area centered at `center` with size (w, h).
+pub fn clear_rect(grid: &mut Grid<Tile>, center: (usize, usize), w: usize, h: usize) {
+    if w == 0 || h == 0 {
+        return;
+    }
+
+    let x = center.0 as i32 - (w as i32 / 2);
+    let y = center.1 as i32 - (h as i32 / 2);
+    grid.fill_rect(x, y, w, h, Tile::Floor);
+}
+
+/// Connect the first matching marker of each type.
+pub fn connect_markers(
+    grid: &mut Grid<Tile>,
+    layers: &SemanticLayers,
+    from: &MarkerType,
+    to: &MarkerType,
+    method: MarkerConnectMethod,
+    radius: usize,
+) -> bool {
+    let from_pos = crate::semantic::marker_positions(layers, from);
+    let to_pos = crate::semantic::marker_positions(layers, to);
+
+    let start = match from_pos.first() {
+        Some(pos) => *pos,
+        None => return false,
+    };
+    let end = match to_pos.first() {
+        Some(pos) => *pos,
+        None => return false,
+    };
+
+    match method {
+        MarkerConnectMethod::Line => {
+            let path = line_points(start, end);
+            carve_path(grid, &path, radius);
+            true
+        }
+        MarkerConnectMethod::Path => {
+            let constraints = PathfindingConstraints::default();
+            if let Some(path) = shortest_path(grid, start, end, &constraints) {
+                carve_path(grid, &path, radius);
+                true
+            } else {
+                false
+            }
+        }
+    }
 }
 
 /// Connect regions using spanning tree with optional extra connections for loops
@@ -192,18 +262,8 @@ fn find_closest(
 }
 
 fn carve_line(grid: &mut Grid<Tile>, x1: usize, y1: usize, x2: usize, y2: usize) {
-    let (mut x, mut y) = (x1 as i32, y1 as i32);
-    let (tx, ty) = (x2 as i32, y2 as i32);
-
-    while x != tx || y != ty {
-        grid.set(x, y, Tile::Floor);
-        if (x - tx).abs() > (y - ty).abs() {
-            x += if tx > x { 1 } else { -1 };
-        } else {
-            y += if ty > y { 1 } else { -1 };
-        }
-    }
-    grid.set(tx, ty, Tile::Floor);
+    let path = line_points((x1, y1), (x2, y2));
+    carve_path(grid, &path, 0);
 }
 
 pub fn remove_dead_ends(grid: &mut Grid<Tile>, iterations: usize) {
@@ -288,4 +348,43 @@ pub fn find_chokepoints(grid: &Grid<Tile>) -> Vec<(usize, usize)> {
         }
     }
     chokepoints
+}
+
+fn carve_point(grid: &mut Grid<Tile>, x: i32, y: i32, radius: usize) {
+    if radius == 0 {
+        grid.set(x, y, Tile::Floor);
+        return;
+    }
+
+    let r = radius as i32;
+    let r2 = r * r;
+    for dy in -r..=r {
+        for dx in -r..=r {
+            if dx * dx + dy * dy <= r2 {
+                grid.set(x + dx, y + dy, Tile::Floor);
+            }
+        }
+    }
+}
+
+fn line_points(start: (usize, usize), end: (usize, usize)) -> Vec<(usize, usize)> {
+    let (mut x, mut y) = (start.0 as i32, start.1 as i32);
+    let (tx, ty) = (end.0 as i32, end.1 as i32);
+    let mut points = Vec::new();
+
+    while x != tx || y != ty {
+        if x >= 0 && y >= 0 {
+            points.push((x as usize, y as usize));
+        }
+        if (x - tx).abs() > (y - ty).abs() {
+            x += if tx > x { 1 } else { -1 };
+        } else {
+            y += if ty > y { 1 } else { -1 };
+        }
+    }
+    if tx >= 0 && ty >= 0 {
+        points.push((tx as usize, ty as usize));
+    }
+
+    points
 }

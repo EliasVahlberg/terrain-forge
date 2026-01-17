@@ -382,3 +382,63 @@ name = "warped_caves"
 config = "demo/configs/warped_caves.json"
 outputs = ["regions"]
 description = "Domain-warped cellular caves plus smoothing effects."
+
+[[demo.runs]]
+name = "grid_output_smoke"
+spec = "cellular"
+seed = 111
+width = 50
+height = 35
+outputs = ["grid"]
+description = "Grid output coverage."
+
+[[demo.runs]]
+name = "effects_morphology"
+config = "demo/configs/effects_morphology.json"
+outputs = ["regions"]
+description = "Erode/dilate/open/close coverage."
+
+[[demo.runs]]
+name = "effects_filters"
+config = "demo/configs/effects_filters.json"
+outputs = ["regions"]
+description = "Gaussian/median filter coverage."
+
+[[demo.runs]]
+name = "effects_transforms"
+config = "demo/configs/effects_transforms.json"
+outputs = ["regions"]
+description = "Mirror/rotate/scatter coverage."
+
+[[demo.runs]]
+name = "validation_density"
+config = "demo/configs/validation_density.json"
+outputs = ["text"]
+description = "Constraint report with density/connectivity validation."
+
+[[demo.runs]]
+name = "requirements_markers"
+config = "demo/configs/requirements_markers.json"
+seed = 1
+outputs = ["semantic", "text"]
+description = "Requirements coverage for min regions + required markers."
+
+[[demo.runs]]
+name = "marker_connect_line"
+config = "demo/configs/marker_connect_line.json"
+seed = 1
+outputs = ["semantic", "text"]
+description = "Marker clearing + straight-line carving between PlayerStart and Exit."
+
+[[demo.runs]]
+name = "marker_connect_path"
+config = "demo/configs/marker_connect_path.json"
+seed = 12
+outputs = ["semantic", "text"]
+description = "Marker clearing + shortest-path connection along existing floors."
+
+[[demo.runs]]
+name = "glass_seam_terminals"
+config = "demo/configs/glass_seam_terminals.json"
+outputs = ["connectivity", "text"]
+description = "Glass Seam required terminals with carve radius support."

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DistanceTransform` with Euclidean, Manhattan, and Chebyshev metrics
   - `DijkstraMap` for multi-goal pathfinding with configurable movement costs
   - `FlowField` generation for smooth AI movement and navigation
+  - `shortest_path` helper for extracting grid paths
   - `morphology` module with erosion, dilation, opening, closing operations
   - Configurable structuring elements (cross, circle, square patterns)
 - **🧠 Enhanced Wave Function Collapse** - Pattern learning and backtracking support
@@ -34,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `GraphAnalysis` with clustering coefficients and diameter calculations
   - Shortest path algorithms with Dijkstra implementation
   - Connected components analysis and articulation point detection
+- **🧭 Connectivity Utilities** - Path carving and marker connectivity helpers
+  - `carve_path` and `clear_rect` utilities for carving corridors/clearances
+  - `connect_markers` with line/path modes and optional radius
+- **🧩 Glass Seam Terminals** - Required terminal support for Glass Seam
+  - `GlassSeamConfig` with required points, carve radius, and MST linking
 - **🎮 Comprehensive Examples** - 15 demo examples showcasing all v0.4.0 features
   - `enhanced_wfc.rs` - Pattern learning and backtracking demonstration
   - `delaunay_connections.rs` - Natural room connections with triangulation

@@ -17,6 +17,7 @@ A comprehensive Rust library for procedural terrain and dungeon generation with 
 - **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
 - **Advanced Prefab System**: JSON/TOML support with transformations
 - **Requirements System**: Generate maps meeting specific constraints
+- **Connectivity Utilities**: Shortest-path extraction, path carving, marker connections
 
 ## Quick Start
 

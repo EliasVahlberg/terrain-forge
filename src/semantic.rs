@@ -376,6 +376,16 @@ pub struct SemanticLayers {
     pub connectivity: ConnectivityGraph,
 }
 
+/// Collect positions for markers of a given type.
+pub fn marker_positions(layers: &SemanticLayers, marker_type: &MarkerType) -> Vec<(usize, usize)> {
+    layers
+        .markers
+        .iter()
+        .filter(|marker| &marker.marker_type == marker_type)
+        .map(|marker| (marker.x as usize, marker.y as usize))
+        .collect()
+}
+
 impl Region {
     pub fn new(id: u32, kind: impl Into<String>) -> Self {
         Self {

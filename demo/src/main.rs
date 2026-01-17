@@ -7,10 +7,45 @@ mod render;
 mod report;
 mod runner;
 
-use cli::{Cli, Command, OutputFlags};
 use clap::Parser;
+use cli::{Cli, Command, OutputFlags};
 use std::{fs, time::Instant};
-use terrain_forge::{algorithms, constraints, Grid, Tile};
+use terrain_forge::{algorithms, constraints, Grid, SemanticLayers, Tile};
+
+#[derive(Clone, Copy, Default)]
+struct RenderFlags {
+    text: bool,
+    semantic: bool,
+    regions: bool,
+    masks: bool,
+    connectivity: bool,
+}
+
+impl RenderFlags {
+    fn needs_semantic(self) -> bool {
+        self.semantic || self.regions || self.masks || self.connectivity
+    }
+
+    fn text_semantic(self) -> bool {
+        self.needs_semantic()
+    }
+
+    fn output_kind(self) -> manifest::OutputKind {
+        if self.text {
+            manifest::OutputKind::Text
+        } else if self.regions {
+            manifest::OutputKind::Regions
+        } else if self.masks {
+            manifest::OutputKind::Masks
+        } else if self.connectivity {
+            manifest::OutputKind::Connectivity
+        } else if self.semantic {
+            manifest::OutputKind::Semantic
+        } else {
+            manifest::OutputKind::Grid
+        }
+    }
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
@@ -30,48 +65,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             connectivity,
             constraints_report,
             constraints_only,
-        } => {
-            let seed = seed.unwrap_or_else(random_seed);
-            let output_flags = OutputFlags::new(constraints_report, constraints_only);
-            let mut cfg = config::parse_shorthand(&spec);
-            cfg.width = width * scale;
-            cfg.height = height * scale;
-            cfg.seed = Some(seed);
-
-            if semantic || regions || masks || connectivity {
-                generate_with_semantic_viz(
-                    &cfg,
-                    seed,
-                    &output,
-                    text,
-                    regions,
-                    masks,
-                    connectivity,
-                    output_flags,
-                )?;
-            } else {
-                let (grid, elapsed) = runner::generate(&cfg, seed);
-
-                if text {
-                    let txt_path = output.replace(".png", ".txt");
-                    render::save_text(&render::render_text(&grid), &txt_path)?;
-                    if !output_flags.constraints_only {
-                        println!("Saved to {}", txt_path);
-                    }
-                } else {
-                    render::save_png(&render::render_grid(&grid), &output)?;
-                    if !output_flags.constraints_only {
-                        println!("Saved to {}", output);
-                    }
-                }
-                if !output_flags.constraints_only {
-                    print!("{}", report::format_metrics(&spec, &grid, seed, elapsed));
-                }
-                if output_flags.constraints_only {
-                    print!("{}", report::constraint_report_text(None));
-                }
-            }
-        }
+        } => handle_gen(
+            spec,
+            seed,
+            output,
+            width,
+            height,
+            scale,
+            text,
+            semantic,
+            regions,
+            masks,
+            connectivity,
+            constraints_report,
+            constraints_only,
+        )?,
 
         Command::Run {
             config: path,
@@ -84,176 +92,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             connectivity,
             constraints_report,
             constraints_only,
-        } => {
-            let cfg = config::Config::load(&path)?;
-            let seed = seed.or(cfg.seed).unwrap_or_else(random_seed);
-            let output_flags = OutputFlags::new(constraints_report, constraints_only);
-
-            if semantic || regions || masks || connectivity {
-                generate_with_semantic_viz(
-                    &cfg,
-                    seed,
-                    &output,
-                    text,
-                    regions,
-                    masks,
-                    connectivity,
-                    output_flags,
-                )?;
-            } else if cfg.requirements.is_some() {
-                // Requirements need semantic extraction even if no semantic output requested
-                let (grid, semantic, elapsed, report) =
-                    runner::generate_grid_and_semantic(&cfg, seed, false)?;
-
-                // Validation
-                if let Some(validate) = &cfg.validate {
-                    let conn = constraints::validate_connectivity(&grid);
-                    if let Some(min_conn) = validate.connectivity {
-                        if conn < min_conn {
-                            if !output_flags.constraints_only {
-                                eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
-                            }
-                        }
-                    }
-                    if let Some((min, max)) = validate.density {
-                        if !constraints::validate_density(&grid, min, max) {
-                            if !output_flags.constraints_only {
-                                eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
-                            }
-                        }
-                    }
-                }
-
-                if text {
-                    let txt_path = output.replace(".png", ".txt");
-                    let text_output = if output_flags.constraints_report {
-                        render::render_text_with_semantic_and_report(
-                            &grid,
-                            &semantic,
-                            report.as_ref(),
-                        )
-                    } else {
-                        render::render_text(&grid)
-                    };
-                    render::save_text(&text_output, &txt_path)?;
-                    if !output_flags.constraints_only {
-                        println!("Saved to {}", txt_path);
-                    }
-                } else {
-                    render::save_png(&render::render_grid(&grid), &output)?;
-                    if !output_flags.constraints_only {
-                        println!("Saved to {}", output);
-                    }
-                }
-                if !output_flags.constraints_only {
-                    print!(
-                        "{}",
-                        report::format_metrics(
-                            cfg.name.as_deref().unwrap_or(&path),
-                            &grid,
-                            seed,
-                            elapsed
-                        )
-                    );
-                }
-                if output_flags.constraints_only {
-                    print!("{}", report::constraint_report_text(report.as_ref()));
-                }
-            } else {
-                let (grid, elapsed) = runner::generate(&cfg, seed);
-                let report = runner::build_constraint_report(&cfg, &grid, None);
-
-                // Validation
-                if let Some(validate) = &cfg.validate {
-                    let conn = constraints::validate_connectivity(&grid);
-                    if let Some(min_conn) = validate.connectivity {
-                        if conn < min_conn {
-                            if !output_flags.constraints_only {
-                                eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
-                            }
-                        }
-                    }
-                    if let Some((min, max)) = validate.density {
-                        if !constraints::validate_density(&grid, min, max) {
-                            if !output_flags.constraints_only {
-                                eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
-                            }
-                        }
-                    }
-                }
-
-                if text {
-                    let txt_path = output.replace(".png", ".txt");
-                    let text_output = if output_flags.constraints_report {
-                        render::render_text_with_semantic_and_report(&grid, &None, report.as_ref())
-                    } else {
-                        render::render_text(&grid)
-                    };
-                    render::save_text(&text_output, &txt_path)?;
-                    if !output_flags.constraints_only {
-                        println!("Saved to {}", txt_path);
-                    }
-                } else {
-                    render::save_png(&render::render_grid(&grid), &output)?;
-                    if !output_flags.constraints_only {
-                        println!("Saved to {}", output);
-                    }
-                }
-                if !output_flags.constraints_only {
-                    print!(
-                        "{}",
-                        report::format_metrics(
-                            cfg.name.as_deref().unwrap_or(&path),
-                            &grid,
-                            seed,
-                            elapsed
-                        )
-                    );
-                }
-                if output_flags.constraints_only {
-                    print!("{}", report::constraint_report_text(report.as_ref()));
-                }
-            }
-        }
+        } => handle_run(
+            path,
+            seed,
+            output,
+            text,
+            semantic,
+            regions,
+            masks,
+            connectivity,
+            constraints_report,
+            constraints_only,
+        )?,
 
         Command::Compare {
             items,
             seed,
             output,
             configs,
-        } => {
-            let seed = seed.unwrap_or_else(random_seed);
-            let mut grids: Vec<(String, Grid<Tile>)> = Vec::new();
-
-            for item in &items {
-                let (name, grid) = if configs || item.ends_with(".json") {
-                    let cfg = config::Config::load(item)?;
-                    let name = cfg.name.clone().unwrap_or_else(|| item.clone());
-                    let (grid, _) = runner::generate(&cfg, seed);
-                    (name, grid)
-                } else {
-                    let cfg = config::parse_shorthand(item);
-                    let (grid, _) = runner::generate(&cfg, seed);
-                    (item.clone(), grid)
-                };
-                grids.push((name, grid));
-            }
-
-            let refs: Vec<(&str, &Grid<Tile>)> =
-                grids.iter().map(|(n, g)| (n.as_str(), g)).collect();
-
-            let cols = (grids.len() as f64).sqrt().ceil() as usize;
-            render::save_png(&render::render_comparison(&refs, cols), &output)?;
-
-            println!("Comparison (seed: {}):", seed);
-            println!("{:<20} {:>8} {:>12}", "Name", "Floors", "Connectivity");
-            for (name, grid) in &grids {
-                let floors = grid.count(|t| t.is_floor());
-                let conn = constraints::validate_connectivity(grid);
-                println!("{:<20} {:>8} {:>12.2}", name, floors, conn);
-            }
-            println!("Saved to {}", output);
-        }
+        } => handle_compare(items, seed, output, configs)?,
 
         Command::Demo {
             id,
@@ -263,114 +120,305 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             manifest,
             constraints_report,
             constraints_only,
-        } => {
-            let manifest_data = manifest::load(&manifest)?;
-            let output_flags = OutputFlags::new(constraints_report, constraints_only);
+        } => handle_demo(
+            id,
+            run,
+            list,
+            all,
+            manifest,
+            constraints_report,
+            constraints_only,
+        )?,
 
-            if list {
-                print_demo_list(&manifest_data);
-                return Ok(());
-            }
-
-            if all {
-                if run.is_some() {
-                    return Err("--run cannot be combined with --all".into());
-                }
-                let mut all_timings = Vec::new();
-                for demo in &manifest_data.demo {
-                    let mut demo_timings =
-                        run_manifest_demo(&manifest_data, demo, None, output_flags)?;
-                    all_timings.append(&mut demo_timings);
-                }
-                if !output_flags.constraints_only {
-                    print_overall_report(&all_timings);
-                }
-                return Ok(());
-            }
-
-            let id =
-                id.ok_or_else(|| "Please provide a demo id, use --all, or use --list".to_string())?;
-            let demo = manifest_data
-                .find_demo(&id)
-                .ok_or_else(|| format!("Demo id '{}' not found in manifest", id))?;
-
-            run_manifest_demo(&manifest_data, demo, run.as_deref(), output_flags)?;
-        }
-
-        Command::List => {
-            println!("Available algorithms:");
-            for name in algorithms::list() {
-                println!("  {}", name);
-            }
-        }
+        Command::List => handle_list(),
     }
 
     Ok(())
 }
 
-fn generate_with_semantic_viz(
-    cfg: &config::Config,
-    seed: u64,
-    output: &str,
+#[allow(clippy::too_many_arguments)]
+fn handle_gen(
+    spec: String,
+    seed: Option<u64>,
+    output: String,
+    width: usize,
+    height: usize,
+    scale: usize,
     text: bool,
+    semantic: bool,
     regions: bool,
     masks: bool,
     connectivity: bool,
+    constraints_report: bool,
+    constraints_only: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let seed = seed.unwrap_or_else(random_seed);
+    let output_flags = OutputFlags::new(constraints_report, constraints_only);
+    let mut cfg = config::parse_shorthand(&spec);
+    cfg.width = width * scale;
+    cfg.height = height * scale;
+    cfg.seed = Some(seed);
+
+    let render_flags = RenderFlags {
+        text,
+        semantic,
+        regions,
+        masks,
+        connectivity,
+    };
+
+    handle_generate(&spec, &cfg, seed, &output, render_flags, output_flags)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn handle_run(
+    path: String,
+    seed: Option<u64>,
+    output: String,
+    text: bool,
+    semantic: bool,
+    regions: bool,
+    masks: bool,
+    connectivity: bool,
+    constraints_report: bool,
+    constraints_only: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = config::Config::load(&path)?;
+    let seed = seed.or(cfg.seed).unwrap_or_else(random_seed);
+    let output_flags = OutputFlags::new(constraints_report, constraints_only);
+    let render_flags = RenderFlags {
+        text,
+        semantic,
+        regions,
+        masks,
+        connectivity,
+    };
+
+    handle_generate(
+        cfg.name.as_deref().unwrap_or(&path),
+        &cfg,
+        seed,
+        &output,
+        render_flags,
+        output_flags,
+    )
+}
+
+fn handle_compare(
+    items: Vec<String>,
+    seed: Option<u64>,
+    output: String,
+    configs: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let seed = seed.unwrap_or_else(random_seed);
+    let mut grids: Vec<(String, Grid<Tile>)> = Vec::new();
+
+    for item in &items {
+        let (name, grid) = if configs || item.ends_with(".json") {
+            let cfg = config::Config::load(item)?;
+            let name = cfg.name.clone().unwrap_or_else(|| item.clone());
+            let (grid, _) = runner::generate(&cfg, seed);
+            (name, grid)
+        } else {
+            let cfg = config::parse_shorthand(item);
+            let (grid, _) = runner::generate(&cfg, seed);
+            (item.clone(), grid)
+        };
+        grids.push((name, grid));
+    }
+
+    let refs: Vec<(&str, &Grid<Tile>)> = grids.iter().map(|(n, g)| (n.as_str(), g)).collect();
+
+    let cols = (grids.len() as f64).sqrt().ceil() as usize;
+    render::save_png(&render::render_comparison(&refs, cols), &output)?;
+
+    println!("Comparison (seed: {}):", seed);
+    println!("{:<20} {:>8} {:>12}", "Name", "Floors", "Connectivity");
+    for (name, grid) in &grids {
+        let floors = grid.count(|t| t.is_floor());
+        let conn = constraints::validate_connectivity(grid);
+        println!("{:<20} {:>8} {:>12.2}", name, floors, conn);
+    }
+    println!("Saved to {}", output);
+    Ok(())
+}
+
+fn handle_demo(
+    id: Option<String>,
+    run: Option<String>,
+    list: bool,
+    all: bool,
+    manifest_path: String,
+    constraints_report: bool,
+    constraints_only: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_data = manifest::load(&manifest_path)?;
+    let output_flags = OutputFlags::new(constraints_report, constraints_only);
+
+    if list {
+        print_demo_list(&manifest_data);
+        return Ok(());
+    }
+
+    if all {
+        if run.is_some() {
+            return Err("--run cannot be combined with --all".into());
+        }
+        let mut all_timings = Vec::new();
+        for demo in &manifest_data.demo {
+            let mut demo_timings = run_manifest_demo(&manifest_data, demo, None, output_flags)?;
+            all_timings.append(&mut demo_timings);
+        }
+        if !output_flags.constraints_only {
+            print_overall_report(&all_timings);
+        }
+        return Ok(());
+    }
+
+    let id = id.ok_or_else(|| "Please provide a demo id, use --all, or use --list".to_string())?;
+    let demo = manifest_data
+        .find_demo(&id)
+        .ok_or_else(|| format!("Demo id '{}' not found in manifest", id))?;
+
+    run_manifest_demo(&manifest_data, demo, run.as_deref(), output_flags)?;
+    Ok(())
+}
+
+fn handle_list() {
+    println!("Available algorithms:");
+    for name in algorithms::list() {
+        println!("  {}", name);
+    }
+}
+
+fn handle_generate(
+    label: &str,
+    cfg: &config::Config,
+    seed: u64,
+    output: &str,
+    render_flags: RenderFlags,
     output_flags: OutputFlags,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (tiles, semantic, _, report) = runner::generate_grid_and_semantic(cfg, seed, true)?;
+    let (grid, semantic, elapsed, report) =
+        runner::generate_grid_and_semantic(cfg, seed, render_flags.needs_semantic())?;
 
-    if let Some(semantic) = &semantic {
-        if !output_flags.constraints_only {
-            print!("{}", report::format_semantic_analysis(semantic, seed));
+    if !render_flags.needs_semantic() {
+        emit_validation_warnings(cfg, &grid, output_flags);
+    }
+
+    if render_flags.needs_semantic() {
+        if let Some(semantic) = &semantic {
+            if !output_flags.constraints_only {
+                print!("{}", report::format_semantic_analysis(semantic, seed));
+            }
         }
     }
 
-    if text {
-        let txt_path = output.replace(".png", ".txt");
-        let text_output = if output_flags.constraints_report {
-            render::render_text_with_semantic_and_report(&tiles, &semantic, report.as_ref())
-        } else {
-            render::render_text_with_semantic(&tiles, &semantic)
-        };
-        render::save_text(&text_output, &txt_path)?;
-        if !output_flags.constraints_only {
-            println!("Saved semantic visualization to {}", txt_path);
-        }
-    } else if regions {
-        if let Some(semantic) = &semantic {
-            let img = render::render_regions_png(&tiles, semantic);
-            render::save_png(&img, output)?;
-            if !output_flags.constraints_only {
-                println!("Saved regions visualization to {}", output);
-            }
-        }
-    } else if masks {
-        if let Some(semantic) = &semantic {
-            let img = render::render_masks_png(&tiles, semantic);
-            render::save_png(&img, output)?;
-            if !output_flags.constraints_only {
-                println!("Saved masks visualization to {}", output);
-            }
-        }
-    } else if connectivity {
-        if let Some(semantic) = &semantic {
-            let img = render::render_connectivity_png(&tiles, semantic);
-            render::save_png(&img, output)?;
-            if !output_flags.constraints_only {
-                println!("Saved connectivity visualization to {}", output);
-            }
-        }
-    } else {
-        let img = render::render_grid_with_semantic(&tiles, &semantic);
-        render::save_png(&img, output)?;
-        if !output_flags.constraints_only {
-            println!("Saved semantic visualization to {}", output);
-        }
-    }
+    let kind = render_flags.output_kind();
+    render_output(
+        kind,
+        output,
+        &grid,
+        &semantic,
+        report.as_ref(),
+        output_flags,
+        render_flags.text_semantic(),
+    )?;
 
+    if !output_flags.constraints_only && !render_flags.needs_semantic() {
+        print!("{}", report::format_metrics(label, &grid, seed, elapsed));
+    }
     if output_flags.constraints_only {
         print!("{}", report::constraint_report_text(report.as_ref()));
+    }
+
+    Ok(())
+}
+
+fn emit_validation_warnings(cfg: &config::Config, grid: &Grid<Tile>, output_flags: OutputFlags) {
+    if let Some(validate) = &cfg.validate {
+        let conn = constraints::validate_connectivity(grid);
+        if let Some(min_conn) = validate.connectivity {
+            if conn < min_conn && !output_flags.constraints_only {
+                eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
+            }
+        }
+        if let Some((min, max)) = validate.density {
+            if !constraints::validate_density(grid, min, max) && !output_flags.constraints_only {
+                eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
+            }
+        }
+    }
+}
+
+fn render_output(
+    kind: manifest::OutputKind,
+    output: &str,
+    grid: &Grid<Tile>,
+    semantic: &Option<SemanticLayers>,
+    report: Option<&constraints::ConstraintReport>,
+    output_flags: OutputFlags,
+    text_semantic: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match kind {
+        manifest::OutputKind::Text => {
+            let txt_path = output.replace(".png", ".txt");
+            let text_output = if output_flags.constraints_report {
+                render::render_text_with_semantic_and_report(grid, semantic, report)
+            } else if text_semantic {
+                render::render_text_with_semantic(grid, semantic)
+            } else {
+                render::render_text(grid)
+            };
+            render::save_text(&text_output, &txt_path)?;
+            if !output_flags.constraints_only {
+                if text_semantic {
+                    println!("Saved semantic visualization to {}", txt_path);
+                } else {
+                    println!("Saved to {}", txt_path);
+                }
+            }
+        }
+        manifest::OutputKind::Regions => {
+            if let Some(semantic) = semantic {
+                let img = render::render_regions_png(grid, semantic);
+                render::save_png(&img, output)?;
+                if !output_flags.constraints_only {
+                    println!("Saved regions visualization to {}", output);
+                }
+            }
+        }
+        manifest::OutputKind::Masks => {
+            if let Some(semantic) = semantic {
+                let img = render::render_masks_png(grid, semantic);
+                render::save_png(&img, output)?;
+                if !output_flags.constraints_only {
+                    println!("Saved masks visualization to {}", output);
+                }
+            }
+        }
+        manifest::OutputKind::Connectivity => {
+            if let Some(semantic) = semantic {
+                let img = render::render_connectivity_png(grid, semantic);
+                render::save_png(&img, output)?;
+                if !output_flags.constraints_only {
+                    println!("Saved connectivity visualization to {}", output);
+                }
+            }
+        }
+        manifest::OutputKind::Semantic => {
+            let img = render::render_grid_with_semantic(grid, semantic);
+            render::save_png(&img, output)?;
+            if !output_flags.constraints_only {
+                println!("Saved semantic visualization to {}", output);
+            }
+        }
+        manifest::OutputKind::Grid => {
+            render::save_png(&render::render_grid(grid), output)?;
+            if !output_flags.constraints_only {
+                println!("Saved to {}", output);
+            }
+        }
     }
 
     Ok(())
@@ -534,7 +582,10 @@ fn execute_run(
             manifest::OutputKind::Grid => {
                 render::save_png(&render::render_grid(&grid), &path)?;
                 if !output_flags.constraints_only {
-                    print!("{}", report::format_metrics(&run.name, &grid, seed, gen_time));
+                    print!(
+                        "{}",
+                        report::format_metrics(&run.name, &grid, seed, gen_time)
+                    );
                 }
             }
             manifest::OutputKind::Text => {

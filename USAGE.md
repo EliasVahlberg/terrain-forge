@@ -173,6 +173,54 @@ fn main() {
 }
 ```
 
+## Marker Connectivity + Path Carving
+
+```rust
+use terrain_forge::effects::{connect_markers, clear_rect, MarkerConnectMethod};
+use terrain_forge::semantic::MarkerType;
+use terrain_forge::{Grid, Rng, SemanticExtractor};
+
+fn main() {
+    let mut grid = Grid::new(80, 60);
+    terrain_forge::algorithms::get("bsp").unwrap().generate(&mut grid, 42);
+
+    let mut rng = Rng::new(42);
+    let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
+
+    // Clear a buffer around PlayerStart + Exit, then connect them.
+    clear_rect(&mut grid, (10, 10), 5, 5);
+    clear_rect(&mut grid, (70, 50), 5, 5);
+    connect_markers(
+        &mut grid,
+        &semantic,
+        &MarkerType::Custom("PlayerStart".to_string()),
+        &MarkerType::Custom("Exit".to_string()),
+        MarkerConnectMethod::Line,
+        1,
+    );
+}
+```
+
+## Glass Seam Required Terminals
+
+```rust
+use terrain_forge::algorithms::{GlassSeam, GlassSeamConfig};
+use terrain_forge::Grid;
+
+fn main() {
+    let mut grid = Grid::new(80, 60);
+    terrain_forge::algorithms::get("drunkard").unwrap().generate(&mut grid, 7);
+
+    let config = GlassSeamConfig {
+        coverage_threshold: 0.85,
+        required_points: vec![(5, 5), (70, 50)],
+        carve_radius: 1,
+        use_mst_terminals: true,
+    };
+    GlassSeam::new(config).generate(&mut grid, 7);
+}
+```
+
 ## Registry API
 
 ```rust

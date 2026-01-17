@@ -1,9 +1,9 @@
 //! Constraint validation
 
-use crate::{Grid, Tile};
 use crate::{pipeline, semantic};
-use std::collections::VecDeque;
+use crate::{Grid, Tile};
 use std::collections::HashMap;
+use std::collections::VecDeque;
 
 pub fn validate_connectivity(grid: &Grid<Tile>) -> f32 {
     let (w, h) = (grid.width(), grid.height());

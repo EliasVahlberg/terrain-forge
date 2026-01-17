@@ -6,7 +6,7 @@ use terrain_forge::{
     algorithms::{self, *},
     compose::{BlendMode, LayeredGenerator, Pipeline},
     effects, noise,
-    semantic::{MarkerType, SemanticRequirements},
+    semantic::{MarkerType, SemanticLayers, SemanticRequirements},
     Algorithm, Grid, Tile,
 };
 
@@ -190,9 +190,17 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 turn_chance: get_f64(params, "turn_chance", 0.3),
             })),
             "glass_seam" => Box::new(GlassSeam {
-                coverage_threshold: get_f64(params, "coverage_threshold", 0.75),
+                config: GlassSeamConfig {
+                    coverage_threshold: get_f64(params, "coverage_threshold", 0.75),
+                    required_points: get_points(params, "required_points"),
+                    carve_radius: get_usize(params, "carve_radius", 0),
+                    use_mst_terminals: params
+                        .get("use_mst_terminals")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(true),
+                },
             }),
-            "fractal" => Box::new(Fractal::default()),
+            "fractal" => Box::new(Fractal),
             "room_accretion" => {
                 let templates = if let Some(templates_val) = params.get("templates") {
                     parse_room_templates(templates_val)
@@ -275,6 +283,36 @@ fn get_f64(params: &HashMap<String, serde_json::Value>, key: &str, default: f64)
     params.get(key).and_then(|v| v.as_f64()).unwrap_or(default)
 }
 
+fn get_points(params: &HashMap<String, serde_json::Value>, key: &str) -> Vec<(usize, usize)> {
+    let mut points = Vec::new();
+    let Some(value) = params.get(key) else {
+        return points;
+    };
+
+    let Some(array) = value.as_array() else {
+        return points;
+    };
+
+    for item in array {
+        if let Some(point) = parse_point(Some(item)) {
+            points.push(point);
+        }
+    }
+
+    points
+}
+
+fn parse_point(value: Option<&serde_json::Value>) -> Option<(usize, usize)> {
+    let value = value?;
+    let array = value.as_array()?;
+    if array.len() != 2 {
+        return None;
+    }
+    let x = array[0].as_u64()? as usize;
+    let y = array[1].as_u64()? as usize;
+    Some((x, y))
+}
+
 fn parse_room_templates(val: &serde_json::Value) -> Vec<RoomTemplate> {
     let mut templates = Vec::new();
     if let Some(array) = val.as_array() {
@@ -346,7 +384,11 @@ fn parse_prefabs(val: &serde_json::Value) -> Vec<Prefab> {
     prefabs
 }
 
-pub fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec]) {
+pub fn apply_effects(
+    grid: &mut Grid<Tile>,
+    effects: &[EffectSpec],
+    semantic: Option<&SemanticLayers>,
+) {
     for effect in effects {
         match effect {
             EffectSpec::Name(name) => match name.as_str() {
@@ -374,6 +416,12 @@ pub fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec]) {
                 "domain_warp" => {
                     let noise = noise::Perlin::new(42).with_frequency(0.08);
                     effects::domain_warp(grid, &noise, 2.0, 0.1);
+                }
+                "connect_markers" | "clear_marker_area" => {
+                    eprintln!("Effect {} requires config and semantic layers", name);
+                }
+                "clear_rect" => {
+                    eprintln!("Effect clear_rect requires config");
                 }
                 _ => eprintln!("Unknown effect: {}", name),
             },
@@ -447,10 +495,89 @@ pub fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec]) {
                     let noise = noise::Perlin::new(seed).with_frequency(frequency);
                     effects::domain_warp(grid, &noise, amplitude, frequency);
                 }
+                "clear_rect" => {
+                    let center = parse_point(config.get("center"));
+                    let width = config.get("width").and_then(|v| v.as_u64()).unwrap_or(3) as usize;
+                    let height =
+                        config.get("height").and_then(|v| v.as_u64()).unwrap_or(3) as usize;
+                    if let Some(center) = center {
+                        effects::clear_rect(grid, center, width, height);
+                    } else {
+                        eprintln!("clear_rect requires center: [x, y]");
+                    }
+                }
+                "clear_marker_area" => {
+                    let Some(semantic) = semantic else {
+                        eprintln!("clear_marker_area requires semantic layers");
+                        continue;
+                    };
+                    let marker_name = config
+                        .get("marker")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("spawn");
+                    let marker_type = parse_marker_type(marker_name);
+                    let width = config.get("width").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
+                    let height =
+                        config.get("height").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
+
+                    let positions =
+                        terrain_forge::semantic::marker_positions(semantic, &marker_type);
+                    if positions.is_empty() {
+                        eprintln!("No markers found for {}", marker_name);
+                        continue;
+                    }
+                    for pos in positions {
+                        effects::clear_rect(grid, pos, width, height);
+                    }
+                }
+                "connect_markers" => {
+                    let Some(semantic) = semantic else {
+                        eprintln!("connect_markers requires semantic layers");
+                        continue;
+                    };
+                    let from = config
+                        .get("from")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("spawn");
+                    let to = config.get("to").and_then(|v| v.as_str()).unwrap_or("exit");
+                    let method = config
+                        .get("method")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("line");
+                    let radius =
+                        config.get("radius").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+
+                    let from_type = parse_marker_type(from);
+                    let to_type = parse_marker_type(to);
+                    let connect_method = match method {
+                        "path" => effects::MarkerConnectMethod::Path,
+                        _ => effects::MarkerConnectMethod::Line,
+                    };
+
+                    if !effects::connect_markers(
+                        grid,
+                        semantic,
+                        &from_type,
+                        &to_type,
+                        connect_method,
+                        radius,
+                    ) {
+                        eprintln!("Failed to connect markers {} -> {}", from, to);
+                    }
+                }
                 _ => eprintln!("Unknown effect: {}", name),
             },
         }
     }
+}
+
+pub fn effects_need_semantic(effects: &[EffectSpec]) -> bool {
+    effects.iter().any(|effect| match effect {
+        EffectSpec::Name(name) => matches!(name.as_str(), "connect_markers" | "clear_marker_area"),
+        EffectSpec::WithParams { name, .. } => {
+            matches!(name.as_str(), "connect_markers" | "clear_marker_area")
+        }
+    })
 }
 
 /// Parse CLI shorthand like "bsp > cellular" or "bsp | drunkard"
@@ -575,7 +702,7 @@ fn parse_marker_type(name: &str) -> MarkerType {
         _ if lower.starts_with("quest_objective") => {
             let lvl = lower
                 .split('_')
-                .last()
+                .next_back()
                 .and_then(|v| v.parse::<u8>().ok())
                 .unwrap_or(1);
             MarkerType::QuestObjective { priority: lvl }
@@ -583,7 +710,7 @@ fn parse_marker_type(name: &str) -> MarkerType {
         _ if lower.starts_with("loot_tier") => {
             let tier = lower
                 .split('_')
-                .last()
+                .next_back()
                 .and_then(|v| v.parse::<u8>().ok())
                 .unwrap_or(1);
             MarkerType::LootTier { tier }
@@ -591,7 +718,7 @@ fn parse_marker_type(name: &str) -> MarkerType {
         _ if lower.starts_with("encounter") => {
             let difficulty = lower
                 .split('_')
-                .last()
+                .next_back()
                 .and_then(|v| v.parse::<u8>().ok())
                 .unwrap_or(1);
             MarkerType::EncounterZone { difficulty }

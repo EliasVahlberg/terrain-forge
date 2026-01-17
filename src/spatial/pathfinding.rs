@@ -175,6 +175,92 @@ pub fn dijkstra_map<C: Cell>(
     map
 }
 
+/// Find a shortest path between two points using a Dijkstra cost map.
+pub fn shortest_path<C: Cell>(
+    grid: &Grid<C>,
+    start: (usize, usize),
+    end: (usize, usize),
+    constraints: &PathfindingConstraints,
+) -> Option<Vec<(usize, usize)>> {
+    if !grid.in_bounds(start.0 as i32, start.1 as i32)
+        || !grid.in_bounds(end.0 as i32, end.1 as i32)
+    {
+        return None;
+    }
+
+    if constraints.blocked_cells.contains(&start) || constraints.blocked_cells.contains(&end) {
+        return None;
+    }
+
+    if !grid
+        .get(start.0 as i32, start.1 as i32)
+        .is_some_and(|cell| cell.is_passable())
+    {
+        return None;
+    }
+
+    if !grid
+        .get(end.0 as i32, end.1 as i32)
+        .is_some_and(|cell| cell.is_passable())
+    {
+        return None;
+    }
+
+    let dijkstra = dijkstra_map(grid, &[end], constraints);
+    if dijkstra.get(start.0, start.1) == f32::INFINITY {
+        return None;
+    }
+
+    if start == end {
+        return Some(vec![start]);
+    }
+
+    let mut path = vec![start];
+    let mut current = start;
+    let mut remaining_steps = grid.width() * grid.height();
+
+    while current != end && remaining_steps > 0 {
+        let (x, y) = current;
+        let current_cost = dijkstra.get(x, y);
+        let mut best = None;
+        let mut best_cost = current_cost;
+
+        for &(dx, dy) in constraints.movement_cost.keys() {
+            let nx = x as i32 + dx;
+            let ny = y as i32 + dy;
+            if !grid.in_bounds(nx, ny) {
+                continue;
+            }
+
+            let npos = (nx as usize, ny as usize);
+            if constraints.blocked_cells.contains(&npos) {
+                continue;
+            }
+
+            if !grid.get(nx, ny).is_some_and(|cell| cell.is_passable()) {
+                continue;
+            }
+
+            let cost = dijkstra.get(npos.0, npos.1);
+            if cost < best_cost {
+                best_cost = cost;
+                best = Some(npos);
+            }
+        }
+
+        let next = best?;
+        path.push(next);
+        current = next;
+        remaining_steps = remaining_steps.saturating_sub(1);
+    }
+
+    if current == end {
+        Some(path)
+    } else {
+        None
+    }
+}
+
 /// Generate flow field from Dijkstra map
 pub fn flow_field_from_dijkstra(dijkstra: &DijkstraMap) -> FlowField {
     let mut flow = FlowField::new(dijkstra.width(), dijkstra.height());

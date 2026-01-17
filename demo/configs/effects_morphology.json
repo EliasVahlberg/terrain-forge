@@ -1,0 +1,12 @@
+{
+  "name": "effects_morphology",
+  "width": 80,
+  "height": 60,
+  "algorithm": "cellular",
+  "effects": [
+    { "name": "erode", "config": { "iterations": 1 } },
+    { "name": "dilate", "config": { "iterations": 1 } },
+    "open",
+    "close"
+  ]
+}

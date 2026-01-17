@@ -1,0 +1,27 @@
+{
+  "name": "marker_connect_path",
+  "width": 90,
+  "height": 70,
+  "pipeline": [
+    { "type": "cellular", "initial_floor_chance": 0.48, "iterations": 4 },
+    { "type": "glass_seam", "coverage_threshold": 0.9 }
+  ],
+  "effects": [
+    {
+      "name": "clear_marker_area",
+      "config": { "marker": "playerstart", "width": 3, "height": 3 }
+    },
+    {
+      "name": "clear_marker_area",
+      "config": { "marker": "exit", "width": 3, "height": 3 }
+    },
+    {
+      "name": "connect_markers",
+      "config": { "from": "playerstart", "to": "exit", "method": "path", "radius": 0 }
+    }
+  ],
+  "requirements": {
+    "required_markers": { "playerstart": 1, "exit": 1 },
+    "max_attempts": 10
+  }
+}

@@ -10,17 +10,20 @@ pub fn generate(cfg: &config::Config, seed: u64) -> (Grid<Tile>, Duration) {
 
     let start = Instant::now();
     generator.generate(&mut grid, seed);
-    config::apply_effects(&mut grid, &cfg.effects);
+    if config::effects_need_semantic(&cfg.effects) {
+        let mut rng = terrain_forge::Rng::new(seed);
+        let extractor = select_extractor(cfg);
+        let semantic = extractor.extract(&grid, &mut rng);
+        config::apply_effects(&mut grid, &cfg.effects, Some(&semantic));
+    } else {
+        config::apply_effects(&mut grid, &cfg.effects, None);
+    }
     let elapsed = start.elapsed();
 
     (grid, elapsed)
 }
 
-pub fn generate_grid_and_semantic(
-    cfg: &config::Config,
-    seed: u64,
-    need_semantic: bool,
-) -> Result<
+pub type GenerateResult = Result<
     (
         Grid<Tile>,
         Option<SemanticLayers>,
@@ -28,7 +31,13 @@ pub fn generate_grid_and_semantic(
         Option<constraints::ConstraintReport>,
     ),
     Box<dyn std::error::Error>,
-> {
+>;
+
+pub fn generate_grid_and_semantic(
+    cfg: &config::Config,
+    seed: u64,
+    need_semantic: bool,
+) -> GenerateResult {
     if let Some(req) = &cfg.requirements {
         let extractor = select_extractor(cfg);
         let attempts = req.attempts();
@@ -49,8 +58,8 @@ pub fn generate_grid_and_semantic(
             let report = constraint_set.evaluate(&ctx);
 
             if report.passed {
-                let full_report = build_constraint_report(cfg, &grid, Some(&semantic))
-                    .or(Some(report));
+                let full_report =
+                    build_constraint_report(cfg, &grid, Some(&semantic)).or(Some(report));
                 return Ok((grid, Some(semantic), elapsed, full_report));
             }
 

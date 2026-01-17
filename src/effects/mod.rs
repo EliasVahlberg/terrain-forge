@@ -10,7 +10,8 @@ mod warp;
 
 pub use blend::{gradient_blend, radial_blend, threshold};
 pub use connectivity::{
-    bridge_gaps, connect_regions_spanning, find_chokepoints, label_regions, remove_dead_ends,
+    bridge_gaps, carve_path, clear_rect, connect_markers, connect_regions_spanning,
+    find_chokepoints, label_regions, remove_dead_ends, MarkerConnectMethod,
 };
 pub use filters::{gaussian_blur, median_filter};
 pub use morphology::{close, dilate, erode, open};
