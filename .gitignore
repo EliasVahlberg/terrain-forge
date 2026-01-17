@@ -24,3 +24,5 @@ Thumbs.db
 feature_requests
 demo/output/backup/
 demo/test_semantic.txt
+demo/output/test_output.png
+demo/output/test_semantic.txt
