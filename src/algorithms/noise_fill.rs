@@ -65,6 +65,18 @@ impl Algorithm<Tile> for NoiseFill {
                 fill_from_noise(grid, w, h, &noise, self.config.threshold);
             }
         }
+
+        // Keep borders as walls for consistency with standard algorithms.
+        if w > 0 && h > 0 {
+            for x in 0..w {
+                grid.set(x as i32, 0, Tile::Wall);
+                grid.set(x as i32, (h - 1) as i32, Tile::Wall);
+            }
+            for y in 0..h {
+                grid.set(0, y as i32, Tile::Wall);
+                grid.set((w - 1) as i32, y as i32, Tile::Wall);
+            }
+        }
     }
 
     fn name(&self) -> &'static str {
