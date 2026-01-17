@@ -25,7 +25,7 @@ Crates.io: https://crates.io/crates/terrain-forge
 
 ```toml
 [dependencies]
-terrain-forge = "0.4"
+terrain-forge = "0.5"
 ```
 
 ```rust
