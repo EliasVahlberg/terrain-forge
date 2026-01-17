@@ -328,3 +328,57 @@ seed = 123
 width = 160
 height = 120
 outputs = ["text"]
+
+[[demo]]
+id = "feature_coverage"
+title = "Full Feature Coverage"
+description = "Demonstrates every TerrainForge feature: remaining algorithms, prefabs, requirements, and advanced effects."
+tags = ["coverage", "prefab", "requirements", "effects", "algorithms"]
+
+[[demo.runs]]
+name = "dla_splatter"
+spec = "dla"
+seed = 24601
+width = 80
+height = 60
+outputs = ["regions"]
+description = "Diffusion-limited aggregation coverage with semantic regions."
+
+[[demo.runs]]
+name = "diamond_plateaus"
+spec = "diamond_square"
+seed = 9001
+width = 90
+height = 90
+outputs = ["regions"]
+description = "Diamond-square fractal plateaus rendered via region overlay."
+
+[[demo.runs]]
+name = "fractal_gallery"
+spec = "fractal"
+seed = 1337
+width = 100
+height = 70
+outputs = ["regions"]
+description = "Mandelbrot / Julia hybrid floors showcasing fractal generator."
+
+[[demo.runs]]
+name = "prefab_rotation_showcase"
+config = "demo/configs/prefab_rotation.json"
+outputs = ["semantic"]
+description = "Prefab placer with rotation/mirroring and semantic overlays."
+
+[[demo.runs]]
+name = "requirements_dungeon"
+config = "demo/configs/requirements_bsp.json"
+seed = 424242
+width = 96
+height = 72
+outputs = ["semantic", "text"]
+description = "Requirement-driven BSP dungeon proving marker/region constraints."
+
+[[demo.runs]]
+name = "warped_caves"
+config = "demo/configs/warped_caves.json"
+outputs = ["regions"]
+description = "Domain-warped cellular caves plus smoothing effects."

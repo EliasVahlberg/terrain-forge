@@ -1,0 +1,18 @@
+{
+  "name": "requirements_bsp",
+  "width": 90,
+  "height": 70,
+  "algorithm": "bsp",
+  "effects": [
+    "remove_dead_ends",
+    {
+      "name": "connect_regions_spanning",
+      "config": { "extra_connection_chance": 0.25 }
+    }
+  ],
+  "requirements": {
+    "min_regions": { "Hall": 1 },
+    "required_markers": {},
+    "max_attempts": 6
+  }
+}

@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use terrain_forge::{
     algorithms::{self, *},
     compose::{BlendMode, LayeredGenerator, Pipeline},
-    effects, Algorithm, Grid, Tile,
+    effects, noise,
+    semantic::{MarkerType, SemanticRequirements},
+    Algorithm, Grid, Tile,
 };
 
 #[derive(Deserialize)]
@@ -28,6 +30,8 @@ pub struct Config {
 
     // Validation
     pub validate: Option<ValidationSpec>,
+    // Semantic requirements (will trigger multi-attempt generation)
+    pub requirements: Option<RequirementsSpec>,
 }
 
 fn default_width() -> usize {
@@ -74,6 +78,20 @@ fn default_blend() -> String {
 pub struct ValidationSpec {
     pub connectivity: Option<f32>,
     pub density: Option<(f64, f64)>,
+}
+
+#[derive(Deserialize, Clone, Default)]
+pub struct RequirementsSpec {
+    #[serde(default)]
+    pub min_regions: HashMap<String, usize>,
+    #[serde(default)]
+    pub max_regions: HashMap<String, usize>,
+    #[serde(default)]
+    pub required_connections: Vec<(String, String)>,
+    pub min_walkable_area: Option<usize>,
+    #[serde(default)]
+    pub required_markers: HashMap<String, usize>,
+    pub max_attempts: Option<usize>,
 }
 
 impl Config {
@@ -171,6 +189,10 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
                 steps_per_agent: get_usize(params, "steps_per_agent", 200),
                 turn_chance: get_f64(params, "turn_chance", 0.3),
             })),
+            "glass_seam" => Box::new(GlassSeam {
+                coverage_threshold: get_f64(params, "coverage_threshold", 0.75),
+            }),
+            "fractal" => Box::new(Fractal::default()),
             "room_accretion" => {
                 let templates = if let Some(templates_val) = params.get("templates") {
                     parse_room_templates(templates_val)
@@ -342,6 +364,17 @@ pub fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec]) {
                     let mut rng = terrain_forge::Rng::new(42);
                     effects::connect_regions_spanning(grid, 0.2, &mut rng);
                 }
+                "mirror" => effects::mirror(grid, true, false),
+                "rotate" => effects::rotate(grid, 90),
+                "scatter" => {
+                    effects::scatter(grid, 0.15, 42);
+                }
+                "gaussian_blur" => effects::gaussian_blur(grid, 1),
+                "median_filter" => effects::median_filter(grid, 1),
+                "domain_warp" => {
+                    let noise = noise::Perlin::new(42).with_frequency(0.08);
+                    effects::domain_warp(grid, &noise, 2.0, 0.1);
+                }
                 _ => eprintln!("Unknown effect: {}", name),
             },
             EffectSpec::WithParams { name, config } => match name.as_str() {
@@ -366,6 +399,53 @@ pub fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec]) {
                         .and_then(|v| v.as_u64())
                         .unwrap_or(1) as usize;
                     effects::dilate(grid, iterations);
+                }
+                "rotate" => {
+                    let degrees =
+                        config.get("degrees").and_then(|v| v.as_u64()).unwrap_or(90) as u32;
+                    effects::rotate(grid, degrees);
+                }
+                "mirror" => {
+                    let horizontal = config
+                        .get("horizontal")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(true);
+                    let vertical = config
+                        .get("vertical")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false);
+                    effects::mirror(grid, horizontal, vertical);
+                }
+                "scatter" => {
+                    let density = config
+                        .get("density")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.12);
+                    let seed = config.get("seed").and_then(|v| v.as_u64()).unwrap_or(42);
+                    effects::scatter(grid, density, seed);
+                }
+                "gaussian_blur" => {
+                    let radius =
+                        config.get("radius").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                    effects::gaussian_blur(grid, radius);
+                }
+                "median_filter" => {
+                    let radius =
+                        config.get("radius").and_then(|v| v.as_u64()).unwrap_or(1) as usize;
+                    effects::median_filter(grid, radius);
+                }
+                "domain_warp" => {
+                    let amplitude = config
+                        .get("amplitude")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(2.0);
+                    let frequency = config
+                        .get("frequency")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.08);
+                    let seed = config.get("seed").and_then(|v| v.as_u64()).unwrap_or(42);
+                    let noise = noise::Perlin::new(seed).with_frequency(frequency);
+                    effects::domain_warp(grid, &noise, amplitude, frequency);
                 }
                 _ => eprintln!("Unknown effect: {}", name),
             },
@@ -393,6 +473,7 @@ pub fn parse_shorthand(input: &str) -> Config {
             layers: None,
             effects: vec![],
             validate: None,
+            requirements: None,
         }
     } else if input.contains('|') || input.contains('&') {
         // Layers
@@ -438,6 +519,7 @@ pub fn parse_shorthand(input: &str) -> Config {
             layers: Some(layers),
             effects: vec![],
             validate: None,
+            requirements: None,
         }
     } else {
         // Single algorithm
@@ -451,6 +533,69 @@ pub fn parse_shorthand(input: &str) -> Config {
             layers: None,
             effects: vec![],
             validate: None,
+            requirements: None,
         }
+    }
+}
+
+impl RequirementsSpec {
+    pub fn to_requirements(&self) -> SemanticRequirements {
+        let mut req = SemanticRequirements::none();
+        req.min_regions.extend(self.min_regions.clone());
+        req.max_regions.extend(self.max_regions.clone());
+        req.required_connections
+            .extend(self.required_connections.clone());
+        req.min_walkable_area = self.min_walkable_area;
+
+        for (marker, count) in &self.required_markers {
+            req.required_markers
+                .insert(parse_marker_type(marker), *count);
+        }
+
+        req
+    }
+
+    pub fn attempts(&self) -> usize {
+        self.max_attempts.unwrap_or(10).max(1)
+    }
+}
+
+fn parse_marker_type(name: &str) -> MarkerType {
+    let trimmed = name.trim();
+    let lower = trimmed.to_ascii_lowercase();
+    match lower.as_str() {
+        "spawn" => MarkerType::Spawn,
+        "playerstart" | "player_start" => MarkerType::Custom("PlayerStart".to_string()),
+        "exit" => MarkerType::Custom("Exit".to_string()),
+        "treasure" | "loot" => MarkerType::Custom("Treasure".to_string()),
+        "enemy" => MarkerType::Custom("Enemy".to_string()),
+        "furniture" => MarkerType::Custom("Furniture".to_string()),
+        "boss" | "boss_room" => MarkerType::BossRoom,
+        "safe_zone" | "safezone" => MarkerType::SafeZone,
+        _ if lower.starts_with("quest_objective") => {
+            let lvl = lower
+                .split('_')
+                .last()
+                .and_then(|v| v.parse::<u8>().ok())
+                .unwrap_or(1);
+            MarkerType::QuestObjective { priority: lvl }
+        }
+        _ if lower.starts_with("loot_tier") => {
+            let tier = lower
+                .split('_')
+                .last()
+                .and_then(|v| v.parse::<u8>().ok())
+                .unwrap_or(1);
+            MarkerType::LootTier { tier }
+        }
+        _ if lower.starts_with("encounter") => {
+            let difficulty = lower
+                .split('_')
+                .last()
+                .and_then(|v| v.parse::<u8>().ok())
+                .unwrap_or(1);
+            MarkerType::EncounterZone { difficulty }
+        }
+        _ => MarkerType::Custom(trimmed.to_string()),
     }
 }

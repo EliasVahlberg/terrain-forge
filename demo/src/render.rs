@@ -2,6 +2,7 @@
 
 use image::{ImageBuffer, Rgb, RgbImage};
 use std::collections::HashMap;
+use terrain_forge::constraints::ConstraintReport;
 use terrain_forge::{Grid, SemanticLayers, Tile};
 
 const FLOOR_COLOR: Rgb<u8> = Rgb([200, 200, 200]);
@@ -302,6 +303,52 @@ pub fn render_text_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLa
         }
     } else {
         out = render_text(grid);
+    }
+
+    out
+}
+
+pub fn render_text_with_semantic_and_report(
+    grid: &Grid<Tile>,
+    semantic: &Option<SemanticLayers>,
+    report: Option<&ConstraintReport>,
+) -> String {
+    let mut out = render_text_with_semantic(grid, semantic);
+
+    if let Some(report) = report {
+        out.push('\n');
+        out.push_str(&format_constraint_report(report));
+    }
+
+    out
+}
+
+pub fn format_constraint_report(report: &ConstraintReport) -> String {
+    let mut out = String::new();
+    let status = if report.passed { "PASS" } else { "FAIL" };
+    out.push_str(&format!("Constraint Report: {}\n", status));
+
+    for eval in &report.results {
+        let result_status = if eval.result.passed { "PASS" } else { "FAIL" };
+        out.push_str(&format!(
+            "- [{}] {} ({:?}) score={:.2}",
+            result_status, eval.id, eval.kind, eval.result.score
+        ));
+
+        if !eval.result.details.is_empty() {
+            let mut details: Vec<_> = eval.result.details.iter().collect();
+            details.sort_by_key(|(key, _)| *key);
+            out.push(' ');
+            out.push_str(
+                &details
+                    .into_iter()
+                    .map(|(key, value)| format!("{}={}", key, value))
+                    .collect::<Vec<_>>()
+                    .join(" "),
+            );
+        }
+
+        out.push('\n');
     }
 
     out

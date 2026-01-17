@@ -16,6 +16,21 @@ struct Cli {
     command: Command,
 }
 
+#[derive(Clone, Copy)]
+struct OutputFlags {
+    constraints_report: bool,
+    constraints_only: bool,
+}
+
+impl OutputFlags {
+    fn new(constraints_report: bool, constraints_only: bool) -> Self {
+        Self {
+            constraints_report: constraints_report || constraints_only,
+            constraints_only,
+        }
+    }
+}
+
 #[derive(Subcommand)]
 enum Command {
     /// Generate from algorithm name or shorthand
@@ -42,6 +57,10 @@ enum Command {
         masks: bool,
         #[arg(long)]
         connectivity: bool,
+        #[arg(long)]
+        constraints_report: bool,
+        #[arg(long)]
+        constraints_only: bool,
     },
     /// Run a saved config file
     Run {
@@ -61,6 +80,10 @@ enum Command {
         masks: bool,
         #[arg(long)]
         connectivity: bool,
+        #[arg(long)]
+        constraints_report: bool,
+        #[arg(long)]
+        constraints_only: bool,
     },
     /// Compare multiple algorithms or configs
     Compare {
@@ -89,6 +112,10 @@ enum Command {
         /// Manifest path
         #[arg(long, default_value = "demo/manifest.toml")]
         manifest: String,
+        #[arg(long)]
+        constraints_report: bool,
+        #[arg(long)]
+        constraints_only: bool,
     },
     /// List available algorithms
     List,
@@ -110,8 +137,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             regions,
             masks,
             connectivity,
+            constraints_report,
+            constraints_only,
         } => {
             let seed = seed.unwrap_or_else(random_seed);
+            let output_flags = OutputFlags::new(constraints_report, constraints_only);
             let mut cfg = config::parse_shorthand(&spec);
             cfg.width = width * scale;
             cfg.height = height * scale;
@@ -126,6 +156,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     regions,
                     masks,
                     connectivity,
+                    output_flags,
                 )?;
             } else {
                 let (grid, elapsed) = generate(&cfg, seed);
@@ -133,12 +164,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if text {
                     let txt_path = output.replace(".png", ".txt");
                     render::save_text(&render::render_text(&grid), &txt_path)?;
-                    println!("Saved to {}", txt_path);
+                    if !output_flags.constraints_only {
+                        println!("Saved to {}", txt_path);
+                    }
                 } else {
                     render::save_png(&render::render_grid(&grid), &output)?;
-                    println!("Saved to {}", output);
+                    if !output_flags.constraints_only {
+                        println!("Saved to {}", output);
+                    }
                 }
-                print_metrics(&spec, &grid, seed, elapsed);
+                if !output_flags.constraints_only {
+                    print_metrics(&spec, &grid, seed, elapsed);
+                }
+                if output_flags.constraints_only {
+                    print!("{}", constraint_report_text(None));
+                }
             }
         }
 
@@ -151,9 +191,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             regions,
             masks,
             connectivity,
+            constraints_report,
+            constraints_only,
         } => {
             let cfg = config::Config::load(&path)?;
             let seed = seed.or(cfg.seed).unwrap_or_else(random_seed);
+            let output_flags = OutputFlags::new(constraints_report, constraints_only);
 
             if semantic || regions || masks || connectivity {
                 generate_with_semantic_viz(
@@ -164,34 +207,105 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     regions,
                     masks,
                     connectivity,
+                    output_flags,
                 )?;
-            } else {
-                let (grid, elapsed) = generate(&cfg, seed);
+            } else if cfg.requirements.is_some() {
+                // Requirements need semantic extraction even if no semantic output requested
+                let (grid, semantic, elapsed, report) =
+                    generate_grid_and_semantic(&cfg, seed, false)?;
 
                 // Validation
                 if let Some(validate) = &cfg.validate {
                     let conn = constraints::validate_connectivity(&grid);
                     if let Some(min_conn) = validate.connectivity {
                         if conn < min_conn {
-                            eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
+                            if !output_flags.constraints_only {
+                                eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
+                            }
                         }
                     }
                     if let Some((min, max)) = validate.density {
                         if !constraints::validate_density(&grid, min, max) {
-                            eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
+                            if !output_flags.constraints_only {
+                                eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
+                            }
                         }
                     }
                 }
 
                 if text {
                     let txt_path = output.replace(".png", ".txt");
-                    render::save_text(&render::render_text(&grid), &txt_path)?;
-                    println!("Saved to {}", txt_path);
+                    let text_output = if output_flags.constraints_report {
+                        render::render_text_with_semantic_and_report(
+                            &grid,
+                            &semantic,
+                            report.as_ref(),
+                        )
+                    } else {
+                        render::render_text(&grid)
+                    };
+                    render::save_text(&text_output, &txt_path)?;
+                    if !output_flags.constraints_only {
+                        println!("Saved to {}", txt_path);
+                    }
                 } else {
                     render::save_png(&render::render_grid(&grid), &output)?;
-                    println!("Saved to {}", output);
+                    if !output_flags.constraints_only {
+                        println!("Saved to {}", output);
+                    }
                 }
-                print_metrics(cfg.name.as_deref().unwrap_or(&path), &grid, seed, elapsed);
+                if !output_flags.constraints_only {
+                    print_metrics(cfg.name.as_deref().unwrap_or(&path), &grid, seed, elapsed);
+                }
+                if output_flags.constraints_only {
+                    print!("{}", constraint_report_text(report.as_ref()));
+                }
+            } else {
+                let (grid, elapsed) = generate(&cfg, seed);
+                let report = build_constraint_report(&cfg, &grid, None);
+
+                // Validation
+                if let Some(validate) = &cfg.validate {
+                    let conn = constraints::validate_connectivity(&grid);
+                    if let Some(min_conn) = validate.connectivity {
+                        if conn < min_conn {
+                            if !output_flags.constraints_only {
+                                eprintln!("Warning: connectivity {:.2} < {:.2}", conn, min_conn);
+                            }
+                        }
+                    }
+                    if let Some((min, max)) = validate.density {
+                        if !constraints::validate_density(&grid, min, max) {
+                            if !output_flags.constraints_only {
+                                eprintln!("Warning: density outside [{:.2}, {:.2}]", min, max);
+                            }
+                        }
+                    }
+                }
+
+                if text {
+                    let txt_path = output.replace(".png", ".txt");
+                    let text_output = if output_flags.constraints_report {
+                        render::render_text_with_semantic_and_report(&grid, &None, report.as_ref())
+                    } else {
+                        render::render_text(&grid)
+                    };
+                    render::save_text(&text_output, &txt_path)?;
+                    if !output_flags.constraints_only {
+                        println!("Saved to {}", txt_path);
+                    }
+                } else {
+                    render::save_png(&render::render_grid(&grid), &output)?;
+                    if !output_flags.constraints_only {
+                        println!("Saved to {}", output);
+                    }
+                }
+                if !output_flags.constraints_only {
+                    print_metrics(cfg.name.as_deref().unwrap_or(&path), &grid, seed, elapsed);
+                }
+                if output_flags.constraints_only {
+                    print!("{}", constraint_report_text(report.as_ref()));
+                }
             }
         }
 
@@ -240,8 +354,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             list,
             all,
             manifest,
+            constraints_report,
+            constraints_only,
         } => {
             let manifest_data = manifest::load(&manifest)?;
+            let output_flags = OutputFlags::new(constraints_report, constraints_only);
 
             if list {
                 print_demo_list(&manifest_data);
@@ -252,8 +369,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if run.is_some() {
                     return Err("--run cannot be combined with --all".into());
                 }
+                let mut all_timings = Vec::new();
                 for demo in &manifest_data.demo {
-                    run_manifest_demo(&manifest_data, demo, None)?;
+                    let mut demo_timings =
+                        run_manifest_demo(&manifest_data, demo, None, output_flags)?;
+                    all_timings.append(&mut demo_timings);
+                }
+                if !output_flags.constraints_only {
+                    print_overall_report(&all_timings);
                 }
                 return Ok(());
             }
@@ -264,7 +387,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .find_demo(&id)
                 .ok_or_else(|| format!("Demo id '{}' not found in manifest", id))?;
 
-            run_manifest_demo(&manifest_data, demo, run.as_deref())?;
+            run_manifest_demo(&manifest_data, demo, run.as_deref(), output_flags)?;
         }
 
         Command::List => {
@@ -286,70 +409,91 @@ fn generate_with_semantic_viz(
     regions: bool,
     masks: bool,
     connectivity: bool,
+    output_flags: OutputFlags,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (tiles, semantic, _) = generate_grid_and_semantic(cfg, seed, true);
+    let (tiles, semantic, _, report) = generate_grid_and_semantic(cfg, seed, true)?;
 
     if let Some(semantic) = &semantic {
         // Print semantic information
-        println!("Semantic Analysis (seed: {}):", seed);
-        println!("  Regions: {}", semantic.regions.len());
-        println!("  Markers: {}", semantic.markers.len());
-        println!(
-            "  Connectivity: {} regions, {} edges",
-            semantic.connectivity.regions.len(),
-            semantic.connectivity.edges.len()
-        );
+        if !output_flags.constraints_only {
+            println!("Semantic Analysis (seed: {}):", seed);
+            println!("  Regions: {}", semantic.regions.len());
+            println!("  Markers: {}", semantic.markers.len());
+            println!(
+                "  Connectivity: {} regions, {} edges",
+                semantic.connectivity.regions.len(),
+                semantic.connectivity.edges.len()
+            );
 
-        // Group markers by type
-        let mut marker_counts = std::collections::HashMap::new();
-        for marker in &semantic.markers {
-            *marker_counts.entry(marker.tag()).or_insert(0) += 1;
-        }
+            // Group markers by type
+            let mut marker_counts = std::collections::HashMap::new();
+            for marker in &semantic.markers {
+                *marker_counts.entry(marker.tag()).or_insert(0) += 1;
+            }
 
-        println!("  Marker types:");
-        for (tag, count) in marker_counts {
-            println!("    {}: {}", tag, count);
-        }
+            println!("  Marker types:");
+            for (tag, count) in marker_counts {
+                println!("    {}: {}", tag, count);
+            }
 
-        // Region breakdown
-        let mut region_types = std::collections::HashMap::new();
-        for region in &semantic.regions {
-            *region_types.entry(&region.kind).or_insert(0) += 1;
-        }
+            // Region breakdown
+            let mut region_types = std::collections::HashMap::new();
+            for region in &semantic.regions {
+                *region_types.entry(&region.kind).or_insert(0) += 1;
+            }
 
-        println!("  Region types:");
-        for (kind, count) in region_types {
-            println!("    {}: {}", kind, count);
+            println!("  Region types:");
+            for (kind, count) in region_types {
+                println!("    {}: {}", kind, count);
+            }
         }
     }
 
     if text {
         let txt_path = output.replace(".png", ".txt");
-        let text_output = render::render_text_with_semantic(&tiles, &semantic);
+        let text_output = if output_flags.constraints_report {
+            render::render_text_with_semantic_and_report(&tiles, &semantic, report.as_ref())
+        } else {
+            render::render_text_with_semantic(&tiles, &semantic)
+        };
         render::save_text(&text_output, &txt_path)?;
-        println!("Saved semantic visualization to {}", txt_path);
+        if !output_flags.constraints_only {
+            println!("Saved semantic visualization to {}", txt_path);
+        }
     } else if regions {
         if let Some(semantic) = &semantic {
             let img = render::render_regions_png(&tiles, semantic);
             render::save_png(&img, output)?;
-            println!("Saved regions visualization to {}", output);
+            if !output_flags.constraints_only {
+                println!("Saved regions visualization to {}", output);
+            }
         }
     } else if masks {
         if let Some(semantic) = &semantic {
             let img = render::render_masks_png(&tiles, semantic);
             render::save_png(&img, output)?;
-            println!("Saved masks visualization to {}", output);
+            if !output_flags.constraints_only {
+                println!("Saved masks visualization to {}", output);
+            }
         }
     } else if connectivity {
         if let Some(semantic) = &semantic {
             let img = render::render_connectivity_png(&tiles, semantic);
             render::save_png(&img, output)?;
-            println!("Saved connectivity visualization to {}", output);
+            if !output_flags.constraints_only {
+                println!("Saved connectivity visualization to {}", output);
+            }
         }
     } else {
         let img = render::render_grid_with_semantic(&tiles, &semantic);
         render::save_png(&img, output)?;
-        println!("Saved semantic visualization to {}", output);
+        if !output_flags.constraints_only {
+            println!("Saved semantic visualization to {}", output);
+        }
+    }
+
+    if output_flags.constraints_only {
+        print!("{}", constraint_report_text(report.as_ref()));
     }
 
     Ok(())
@@ -371,17 +515,61 @@ fn generate_grid_and_semantic(
     cfg: &config::Config,
     seed: u64,
     need_semantic: bool,
-) -> (Grid<Tile>, Option<SemanticLayers>, std::time::Duration) {
-    let (grid, elapsed) = generate(cfg, seed);
+) -> Result<
+    (
+        Grid<Tile>,
+        Option<SemanticLayers>,
+        std::time::Duration,
+        Option<constraints::ConstraintReport>,
+    ),
+    Box<dyn std::error::Error>,
+> {
+    if let Some(req) = &cfg.requirements {
+        let extractor = select_extractor(cfg);
+        let attempts = req.attempts();
+        let requirements = req.to_requirements();
+        let mut constraint_set = constraints::ConstraintSet::new();
+        constraint_set.push(constraints::SemanticRequirementsConstraint::new(
+            requirements.clone(),
+        ));
+        let mut attempt_seed = seed;
 
+        for _ in 0..attempts {
+            let (grid, elapsed) = generate(cfg, attempt_seed);
+            let mut rng = terrain_forge::Rng::new(attempt_seed);
+            let semantic = extractor.extract(&grid, &mut rng);
+
+            let mut ctx = constraints::ConstraintContext::new(&grid);
+            ctx.semantic = Some(&semantic);
+            let report = constraint_set.evaluate(&ctx);
+
+            if report.passed {
+                let full_report = build_constraint_report(cfg, &grid, Some(&semantic))
+                    .or(Some(report));
+                return Ok((grid, Some(semantic), elapsed, full_report));
+            }
+
+            attempt_seed = attempt_seed.wrapping_add(1);
+        }
+
+        return Err(format!(
+            "Failed to meet semantic requirements after {} attempt(s)",
+            attempts
+        )
+        .into());
+    }
+
+    let (grid, elapsed) = generate(cfg, seed);
     if !need_semantic {
-        return (grid, None, elapsed);
+        let report = build_constraint_report(cfg, &grid, None);
+        return Ok((grid, None, elapsed, report));
     }
 
     let mut rng = terrain_forge::Rng::new(seed);
     let extractor = select_extractor(cfg);
     let semantic = extractor.extract(&grid, &mut rng);
-    (grid, Some(semantic), elapsed)
+    let report = build_constraint_report(cfg, &grid, Some(&semantic));
+    Ok((grid, Some(semantic), elapsed, report))
 }
 
 fn select_extractor(cfg: &config::Config) -> SemanticExtractor {
@@ -423,11 +611,54 @@ fn print_metrics(name: &str, grid: &Grid<Tile>, seed: u64, elapsed: std::time::D
     println!("  Time: {:?}", elapsed);
 }
 
+fn build_constraint_report(
+    cfg: &config::Config,
+    grid: &Grid<Tile>,
+    semantic: Option<&SemanticLayers>,
+) -> Option<constraints::ConstraintReport> {
+    let mut set = constraints::ConstraintSet::new();
+    let mut has_constraints = false;
+
+    if let Some(req) = &cfg.requirements {
+        set.push(constraints::SemanticRequirementsConstraint::new(
+            req.to_requirements(),
+        ));
+        has_constraints = true;
+    }
+
+    if let Some(validate) = &cfg.validate {
+        if let Some(min_conn) = validate.connectivity {
+            set.push(constraints::ConnectivityConstraint::new(min_conn));
+            has_constraints = true;
+        }
+        if let Some((min, max)) = validate.density {
+            set.push(constraints::DensityConstraint::new(min, max));
+            has_constraints = true;
+        }
+    }
+
+    if !has_constraints {
+        return None;
+    }
+
+    let mut ctx = constraints::ConstraintContext::new(grid);
+    ctx.semantic = semantic;
+    Some(set.evaluate(&ctx))
+}
+
+#[derive(Debug)]
+struct RunTiming {
+    demo_id: String,
+    run_name: String,
+    duration: std::time::Duration,
+}
+
 fn run_manifest_demo(
     manifest_data: &manifest::Manifest,
     demo: &manifest::Demo,
     run_filter: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error>> {
+    output_flags: OutputFlags,
+) -> Result<Vec<RunTiming>, Box<dyn std::error::Error>> {
     let demo_start = Instant::now();
     let output_root = demo
         .output_dir
@@ -436,22 +667,25 @@ fn run_manifest_demo(
     let demo_dir = format!("{}/{}", output_root, demo.id);
     fs::create_dir_all(&demo_dir)?;
 
-    println!(
-        "Demo: {}{}",
-        demo.id,
-        demo.title
-            .as_deref()
-            .map(|t| format!(" - {}", t))
-            .unwrap_or_default()
-    );
-    if let Some(desc) = &demo.description {
-        println!("  {}", desc);
-    }
-    if !demo.tags.is_empty() {
-        println!("  Tags: {}", demo.tags.join(", "));
+    if !output_flags.constraints_only {
+        println!(
+            "Demo: {}{}",
+            demo.id,
+            demo.title
+                .as_deref()
+                .map(|t| format!(" - {}", t))
+                .unwrap_or_default()
+        );
+        if let Some(desc) = &demo.description {
+            println!("  {}", desc);
+        }
+        if !demo.tags.is_empty() {
+            println!("  Tags: {}", demo.tags.join(", "));
+        }
     }
 
     let mut ran_any = false;
+    let mut timings = Vec::new();
     for run in &demo.runs {
         if let Some(filter) = run_filter {
             if run.name != filter {
@@ -459,7 +693,12 @@ fn run_manifest_demo(
             }
         }
         ran_any = true;
-        execute_run(run, &demo_dir)?;
+        let duration = execute_run(run, &demo_dir, output_flags)?;
+        timings.push(RunTiming {
+            demo_id: demo.id.clone(),
+            run_name: run.name.clone(),
+            duration,
+        });
     }
 
     if !ran_any {
@@ -470,15 +709,54 @@ fn run_manifest_demo(
         )
         .into());
     }
-    println!(
-        "  Demo '{}' finished in {:.2?}",
-        demo.id,
-        demo_start.elapsed()
-    );
-    Ok(())
+    if !output_flags.constraints_only {
+        print_run_report(&demo.id, &timings);
+        println!(
+            "  Demo '{}' finished in {:.2?}",
+            demo.id,
+            demo_start.elapsed()
+        );
+    }
+    Ok(timings)
 }
 
-fn execute_run(run: &manifest::Run, demo_dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn print_run_report(demo_id: &str, timings: &[RunTiming]) {
+    if timings.is_empty() {
+        return;
+    }
+
+    println!("  Timing report for '{}':", demo_id);
+    for timing in timings {
+        println!(
+            "    - {:<24} {}",
+            timing.run_name,
+            format_duration_short(timing.duration)
+        );
+    }
+}
+
+fn print_overall_report(timings: &[RunTiming]) {
+    if timings.is_empty() {
+        return;
+    }
+
+    println!("\n=== Demo Run Time Report (all entries) ===");
+    for timing in timings {
+        println!(
+            "[{}] {:<24} {}",
+            timing.demo_id,
+            timing.run_name,
+            format_duration_short(timing.duration)
+        );
+    }
+    println!("=========================================");
+}
+
+fn execute_run(
+    run: &manifest::Run,
+    demo_dir: &str,
+    output_flags: OutputFlags,
+) -> Result<std::time::Duration, Box<dyn std::error::Error>> {
     let run_start = Instant::now();
     let seed = run.seed.unwrap_or_else(random_seed);
     let scale = run.scale.unwrap_or(1);
@@ -490,25 +768,29 @@ fn execute_run(run: &manifest::Run, demo_dir: &str) -> Result<(), Box<dyn std::e
         run.outputs.clone()
     };
 
-    println!(
-        "  • {} (seed {}, {}x{}) -> {:?}",
-        run.name,
-        seed,
-        width,
-        height,
-        outputs
-            .iter()
-            .map(output_slug)
-            .collect::<Vec<_>>()
-            .join(",")
-    );
-    if let Some(desc) = &run.description {
-        println!("      {}", desc);
+    if !output_flags.constraints_only {
+        println!(
+            "  • {} (seed {}, {}x{}) -> {:?}",
+            run.name,
+            seed,
+            width,
+            height,
+            outputs
+                .iter()
+                .map(output_slug)
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+        if let Some(desc) = &run.description {
+            println!("      {}", desc);
+        }
     }
 
     let cfg = build_config_for_run(run, width, height, seed)?;
-    let need_semantic = outputs.iter().any(|o| *o != manifest::OutputKind::Grid);
-    let (grid, semantic, gen_time) = generate_grid_and_semantic(&cfg, seed, need_semantic);
+    let need_semantic =
+        cfg.requirements.is_some() || outputs.iter().any(|o| *o != manifest::OutputKind::Grid);
+    let (grid, semantic, gen_time, report) =
+        generate_grid_and_semantic(&cfg, seed, need_semantic)?;
 
     for out in outputs {
         let ext = if out == manifest::OutputKind::Text {
@@ -521,47 +803,64 @@ fn execute_run(run: &manifest::Run, demo_dir: &str) -> Result<(), Box<dyn std::e
         match out {
             manifest::OutputKind::Grid => {
                 render::save_png(&render::render_grid(&grid), &path)?;
-                print_metrics(&run.name, &grid, seed, gen_time);
+                if !output_flags.constraints_only {
+                    print_metrics(&run.name, &grid, seed, gen_time);
+                }
             }
             manifest::OutputKind::Text => {
-                let txt = render::render_text_with_semantic(&grid, &semantic);
+                let txt = if output_flags.constraints_report {
+                    render::render_text_with_semantic_and_report(&grid, &semantic, report.as_ref())
+                } else {
+                    render::render_text_with_semantic(&grid, &semantic)
+                };
                 render::save_text(&txt, &path)?;
-                println!("Saved semantic visualization to {}", path);
+                if !output_flags.constraints_only {
+                    println!("Saved semantic visualization to {}", path);
+                }
             }
             manifest::OutputKind::Regions => {
                 if let Some(ref sem) = semantic {
                     let img = render::render_regions_png(&grid, sem);
                     render::save_png(&img, &path)?;
-                    println!("Saved regions visualization to {}", path);
+                    if !output_flags.constraints_only {
+                        println!("Saved regions visualization to {}", path);
+                    }
                 }
             }
             manifest::OutputKind::Masks => {
                 if let Some(ref sem) = semantic {
                     let img = render::render_masks_png(&grid, sem);
                     render::save_png(&img, &path)?;
-                    println!("Saved masks visualization to {}", path);
+                    if !output_flags.constraints_only {
+                        println!("Saved masks visualization to {}", path);
+                    }
                 }
             }
             manifest::OutputKind::Connectivity => {
                 if let Some(ref sem) = semantic {
                     let img = render::render_connectivity_png(&grid, sem);
                     render::save_png(&img, &path)?;
-                    println!("Saved connectivity visualization to {}", path);
+                    if !output_flags.constraints_only {
+                        println!("Saved connectivity visualization to {}", path);
+                    }
                 }
             }
             manifest::OutputKind::Semantic => {
                 let img = render::render_grid_with_semantic(&grid, &semantic);
                 render::save_png(&img, &path)?;
-                println!("Saved semantic visualization to {}", path);
+                if !output_flags.constraints_only {
+                    println!("Saved semantic visualization to {}", path);
+                }
             }
         }
     }
-    println!(
-        "    Completed '{}' in {:.2?}",
-        run.name,
-        run_start.elapsed()
-    );
-    Ok(())
+    let total = run_start.elapsed();
+    if output_flags.constraints_only {
+        print!("{}", constraint_report_text(report.as_ref()));
+    } else {
+        println!("    Completed '{}' in {:.2?}", run.name, total);
+    }
+    Ok(total)
 }
 
 fn build_config_for_run(
@@ -597,6 +896,21 @@ fn output_slug(kind: &manifest::OutputKind) -> &'static str {
         manifest::OutputKind::Masks => "masks",
         manifest::OutputKind::Connectivity => "connectivity",
         manifest::OutputKind::Semantic => "semantic",
+    }
+}
+
+fn format_duration_short(d: std::time::Duration) -> String {
+    if d.as_secs() >= 1 {
+        format!("{:.2}s", d.as_secs_f64())
+    } else {
+        format!("{}ms", d.as_millis())
+    }
+}
+
+fn constraint_report_text(report: Option<&constraints::ConstraintReport>) -> String {
+    match report {
+        Some(report) => render::format_constraint_report(report),
+        None => "Constraint Report: none\n".to_string(),
     }
 }
 
