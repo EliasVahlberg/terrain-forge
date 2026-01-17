@@ -1,5 +1,5 @@
 {
-  "name": "glass_seam_terminals",
+  "name": "glass_seam_terminals_after",
   "width": 100,
   "height": 70,
   "pipeline": [
@@ -17,7 +17,8 @@
       "use_mst_terminals": true
     }
   ],
-  "validate": {
-    "connectivity": 0.85
-  }
+  "markers": [
+    { "x": 5, "y": 5, "tag": "terminal_a" },
+    { "x": 94, "y": 64, "tag": "terminal_b" }
+  ]
 }

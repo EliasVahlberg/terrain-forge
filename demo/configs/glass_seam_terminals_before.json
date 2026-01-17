@@ -1,0 +1,17 @@
+{
+  "name": "glass_seam_terminals_before",
+  "width": 100,
+  "height": 70,
+  "pipeline": [
+    {
+      "type": "noise_fill",
+      "noise": "perlin",
+      "frequency": 0.08,
+      "threshold": 0.15
+    }
+  ],
+  "markers": [
+    { "x": 5, "y": 5, "tag": "terminal_a" },
+    { "x": 94, "y": 64, "tag": "terminal_b" }
+  ]
+}

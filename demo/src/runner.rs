@@ -51,7 +51,10 @@ pub fn generate_grid_and_semantic(
         for _ in 0..attempts {
             let (grid, elapsed) = generate(cfg, attempt_seed);
             let mut rng = terrain_forge::Rng::new(attempt_seed);
-            let semantic = extractor.extract(&grid, &mut rng);
+            let mut semantic = extractor.extract(&grid, &mut rng);
+            if !cfg.markers.is_empty() {
+                config::apply_marker_overrides(&cfg.markers, &mut semantic);
+            }
 
             let mut ctx = constraints::ConstraintContext::new(&grid);
             ctx.semantic = Some(&semantic);
@@ -81,7 +84,10 @@ pub fn generate_grid_and_semantic(
 
     let mut rng = terrain_forge::Rng::new(seed);
     let extractor = select_extractor(cfg);
-    let semantic = extractor.extract(&grid, &mut rng);
+    let mut semantic = extractor.extract(&grid, &mut rng);
+    if !cfg.markers.is_empty() {
+        config::apply_marker_overrides(&cfg.markers, &mut semantic);
+    }
     let report = build_constraint_report(cfg, &grid, Some(&semantic));
     Ok((grid, Some(semantic), elapsed, report))
 }

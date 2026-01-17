@@ -11,6 +11,8 @@ const LOOT_COLOR: Rgb<u8> = Rgb([255, 215, 0]); // Gold
 const BOSS_COLOR: Rgb<u8> = Rgb([255, 0, 0]); // Red
 const LIGHT_COLOR: Rgb<u8> = Rgb([255, 255, 0]); // Yellow
 const MARKER_COLOR: Rgb<u8> = Rgb([0, 255, 0]); // Green (default)
+const TERMINAL_A_COLOR: Rgb<u8> = Rgb([0, 255, 255]); // Cyan
+const TERMINAL_B_COLOR: Rgb<u8> = Rgb([255, 0, 255]); // Magenta
 
 // Region colors
 const CHAMBER_COLOR: Rgb<u8> = Rgb([100, 150, 255]);
@@ -254,12 +256,7 @@ pub fn render_grid_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLa
     if let Some(semantic) = semantic {
         // Overlay markers
         for marker in &semantic.markers {
-            let color = match marker.tag().as_str() {
-                "loot_slot" => LOOT_COLOR,
-                "boss_spawn" => BOSS_COLOR,
-                "light_anchor" => LIGHT_COLOR,
-                _ => MARKER_COLOR,
-            };
+            let color = marker_color(marker.tag().as_str());
 
             if marker.x < img.width() && marker.y < img.height() {
                 img.put_pixel(marker.x, marker.y, color);
@@ -290,6 +287,8 @@ pub fn render_text_with_semantic(grid: &Grid<Tile>, semantic: &Option<SemanticLa
                         "loot_slot" => '$',
                         "boss_spawn" => 'B',
                         "light_anchor" => '*',
+                        "terminal_a" => 'A',
+                        "terminal_b" => 'B',
                         _ => '?',
                     };
                     out.push(marker_char);
@@ -416,7 +415,34 @@ pub fn render_regions_png_scaled(
         }
     }
 
+    // Overlay markers
+    for marker in &semantic.markers {
+        let color = marker_color(marker.tag().as_str());
+        let mx = marker.x * scale;
+        let my = marker.y * scale;
+        for dx in 0..scale {
+            for dy in 0..scale {
+                let px = mx + dx;
+                let py = my + dy;
+                if px < width && py < height {
+                    img.put_pixel(px, py, color);
+                }
+            }
+        }
+    }
+
     img
+}
+
+fn marker_color(tag: &str) -> Rgb<u8> {
+    match tag {
+        "loot_slot" => LOOT_COLOR,
+        "boss_spawn" => BOSS_COLOR,
+        "light_anchor" => LIGHT_COLOR,
+        "terminal_a" => TERMINAL_A_COLOR,
+        "terminal_b" => TERMINAL_B_COLOR,
+        _ => MARKER_COLOR,
+    }
 }
 
 /// Render masks as colored PNG

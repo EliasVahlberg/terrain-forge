@@ -170,4 +170,9 @@ New coverage entries added to `feature_coverage`:
 - `requirements_markers`
 - `marker_connect_line`
 - `marker_connect_path`
-- `glass_seam_terminals`
+- `glass_seam_terminals_before`
+- `glass_seam_terminals_after`
+- `noise_fill_perlin`
+- `noise_fill_simplex`
+- `noise_fill_value`
+- `noise_fill_worley`

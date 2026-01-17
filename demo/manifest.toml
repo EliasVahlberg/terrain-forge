@@ -420,25 +420,57 @@ description = "Constraint report with density/connectivity validation."
 name = "requirements_markers"
 config = "demo/configs/requirements_markers.json"
 seed = 1
-outputs = ["semantic", "text"]
+outputs = ["semantic"]
 description = "Requirements coverage for min regions + required markers."
 
 [[demo.runs]]
 name = "marker_connect_line"
 config = "demo/configs/marker_connect_line.json"
 seed = 1
-outputs = ["semantic", "text"]
+outputs = ["semantic"]
 description = "Marker clearing + straight-line carving between PlayerStart and Exit."
 
 [[demo.runs]]
 name = "marker_connect_path"
 config = "demo/configs/marker_connect_path.json"
 seed = 12
-outputs = ["semantic", "text"]
+outputs = ["semantic"]
 description = "Marker clearing + shortest-path connection along existing floors."
 
 [[demo.runs]]
-name = "glass_seam_terminals"
-config = "demo/configs/glass_seam_terminals.json"
-outputs = ["connectivity", "text"]
-description = "Glass Seam required terminals with carve radius support."
+name = "glass_seam_terminals_before"
+config = "demo/configs/glass_seam_terminals_before.json"
+seed = 42
+outputs = ["regions"]
+description = "Noise fill without Glass Seam; terminals highlighted for comparison."
+
+[[demo.runs]]
+name = "glass_seam_terminals_after"
+config = "demo/configs/glass_seam_terminals_after.json"
+seed = 42
+outputs = ["regions"]
+description = "Noise fill with Glass Seam required terminals; terminals highlighted."
+
+[[demo.runs]]
+name = "noise_fill_perlin"
+config = "demo/configs/noise_fill_perlin.json"
+outputs = ["regions"]
+description = "Noise fill (Perlin) coverage."
+
+[[demo.runs]]
+name = "noise_fill_simplex"
+config = "demo/configs/noise_fill_simplex.json"
+outputs = ["regions"]
+description = "Noise fill (Simplex) coverage."
+
+[[demo.runs]]
+name = "noise_fill_value"
+config = "demo/configs/noise_fill_value.json"
+outputs = ["regions"]
+description = "Noise fill (Value) coverage."
+
+[[demo.runs]]
+name = "noise_fill_worley"
+config = "demo/configs/noise_fill_worley.json"
+outputs = ["regions"]
+description = "Noise fill (Worley) coverage."

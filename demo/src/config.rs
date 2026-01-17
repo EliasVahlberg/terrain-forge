@@ -32,6 +32,10 @@ pub struct Config {
     pub validate: Option<ValidationSpec>,
     // Semantic requirements (will trigger multi-attempt generation)
     pub requirements: Option<RequirementsSpec>,
+
+    // Marker overrides (for demos/visualization)
+    #[serde(default)]
+    pub markers: Vec<MarkerSpec>,
 }
 
 fn default_width() -> usize {
@@ -94,10 +98,29 @@ pub struct RequirementsSpec {
     pub max_attempts: Option<usize>,
 }
 
+#[derive(Deserialize, Clone)]
+pub struct MarkerSpec {
+    pub x: u32,
+    pub y: u32,
+    pub tag: String,
+}
+
 impl Config {
     pub fn load(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let content = std::fs::read_to_string(path)?;
         Ok(serde_json::from_str(&content)?)
+    }
+}
+
+pub fn apply_marker_overrides(markers: &[MarkerSpec], semantic: &mut SemanticLayers) {
+    for marker in markers {
+        semantic
+            .markers
+            .push(terrain_forge::semantic::Marker::with_tag(
+                marker.x,
+                marker.y,
+                marker.tag.clone(),
+            ));
     }
 }
 
@@ -621,6 +644,7 @@ pub fn parse_shorthand(input: &str) -> Config {
             effects: vec![],
             validate: None,
             requirements: None,
+            markers: vec![],
         }
     } else if input.contains('|') || input.contains('&') {
         // Layers
@@ -667,6 +691,7 @@ pub fn parse_shorthand(input: &str) -> Config {
             effects: vec![],
             validate: None,
             requirements: None,
+            markers: vec![],
         }
     } else {
         // Single algorithm
@@ -681,6 +706,7 @@ pub fn parse_shorthand(input: &str) -> Config {
             effects: vec![],
             validate: None,
             requirements: None,
+            markers: vec![],
         }
     }
 }
