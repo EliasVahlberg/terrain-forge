@@ -2,12 +2,22 @@
   "name": "connected_dungeon",
   "width": 100,
   "height": 70,
-  "layers": [
-    { "algorithm": "bsp", "blend": "replace" },
-    { "algorithm": "drunkard", "blend": "union" },
-    { "algorithm": "glass_seam", "blend": "replace" }
+  "pipeline": [
+    "bsp",
+    {
+      "op": "combine",
+      "mode": "union",
+      "source": "drunkard"
+    },
+    {
+      "op": "combine",
+      "mode": "replace",
+      "source": "glass_seam"
+    }
   ],
-  "effects": ["bridge_gaps"],
+  "effects": [
+    "bridge_gaps"
+  ],
   "validate": {
     "connectivity": 0.9
   }

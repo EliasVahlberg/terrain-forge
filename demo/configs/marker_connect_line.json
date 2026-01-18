@@ -2,24 +2,46 @@
   "name": "marker_connect_line",
   "width": 90,
   "height": 70,
-  "algorithm": { "type": "cellular", "initial_floor_chance": 0.48, "iterations": 4 },
+  "pipeline": [
+    {
+      "type": "cellular",
+      "initial_floor_chance": 0.48,
+      "iterations": 4
+    }
+  ],
   "effects": [
     {
       "name": "clear_marker_area",
-      "config": { "marker": "playerstart", "width": 5, "height": 5 }
+      "config": {
+        "marker": "playerstart",
+        "width": 5,
+        "height": 5
+      }
     },
     {
       "name": "clear_marker_area",
-      "config": { "marker": "exit", "width": 5, "height": 5 }
+      "config": {
+        "marker": "exit",
+        "width": 5,
+        "height": 5
+      }
     },
     {
       "name": "connect_markers",
-      "config": { "from": "playerstart", "to": "exit", "method": "line", "radius": 1 }
+      "config": {
+        "from": "playerstart",
+        "to": "exit",
+        "method": "line",
+        "radius": 1
+      }
     },
     "remove_dead_ends"
   ],
   "requirements": {
-    "required_markers": { "playerstart": 1, "exit": 1 },
+    "required_markers": {
+      "playerstart": 1,
+      "exit": 1
+    },
     "max_attempts": 12
   }
 }

@@ -2,13 +2,25 @@
   "name": "semantic_large_rooms",
   "width": 100,
   "height": 60,
-  "algorithm": {
-    "type": "room_accretion",
-    "templates": [
-      { "Rectangle": { "min": 15, "max": 25 } },
-      { "Circle": { "min_radius": 8, "max_radius": 12 } }
-    ],
-    "max_rooms": 6,
-    "loop_chance": 0.15
-  }
+  "pipeline": [
+    {
+      "type": "room_accretion",
+      "templates": [
+        {
+          "Rectangle": {
+            "min": 15,
+            "max": 25
+          }
+        },
+        {
+          "Circle": {
+            "min_radius": 8,
+            "max_radius": 12
+          }
+        }
+      ],
+      "max_rooms": 6,
+      "loop_chance": 0.15
+    }
+  ]
 }

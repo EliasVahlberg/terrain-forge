@@ -101,13 +101,15 @@ pub trait Algorithm<C: Cell = Tile> {
 ### Registry
 
 ```rust
-use terrain_forge::algorithms;
+use terrain_forge::{ops, algorithms};
 
-// Get algorithm by name (returns Box<dyn Algorithm<Tile>>)
-let algo = algorithms::get("bsp").unwrap();
-algo.generate(&mut grid, seed);
+let mut grid = Grid::new(80, 60);
+let seed = 12345;
 
-// List all algorithm names
+// Simple name-based execution
+ops::generate("bsp", &mut grid, Some(seed), None).unwrap();
+
+// Advanced/legacy registry access
 for name in algorithms::list() {
     println!("{}", name);
 }
@@ -180,13 +182,12 @@ algo.generate(&mut grid, seed);
 ### Pipeline (Sequential)
 
 ```rust
-use terrain_forge::compose::Pipeline;
+use terrain_forge::pipeline::Pipeline;
 
-let pipeline = Pipeline::new()
-    .add(Bsp::default())
-    .add(CellularAutomata::default());
-
-pipeline.generate(&mut grid, seed);
+let mut pipeline = Pipeline::new();
+pipeline.add_algorithm("bsp", Some(12345), None);
+pipeline.add_effect("erode", None);
+pipeline.execute_seed(&mut grid, 12345).unwrap();
 ```
 
 ### Layered (Blending)
@@ -202,7 +203,7 @@ let gen = LayeredGenerator::new()
 gen.generate(&mut grid, seed);
 ```
 
-Blend modes: `Replace`, `Union`, `Intersect`, `Mask`
+Blend modes: `Replace`, `Union`, `Intersect`, `Difference`, `Mask`
 
 ## Constraints
 
@@ -393,10 +394,11 @@ Advanced WFC implementation with pattern learning and backtracking.
 
 ```rust
 use terrain_forge::algorithms::{EnhancedWfc, WfcPatternExtractor, Pattern};
+use terrain_forge::ops;
 
 // Learn patterns from example map
 let mut example_grid = Grid::new(20, 20);
-algorithms::get("bsp").unwrap().generate(&mut example_grid, 42);
+ops::generate("bsp", &mut example_grid, Some(42), None).unwrap();
 
 let extractor = WfcPatternExtractor::new(3); // 3x3 patterns
 let patterns = extractor.extract_patterns(&example_grid);
@@ -806,21 +808,41 @@ cargo run --bin demo -- gen bsp --semantic --text --png
 
 ## Example
 
-### `ConditionalPipeline`
+### `Pipeline` (Unified)
 
-Smart pipeline with conditional operations and branching logic.
+Simple, data-first pipeline that executes the same ops as `ops::*`.
+
+```rust
+use terrain_forge::pipeline::{Pipeline, Step};
+use terrain_forge::ops::CombineMode;
+
+let mut pipeline = Pipeline::new();
+pipeline.add_algorithm("bsp", Some(12345), None);
+pipeline.add_effect("erode", None);
+pipeline.add_combine_with_algorithm(CombineMode::Difference, "noise_fill", Some(999), None);
+pipeline.add_if(
+    PipelineCondition::Density { min: Some(0.2), max: Some(0.6) },
+    vec![Step::Log { message: "Density ok".to_string() }],
+    vec![Step::Log { message: "Density out of range".to_string() }],
+);
+
+let mut grid = Grid::new(40, 30);
+pipeline.execute_seed(&mut grid, 12345).unwrap();
+```
+
+### `ConditionalPipeline` (Legacy)
+
+Template-friendly conditional pipeline (kept for backward compatibility).
 
 ```rust
 use terrain_forge::pipeline::*;
 
 let mut pipeline = ConditionalPipeline::new();
 
-// Add simple operation
 pipeline.add_operation(ConditionalOperation::simple(
     PipelineOperation::Algorithm { name: "bsp".to_string(), seed: Some(12345) }
 ));
 
-// Add conditional operation
 pipeline.add_operation(ConditionalOperation::conditional(
     PipelineOperation::Log { message: "Checking density".to_string() },
     PipelineCondition::Density { min: Some(0.2), max: Some(0.6) },
@@ -828,7 +850,6 @@ pipeline.add_operation(ConditionalOperation::conditional(
     vec![/* if_false operations */]
 ));
 
-// Execute pipeline
 let mut grid = Grid::new(40, 30);
 let mut context = PipelineContext::new();
 let mut rng = Rng::new(12345);
@@ -1011,8 +1032,8 @@ for &(x, y, from_floor, to_floor) in &connectivity.stairs {
 ## Example
 
 ```rust
-use terrain_forge::{Grid, Tile, Algorithm, algorithms, constraints};
-use terrain_forge::compose::Pipeline;
+use terrain_forge::{Grid, Rng, SemanticExtractor, constraints, ops};
+use terrain_forge::algorithms::*;
 use terrain_forge::spatial::*;
 use terrain_forge::analysis::*;
 use terrain_forge::semantic::*;
@@ -1020,7 +1041,7 @@ use terrain_forge::semantic::*;
 fn main() {
     // Generate base terrain
     let mut grid = Grid::new(60, 40);
-    algorithms::get("bsp").unwrap().generate(&mut grid, 12345);
+    ops::generate("bsp", &mut grid, Some(12345), None).unwrap();
     
     // NEW: Spatial analysis
     let euclidean = DistanceTransform::euclidean();
@@ -1045,7 +1066,7 @@ fn main() {
     
     // NEW: Enhanced WFC with pattern learning
     let mut example = Grid::new(15, 15);
-    algorithms::get("cellular").unwrap().generate(&mut example, 42);
+    ops::generate("cellular", &mut example, Some(42), None).unwrap();
     
     let extractor = WfcPatternExtractor::new(3);
     let patterns = extractor.extract_patterns(&example);

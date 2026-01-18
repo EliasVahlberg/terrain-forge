@@ -5,11 +5,10 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use terrain_forge::{Grid, Tile, algorithms};
+//! use terrain_forge::{Grid, Tile, ops};
 //!
 //! let mut grid = Grid::new(80, 60);
-//! let algo = algorithms::get("bsp").unwrap();
-//! algo.generate(&mut grid, 12345);
+//! ops::generate("bsp", &mut grid, Some(12345), None).unwrap();
 //!
 //! println!("Generated {} floor tiles", grid.count(|t| t.is_floor()));
 //! ```
@@ -56,14 +55,14 @@
 //! Chain algorithms with [`compose::Pipeline`] or layer with [`compose::LayeredGenerator`]:
 //!
 //! ```rust
-//! use terrain_forge::{Grid, Tile, Algorithm, algorithms};
-//! use terrain_forge::compose::Pipeline;
+//! use terrain_forge::{Grid, Tile};
+//! use terrain_forge::pipeline::Pipeline;
 //!
 //! let mut grid = Grid::new(80, 60);
-//! let pipeline = Pipeline::new()
-//!     .add(algorithms::get("rooms").unwrap())
-//!     .add(algorithms::get("cellular").unwrap());
-//! pipeline.generate(&mut grid, 12345);
+//! let mut pipeline = Pipeline::new();
+//! pipeline.add_algorithm("rooms", None, None);
+//! pipeline.add_algorithm("cellular", None, None);
+//! pipeline.execute_seed(&mut grid, 12345).unwrap();
 //! ```
 //!
 //! ## Effects
@@ -89,12 +88,14 @@ pub mod compose;
 pub mod constraints;
 pub mod effects;
 pub mod noise;
+pub mod ops;
 pub mod pipeline;
 pub mod semantic;
 pub mod spatial;
 
 pub use algorithm::Algorithm;
 pub use grid::{Cell, Grid, Tile};
+pub use ops::{CombineMode, Params};
 pub use rng::Rng;
 pub use semantic::{ConnectivityGraph, Marker, Masks, Region, SemanticConfig, SemanticLayers};
 pub use semantic_extractor::{extract_semantics, extract_semantics_default, SemanticExtractor};

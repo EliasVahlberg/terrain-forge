@@ -12,6 +12,8 @@ A comprehensive Rust library for procedural terrain and dungeon generation with 
 
 Crates.io: https://crates.io/crates/terrain-forge
 
+Migration: [v0.6.0 guide](docs/MIGRATION_0_6.md)
+
 ## Features
 
 - **16 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, Noise Fill, and more
@@ -29,11 +31,11 @@ terrain-forge = "0.5"
 ```
 
 ```rust
-use terrain_forge::{Grid, algorithms};
+use terrain_forge::{Grid, ops};
 
 fn main() {
     let mut grid = Grid::new(80, 60);
-    algorithms::get("bsp").unwrap().generate(&mut grid, 12345);
+    ops::generate("bsp", &mut grid, Some(12345), None).unwrap();
     println!("Generated {} floor tiles", grid.count(|t| t.is_floor()));
 }
 ```

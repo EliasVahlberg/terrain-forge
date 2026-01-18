@@ -1,28 +1,30 @@
 {
-  "algorithm": {
-    "type": "prefab",
-    "max_prefabs": 6,
-    "min_spacing": 3,
-    "allow_rotation": true,
-    "prefabs": [
-      {
-        "pattern": [
-          "###",
-          "#.#",
-          "###"
-        ]
-      },
-      {
-        "pattern": [
-          "#####",
-          "#...#",
-          "#.#.#",
-          "#...#",
-          "#####"
-        ]
-      }
-    ]
-  },
+  "pipeline": [
+    {
+      "type": "prefab",
+      "max_prefabs": 6,
+      "min_spacing": 3,
+      "allow_rotation": true,
+      "prefabs": [
+        {
+          "pattern": [
+            "###",
+            "#.#",
+            "###"
+          ]
+        },
+        {
+          "pattern": [
+            "#####",
+            "#...#",
+            "#.#.#",
+            "#...#",
+            "#####"
+          ]
+        }
+      ]
+    }
+  ],
   "effects": [
     {
       "name": "connect_regions_spanning",

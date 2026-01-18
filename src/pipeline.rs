@@ -3,8 +3,249 @@
 //! Provides conditional operations, parameter passing, and template systems
 //! for intelligent pipeline composition and control flow.
 
-use crate::{Grid, Rng, Tile};
+use crate::ops::{self, CombineMode, OpError, Params};
+use crate::{Algorithm, Grid, Rng, Tile};
 use std::collections::HashMap;
+
+/// Unified pipeline steps (name + optional params).
+#[derive(Debug, Clone)]
+pub enum Step {
+    Algorithm {
+        name: String,
+        seed: Option<u64>,
+        params: Option<Params>,
+    },
+    Effect {
+        name: String,
+        params: Option<Params>,
+    },
+    Combine {
+        mode: CombineMode,
+        source: CombineSource,
+    },
+    If {
+        condition: PipelineCondition,
+        then_steps: Vec<Step>,
+        else_steps: Vec<Step>,
+    },
+    StoreGrid {
+        key: String,
+    },
+    SetParameter {
+        key: String,
+        value: String,
+    },
+    Log {
+        message: String,
+    },
+}
+
+/// Source for combine steps.
+#[derive(Debug, Clone)]
+pub enum CombineSource {
+    Grid(Grid<Tile>),
+    Algorithm {
+        name: String,
+        seed: Option<u64>,
+        params: Option<Params>,
+    },
+    Saved(String),
+}
+
+/// Unified pipeline that executes ops::generate/effect/combine.
+#[derive(Debug, Clone, Default)]
+pub struct Pipeline {
+    steps: Vec<Step>,
+}
+
+impl Pipeline {
+    pub fn new() -> Self {
+        Self { steps: Vec::new() }
+    }
+
+    pub fn add_step(&mut self, step: Step) -> &mut Self {
+        self.steps.push(step);
+        self
+    }
+
+    pub fn add_algorithm(
+        &mut self,
+        name: impl Into<String>,
+        seed: Option<u64>,
+        params: Option<Params>,
+    ) -> &mut Self {
+        self.steps.push(Step::Algorithm {
+            name: name.into(),
+            seed,
+            params,
+        });
+        self
+    }
+
+    pub fn add_effect(&mut self, name: impl Into<String>, params: Option<Params>) -> &mut Self {
+        self.steps.push(Step::Effect {
+            name: name.into(),
+            params,
+        });
+        self
+    }
+
+    pub fn add_combine_with_algorithm(
+        &mut self,
+        mode: CombineMode,
+        name: impl Into<String>,
+        seed: Option<u64>,
+        params: Option<Params>,
+    ) -> &mut Self {
+        self.steps.push(Step::Combine {
+            mode,
+            source: CombineSource::Algorithm {
+                name: name.into(),
+                seed,
+                params,
+            },
+        });
+        self
+    }
+
+    pub fn add_combine_with_grid(&mut self, mode: CombineMode, grid: Grid<Tile>) -> &mut Self {
+        self.steps.push(Step::Combine {
+            mode,
+            source: CombineSource::Grid(grid),
+        });
+        self
+    }
+
+    pub fn add_combine_with_saved(
+        &mut self,
+        mode: CombineMode,
+        key: impl Into<String>,
+    ) -> &mut Self {
+        self.steps.push(Step::Combine {
+            mode,
+            source: CombineSource::Saved(key.into()),
+        });
+        self
+    }
+
+    pub fn add_if(
+        &mut self,
+        condition: PipelineCondition,
+        then_steps: Vec<Step>,
+        else_steps: Vec<Step>,
+    ) -> &mut Self {
+        self.steps.push(Step::If {
+            condition,
+            then_steps,
+            else_steps,
+        });
+        self
+    }
+
+    pub fn store_grid(&mut self, key: impl Into<String>) -> &mut Self {
+        self.steps.push(Step::StoreGrid { key: key.into() });
+        self
+    }
+
+    pub fn execute(
+        &self,
+        grid: &mut Grid<Tile>,
+        context: &mut PipelineContext,
+        rng: &mut Rng,
+    ) -> Result<(), OpError> {
+        for step in &self.steps {
+            Self::execute_step(step, grid, context, rng)?;
+        }
+        Ok(())
+    }
+
+    pub fn execute_seed(
+        &self,
+        grid: &mut Grid<Tile>,
+        seed: u64,
+    ) -> Result<PipelineContext, OpError> {
+        let mut context = PipelineContext::new();
+        let mut rng = Rng::new(seed);
+        self.execute(grid, &mut context, &mut rng)?;
+        Ok(context)
+    }
+
+    fn execute_step(
+        step: &Step,
+        grid: &mut Grid<Tile>,
+        context: &mut PipelineContext,
+        rng: &mut Rng,
+    ) -> Result<(), OpError> {
+        match step {
+            Step::Algorithm { name, seed, params } => {
+                let use_seed = seed.unwrap_or_else(|| rng.next_u64());
+                ops::generate(name, grid, Some(use_seed), params.as_ref())?;
+                context.log_execution(format!("Algorithm: {} (seed: {})", name, use_seed));
+                Ok(())
+            }
+            Step::Effect { name, params } => {
+                ops::effect(name, grid, params.as_ref(), None)?;
+                context.log_execution(format!("Effect: {}", name));
+                Ok(())
+            }
+            Step::Combine { mode, source } => {
+                let other = match source {
+                    CombineSource::Grid(other) => other.clone(),
+                    CombineSource::Algorithm { name, seed, params } => {
+                        let mut temp = Grid::new(grid.width(), grid.height());
+                        let use_seed = seed.unwrap_or_else(|| rng.next_u64());
+                        ops::generate(name, &mut temp, Some(use_seed), params.as_ref())?;
+                        temp
+                    }
+                    CombineSource::Saved(key) => context
+                        .get_grid(key)
+                        .ok_or_else(|| OpError::new(format!("Unknown saved grid: {}", key)))?
+                        .clone(),
+                };
+                ops::combine(*mode, grid, &other)?;
+                context.log_execution(format!("Combine: {:?}", mode));
+                Ok(())
+            }
+            Step::If {
+                condition,
+                then_steps,
+                else_steps,
+            } => {
+                let branch = if condition.evaluate(grid, context) {
+                    then_steps
+                } else {
+                    else_steps
+                };
+                for step in branch {
+                    Self::execute_step(step, grid, context, rng)?;
+                }
+                Ok(())
+            }
+            Step::StoreGrid { key } => {
+                context.store_grid(key.clone(), grid.clone());
+                Ok(())
+            }
+            Step::SetParameter { key, value } => {
+                context.set_parameter(key.clone(), value.clone());
+                Ok(())
+            }
+            Step::Log { message } => {
+                context.log_execution(message.clone());
+                Ok(())
+            }
+        }
+    }
+}
+
+impl Algorithm<Tile> for Pipeline {
+    fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
+        let _ = self.execute_seed(grid, seed);
+    }
+
+    fn name(&self) -> &'static str {
+        "Pipeline"
+    }
+}
 
 /// Conditions that can be evaluated during pipeline execution
 #[derive(Debug, Clone)]
@@ -97,6 +338,8 @@ pub struct PipelineContext {
     execution_log: Vec<String>,
     /// Current iteration count for loops
     iteration_count: usize,
+    /// Named grids for combine steps
+    grids: HashMap<String, Grid<Tile>>,
 }
 
 impl PipelineContext {
@@ -106,6 +349,7 @@ impl PipelineContext {
             parameters: HashMap::new(),
             execution_log: Vec::new(),
             iteration_count: 0,
+            grids: HashMap::new(),
         }
     }
 
@@ -137,6 +381,16 @@ impl PipelineContext {
     /// Get current iteration count
     pub fn iteration_count(&self) -> usize {
         self.iteration_count
+    }
+
+    /// Store a grid snapshot for later use.
+    pub fn store_grid(&mut self, key: impl Into<String>, grid: Grid<Tile>) {
+        self.grids.insert(key.into(), grid);
+    }
+
+    /// Get a stored grid snapshot.
+    pub fn get_grid(&self, key: &str) -> Option<&Grid<Tile>> {
+        self.grids.get(key)
     }
 }
 
@@ -362,24 +616,26 @@ impl ConditionalPipeline {
     ) -> StageResult {
         match operation {
             PipelineOperation::Algorithm { name, seed } => {
-                if let Some(algo) = crate::algorithms::get(name) {
-                    let use_seed = seed.unwrap_or(12345);
-                    algo.generate(grid, use_seed);
-                    context.log_execution(format!("Algorithm: {} (seed: {})", name, use_seed));
-                    StageResult::success()
-                        .with_parameter("last_algorithm", name.clone())
-                        .with_parameter("last_seed", use_seed.to_string())
-                } else {
-                    StageResult::failure(format!("Unknown algorithm: {}", name))
+                let use_seed = seed.unwrap_or(12345);
+                match ops::generate(name, grid, Some(use_seed), None) {
+                    Ok(()) => {
+                        context.log_execution(format!("Algorithm: {} (seed: {})", name, use_seed));
+                        StageResult::success()
+                            .with_parameter("last_algorithm", name.clone())
+                            .with_parameter("last_seed", use_seed.to_string())
+                    }
+                    Err(err) => StageResult::failure(err.to_string()),
                 }
             }
-            PipelineOperation::Effect {
-                name,
-                parameters: _,
-            } => {
-                // Placeholder for effect execution
-                context.log_execution(format!("Effect: {}", name));
-                StageResult::success().with_parameter("last_effect", name.clone())
+            PipelineOperation::Effect { name, parameters } => {
+                let params = params_from_strings(parameters);
+                match ops::effect(name, grid, Some(&params), None) {
+                    Ok(()) => {
+                        context.log_execution(format!("Effect: {}", name));
+                        StageResult::success().with_parameter("last_effect", name.clone())
+                    }
+                    Err(err) => StageResult::failure(err.to_string()),
+                }
             }
             PipelineOperation::SetParameter { key, value } => {
                 context.set_parameter(key.clone(), value.clone());
@@ -425,6 +681,13 @@ impl ConditionalOperation {
             if_false,
         }
     }
+}
+
+fn params_from_strings(parameters: &HashMap<String, String>) -> Params {
+    parameters
+        .iter()
+        .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+        .collect()
 }
 
 /// Template for reusable pipeline configurations

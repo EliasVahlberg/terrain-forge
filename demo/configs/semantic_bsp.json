@@ -2,10 +2,12 @@
   "name": "semantic_bsp_dungeon",
   "width": 60,
   "height": 40,
-  "algorithm": {
-    "type": "bsp",
-    "min_room_size": 8,
-    "max_depth": 4,
-    "room_padding": 2
-  }
+  "pipeline": [
+    {
+      "type": "bsp",
+      "min_room_size": 8,
+      "max_depth": 4,
+      "room_padding": 2
+    }
+  ]
 }

@@ -1,10 +1,12 @@
 {
-  "algorithm": {
-    "type": "rooms",
-    "max_rooms": 8,
-    "min_room_size": 4,
-    "max_room_size": 10
-  },
+  "pipeline": [
+    {
+      "type": "rooms",
+      "max_rooms": 8,
+      "min_room_size": 4,
+      "max_room_size": 10
+    }
+  ],
   "effects": [
     {
       "name": "connect_regions_spanning",
@@ -15,6 +17,9 @@
   ],
   "validation": {
     "connectivity": true,
-    "density": { "min": 0.3, "max": 0.7 }
+    "density": {
+      "min": 0.3,
+      "max": 0.7
+    }
   }
 }

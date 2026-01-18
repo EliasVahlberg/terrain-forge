@@ -1,0 +1,11 @@
+{
+  "name": "saltglass_desert_floor_layer_2",
+  "pipeline": [
+    {
+      "type": "noise_fill",
+      "noise": "perlin",
+      "frequency": 0.9,
+      "threshold": 0.5
+    }
+  ]
+}

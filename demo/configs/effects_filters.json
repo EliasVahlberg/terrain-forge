@@ -2,9 +2,21 @@
   "name": "effects_filters",
   "width": 80,
   "height": 60,
-  "algorithm": "cellular",
+  "pipeline": [
+    "cellular"
+  ],
   "effects": [
-    { "name": "gaussian_blur", "config": { "radius": 1 } },
-    { "name": "median_filter", "config": { "radius": 1 } }
+    {
+      "name": "gaussian_blur",
+      "config": {
+        "radius": 1
+      }
+    },
+    {
+      "name": "median_filter",
+      "config": {
+        "radius": 1
+      }
+    }
   ]
 }

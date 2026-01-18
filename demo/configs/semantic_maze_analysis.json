@@ -1,5 +1,7 @@
 {
-  "algorithm": "maze",
+  "pipeline": [
+    "maze"
+  ],
   "width": 60,
   "height": 40,
   "seed": 98765,

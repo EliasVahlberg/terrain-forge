@@ -1,13 +1,11 @@
 {
-  "name": "noise_fill_simplex",
-  "width": 100,
-  "height": 70,
+  "name": "saltglass_desert_floor_layer_3",
   "pipeline": [
     {
       "type": "noise_fill",
       "noise": "simplex",
       "frequency": 0.08,
-      "threshold": 0.15
+      "threshold": 0.3
     }
   ]
 }

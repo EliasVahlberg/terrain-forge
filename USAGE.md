@@ -1,5 +1,7 @@
 # Usage Guide
 
+Migration: [v0.6.0 guide](docs/MIGRATION_0_6.md)
+
 ## Installation
 
 ```toml
@@ -10,11 +12,11 @@ terrain-forge = "0.5"
 ## Basic Generation
 
 ```rust
-use terrain_forge::{Grid, Tile, algorithms};
+use terrain_forge::{Grid, ops};
 
 fn main() {
     let mut grid = Grid::new(80, 60);
-    algorithms::get("bsp").unwrap().generate(&mut grid, 12345);
+    ops::generate("bsp", &mut grid, Some(12345), None).unwrap();
     println!("Generated {} floor tiles", grid.count(|t| t.is_floor()));
 }
 ```
@@ -22,7 +24,7 @@ fn main() {
 ## Enhanced Wave Function Collapse
 
 ```rust
-use terrain_forge::{algorithms::*, Grid, Rng};
+use terrain_forge::{algorithms::*, Grid, Rng, ops};
 
 fn main() {
     let mut grid = Grid::new(40, 30);
@@ -30,7 +32,7 @@ fn main() {
     
     // Create example pattern for learning
     let mut example = Grid::new(10, 10);
-    algorithms::get("bsp").unwrap().generate(&mut example, 42);
+    ops::generate("bsp", &mut example, Some(42), None).unwrap();
     
     // Enhanced WFC with pattern learning
     let mut wfc = EnhancedWfc::new(WfcConfig::default());
@@ -45,11 +47,11 @@ fn main() {
 ## Delaunay Triangulation
 
 ```rust
-use terrain_forge::{analysis::*, spatial::*, Grid, Rng};
+use terrain_forge::{analysis::*, spatial::*, Grid, Rng, ops};
 
 fn main() {
     let mut grid = Grid::new(60, 40);
-    algorithms::get("rooms").unwrap().generate(&mut grid, 12345);
+    ops::generate("rooms", &mut grid, Some(12345), None).unwrap();
     
     // Extract room centers
     let room_centers = find_room_centers(&grid);
@@ -115,11 +117,11 @@ fn main() {
 ## Spatial Analysis
 
 ```rust
-use terrain_forge::{spatial::*, Grid, Rng};
+use terrain_forge::{spatial::*, Grid, Rng, ops};
 
 fn main() {
     let mut grid = Grid::new(50, 40);
-    algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
+    ops::generate("cellular", &mut grid, Some(12345), None).unwrap();
     
     // Distance transforms with multiple metrics
     let euclidean = DistanceTransform::euclidean().compute(&grid);
@@ -178,11 +180,11 @@ fn main() {
 ```rust
 use terrain_forge::effects::{connect_markers, clear_rect, MarkerConnectMethod};
 use terrain_forge::semantic::MarkerType;
-use terrain_forge::{Grid, Rng, SemanticExtractor};
+use terrain_forge::{Grid, Rng, SemanticExtractor, ops};
 
 fn main() {
     let mut grid = Grid::new(80, 60);
-    terrain_forge::algorithms::get("bsp").unwrap().generate(&mut grid, 42);
+    ops::generate("bsp", &mut grid, Some(42), None).unwrap();
 
     let mut rng = Rng::new(42);
     let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
@@ -209,7 +211,7 @@ use terrain_forge::Grid;
 
 fn main() {
     let mut grid = Grid::new(80, 60);
-    terrain_forge::algorithms::get("drunkard").unwrap().generate(&mut grid, 7);
+    ops::generate("drunkard", &mut grid, Some(7), None).unwrap();
 
     let config = GlassSeamConfig {
         coverage_threshold: 0.85,
@@ -221,18 +223,17 @@ fn main() {
 }
 ```
 
-## Registry API
+## Ops + Registry API
 
 ```rust
-use terrain_forge::{Grid, algorithms};
+use terrain_forge::{Grid, ops, algorithms};
 
 let mut grid = Grid::new(80, 60);
 
-// Get by name
-let algo = algorithms::get("cellular").unwrap();
-algo.generate(&mut grid, 42);
+// Simple, name-based execution
+ops::generate("cellular", &mut grid, Some(42), None).unwrap();
 
-// List all
+// Advanced/legacy registry access
 for name in algorithms::list() {
     println!("{}", name);
 }
@@ -429,11 +430,11 @@ GlassSeamParams {
 ### Bevy Game Engine
 ```rust
 use bevy::prelude::*;
-use terrain_forge::{Grid, algorithms};
+use terrain_forge::{Grid, ops};
 
 fn setup_terrain(mut commands: Commands) {
     let mut grid = Grid::new(100, 100);
-    algorithms::get("bsp").unwrap().generate(&mut grid, 12345);
+    ops::generate("bsp", &mut grid, Some(12345), None).unwrap();
     
     // Convert to Bevy entities
     for y in 0..grid.height() {
@@ -465,9 +466,7 @@ impl GameMap {
         let mut rng = Rng::new(seed);
         
         // Generate terrain
-        terrain_forge::algorithms::get("room_accretion")
-            .unwrap()
-            .generate(&mut grid, seed);
+        ops::generate("room_accretion", &mut grid, Some(seed), None).unwrap();
         
         // Extract semantic information
         let semantic = SemanticExtractor::for_rooms()

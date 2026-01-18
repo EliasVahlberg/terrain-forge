@@ -482,3 +482,25 @@ name = "noise_fill_worley"
 config = "demo/configs/noise_fill_worley.json"
 outputs = ["regions"]
 description = "Noise fill (Worley) coverage."
+
+[[demo]]
+id = "saltglass"
+title = "Saltglass Steppe biomes"
+description = "Saltglass Steppe biomes."
+tags = ["hires", "showcase"]
+
+[[demo.runs]]
+name = "saltglass_desert_floor_layer_2"
+config = "demo/configs/saltglass/saltglass_desert_floor_layer_2.json"
+seed = 12345
+width = 150
+height = 150
+description = "Saltglass desert floor layer 2. Loose sand."
+
+[[demo.runs]]
+name = "saltglass_desert_floor_layer_3"
+config = "demo/configs/saltglass/saltglass_desert_floor_layer_3.json"
+seed = 12345
+width = 150
+height = 150
+description = "Saltglass desert floor layer 3. Desert pavement."

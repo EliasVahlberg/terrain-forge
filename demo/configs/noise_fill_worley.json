@@ -2,10 +2,12 @@
   "name": "noise_fill_worley",
   "width": 100,
   "height": 70,
-  "algorithm": {
-    "type": "noise_fill",
-    "noise": "worley",
-    "frequency": 0.08,
-    "threshold": 0.15
-  }
+  "pipeline": [
+    {
+      "type": "noise_fill",
+      "noise": "worley",
+      "frequency": 0.08,
+      "threshold": 0.15
+    }
+  ]
 }

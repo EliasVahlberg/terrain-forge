@@ -27,6 +27,10 @@ impl Rng {
         self.inner.gen()
     }
 
+    pub fn next_u64(&mut self) -> u64 {
+        self.inner.gen()
+    }
+
     pub fn chance(&mut self, probability: f64) -> bool {
         self.random() < probability
     }

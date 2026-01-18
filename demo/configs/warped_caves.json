@@ -2,17 +2,28 @@
   "name": "warped_caves",
   "width": 80,
   "height": 60,
-  "algorithm": {
-    "type": "cellular",
-    "initial_floor_chance": 0.45,
-    "iterations": 5
-  },
+  "pipeline": [
+    {
+      "type": "cellular",
+      "initial_floor_chance": 0.45,
+      "iterations": 5
+    }
+  ],
   "effects": [
     {
       "name": "domain_warp",
-      "config": { "amplitude": 3.0, "frequency": 0.07, "seed": 4242 }
+      "config": {
+        "amplitude": 3.0,
+        "frequency": 0.07,
+        "seed": 4242
+      }
     },
-    { "name": "gaussian_blur", "config": { "radius": 1 } },
+    {
+      "name": "gaussian_blur",
+      "config": {
+        "radius": 1
+      }
+    },
     "remove_dead_ends"
   ]
 }

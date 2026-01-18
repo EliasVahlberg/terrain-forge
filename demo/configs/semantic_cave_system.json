@@ -1,5 +1,7 @@
 {
-  "algorithm": "cellular",
+  "pipeline": [
+    "cellular"
+  ],
   "width": 80,
   "height": 50,
   "seed": 12345,

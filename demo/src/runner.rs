@@ -6,10 +6,12 @@ use crate::config;
 
 pub fn generate(cfg: &config::Config, seed: u64) -> (Grid<Tile>, Duration) {
     let mut grid = Grid::new(cfg.width, cfg.height);
-    let generator = config::build_generator(cfg);
+    let pipeline = config::build_pipeline(cfg);
 
     let start = Instant::now();
-    generator.generate(&mut grid, seed);
+    if let Err(err) = pipeline.execute_seed(&mut grid, seed) {
+        eprintln!("Pipeline error: {}", err);
+    }
     if config::effects_need_semantic(&cfg.effects) {
         let mut rng = terrain_forge::Rng::new(seed);
         let extractor = select_extractor(cfg);
@@ -93,24 +95,11 @@ pub fn generate_grid_and_semantic(
 }
 
 pub fn select_extractor(cfg: &config::Config) -> SemanticExtractor {
-    if cfg.pipeline.is_some() || cfg.layers.is_some() {
-        return SemanticExtractor::for_caves();
-    }
-
-    match &cfg.algorithm {
-        Some(config::AlgorithmSpec::Name(name)) => match name.as_str() {
-            "cellular" => SemanticExtractor::for_caves(),
-            "bsp" | "rooms" | "room_accretion" => SemanticExtractor::for_rooms(),
-            "maze" => SemanticExtractor::for_mazes(),
-            _ => SemanticExtractor::default(),
-        },
-        Some(config::AlgorithmSpec::WithParams { type_name, .. }) => match type_name.as_str() {
-            "cellular" => SemanticExtractor::for_caves(),
-            "bsp" | "rooms" | "room_accretion" => SemanticExtractor::for_rooms(),
-            "maze" => SemanticExtractor::for_mazes(),
-            _ => SemanticExtractor::default(),
-        },
-        None => SemanticExtractor::default(),
+    match config::primary_algorithm_name(cfg) {
+        Some("cellular") => SemanticExtractor::for_caves(),
+        Some("bsp" | "rooms" | "room_accretion") => SemanticExtractor::for_rooms(),
+        Some("maze") => SemanticExtractor::for_mazes(),
+        _ => SemanticExtractor::default(),
     }
 }
 

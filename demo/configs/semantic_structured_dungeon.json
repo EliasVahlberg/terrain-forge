@@ -1,5 +1,7 @@
 {
-  "algorithm": "bsp",
+  "pipeline": [
+    "bsp"
+  ],
   "width": 80,
   "height": 50,
   "seed": 54321,

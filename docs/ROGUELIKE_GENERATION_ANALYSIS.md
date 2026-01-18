@@ -10,12 +10,13 @@ This document analyzes procedural generation techniques used in notable roguelik
 
 **TerrainForge Implementation**:
 ```rust
+use terrain_forge::ops;
+
 // Direct support via SimpleRooms
-let algo = algorithms::get("rooms").unwrap();
-algo.generate(&mut grid, seed);
+ops::generate("rooms", &mut grid, Some(seed), None).unwrap();
 
 // Or BSP for more structured layouts
-let algo = algorithms::get("bsp").unwrap();
+ops::generate("bsp", &mut grid, Some(seed), None).unwrap();
 ```
 
 **Status**: ✅ Fully supported
@@ -48,7 +49,9 @@ let algo = CellularAutomata::new(CellularConfig {
 
 **TerrainForge Implementation**:
 ```rust
-let algo = algorithms::get("drunkard").unwrap();
+use terrain_forge::ops;
+
+ops::generate("drunkard", &mut grid, Some(seed), None).unwrap();
 ```
 
 **Status**: ✅ Fully supported
@@ -84,11 +87,13 @@ let algo = Bsp::new(BspConfig {
 
 **TerrainForge Implementation**:
 ```rust
-use terrain_forge::{algorithms, effects, compose::Pipeline};
+use terrain_forge::{effects, ops};
+use terrain_forge::pipeline::Pipeline;
 
-let pipeline = Pipeline::new()
-    .add(algorithms::get("rooms").unwrap())
-    .add(algorithms::get("maze").unwrap());
+let mut pipeline = Pipeline::new();
+pipeline.add_algorithm("rooms", None, None);
+pipeline.add_algorithm("maze", None, None);
+pipeline.execute_seed(&mut grid, seed).unwrap();
 
 // Connect regions with spanning tree + loops
 effects::connect_regions_spanning(&mut grid, 0.1, &mut rng);
@@ -146,7 +151,9 @@ let algo = RoomAccretion::new(RoomAccretionConfig {
 
 **TerrainForge Implementation**:
 ```rust
-let algo = algorithms::get("wfc").unwrap();
+use terrain_forge::ops;
+
+ops::generate("wfc", &mut grid, Some(seed), None).unwrap();
 ```
 
 **Status**: ⚠️ Basic implementation exists, but limited
@@ -205,7 +212,9 @@ let algo = PrefabPlacer::new(PrefabConfig {
 **TerrainForge Implementation**:
 ```rust
 // Diamond-square for heightmaps
-let algo = algorithms::get("diamond_square").unwrap();
+use terrain_forge::ops;
+
+ops::generate("diamond_square", &mut grid, Some(seed), None).unwrap();
 
 // Or noise-based
 use terrain_forge::noise::{Perlin, Fbm};

@@ -2,9 +2,11 @@
   "name": "dense_caves",
   "width": 80,
   "height": 60,
-  "algorithm": {
-    "type": "cellular",
-    "initial_floor_chance": 0.55,
-    "iterations": 6
-  }
+  "pipeline": [
+    {
+      "type": "cellular",
+      "initial_floor_chance": 0.55,
+      "iterations": 6
+    }
+  ]
 }

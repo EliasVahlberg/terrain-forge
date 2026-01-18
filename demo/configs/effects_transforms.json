@@ -2,10 +2,29 @@
   "name": "effects_transforms",
   "width": 80,
   "height": 60,
-  "algorithm": "rooms",
+  "pipeline": [
+    "rooms"
+  ],
   "effects": [
-    { "name": "mirror", "config": { "horizontal": true, "vertical": true } },
-    { "name": "rotate", "config": { "degrees": 90 } },
-    { "name": "scatter", "config": { "density": 0.12, "seed": 7 } }
+    {
+      "name": "mirror",
+      "config": {
+        "horizontal": true,
+        "vertical": true
+      }
+    },
+    {
+      "name": "rotate",
+      "config": {
+        "degrees": 90
+      }
+    },
+    {
+      "name": "scatter",
+      "config": {
+        "density": 0.12,
+        "seed": 7
+      }
+    }
   ]
 }

@@ -63,3 +63,29 @@ pub fn scatter(grid: &mut Grid<Tile>, density: f64, seed: u64) {
         }
     }
 }
+
+pub fn invert(grid: &mut Grid<Tile>) {
+    for y in 0..grid.height() {
+        for x in 0..grid.width() {
+            let next = if grid[(x, y)].is_floor() {
+                Tile::Wall
+            } else {
+                Tile::Floor
+            };
+            grid.set(x as i32, y as i32, next);
+        }
+    }
+}
+
+pub fn resize(grid: &mut Grid<Tile>, width: usize, height: usize, pad: Tile) {
+    let mut next = Grid::new(width, height);
+    next.fill(pad);
+    let w = width.min(grid.width());
+    let h = height.min(grid.height());
+    for y in 0..h {
+        for x in 0..w {
+            next.set(x as i32, y as i32, grid[(x, y)]);
+        }
+    }
+    *grid = next;
+}

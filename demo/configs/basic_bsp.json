@@ -3,5 +3,7 @@
   "width": 80,
   "height": 60,
   "seed": 12345,
-  "algorithm": "bsp"
+  "pipeline": [
+    "bsp"
+  ]
 }

@@ -2,10 +2,12 @@
   "name": "noise_fill_perlin",
   "width": 100,
   "height": 70,
-  "algorithm": {
-    "type": "noise_fill",
-    "noise": "perlin",
-    "frequency": 0.08,
-    "threshold": 0.15
-  }
+  "pipeline": [
+    {
+      "type": "noise_fill",
+      "noise": "perlin",
+      "frequency": 0.08,
+      "threshold": 0.15
+    }
+  ]
 }

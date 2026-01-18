@@ -7,6 +7,7 @@ pub enum BlendMode {
     Replace,
     Union,
     Intersect,
+    Difference,
     Mask,
 }
 
@@ -31,6 +32,11 @@ impl LayeredGenerator {
 
     pub fn intersect<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Intersect));
+        self
+    }
+
+    pub fn difference<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
+        self.layers.push((Box::new(algo), BlendMode::Difference));
         self
     }
 
@@ -72,6 +78,17 @@ impl Algorithm<Tile> for LayeredGenerator {
                     for y in 0..grid.height() {
                         for x in 0..grid.width() {
                             if !layer[(x, y)].is_floor() {
+                                grid.set(x as i32, y as i32, Tile::Wall);
+                            }
+                        }
+                    }
+                }
+                BlendMode::Difference => {
+                    let mut layer = Grid::new(grid.width(), grid.height());
+                    algo.generate(&mut layer, layer_seed);
+                    for y in 0..grid.height() {
+                        for x in 0..grid.width() {
+                            if layer[(x, y)].is_floor() {
                                 grid.set(x as i32, y as i32, Tile::Wall);
                             }
                         }

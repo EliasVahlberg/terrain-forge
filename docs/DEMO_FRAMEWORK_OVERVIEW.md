@@ -201,15 +201,9 @@ The framework dynamically constructs algorithm instances based on JSON configura
 ```rust
 fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
     match spec {
-        AlgorithmSpec::Name(name) => algorithms::get(name).unwrap(),
+        AlgorithmSpec::Name(name) => ops::build_algorithm(name, None).unwrap(),
         AlgorithmSpec::WithParams { type_name, params } => {
-            match type_name.as_str() {
-                "cellular" => Box::new(CellularAutomata::new(parse_cellular_config(params))),
-                "room_accretion" => Box::new(RoomAccretion::new(parse_room_accretion_config(params))),
-                "prefab" => Box::new(PrefabPlacer::new(parse_prefab_config(params))),
-                // ... other algorithms
-                _ => panic!("Unknown algorithm: {}", type_name),
-            }
+            ops::build_algorithm(type_name, Some(params)).unwrap()
         }
     }
 }
@@ -220,23 +214,18 @@ fn build_algorithm(spec: &AlgorithmSpec) -> Box<dyn Algorithm<Tile>> {
 Effects are applied sequentially after generation:
 
 ```rust
+use terrain_forge::ops;
+
 fn apply_effects(grid: &mut Grid<Tile>, effects: &[EffectSpec], rng: &mut Rng) {
     for effect in effects {
-        match effect {
-            EffectSpec::Simple(name) => match name.as_str() {
-                "erode" => effects::erode(grid),
-                "dilate" => effects::dilate(grid),
-                "remove_dead_ends" => effects::remove_dead_ends(grid, 10),
-                _ => panic!("Unknown effect: {}", name),
-            },
-            EffectSpec::WithConfig { name, config } => match name.as_str() {
-                "connect_regions_spanning" => {
-                    let chance = config.get("extra_connection_chance")
-                        .and_then(|v| v.as_f64()).unwrap_or(0.1);
-                    effects::connect_regions_spanning(grid, chance, rng);
-                },
-                _ => panic!("Unknown configurable effect: {}", name),
-            },
+        let result = match effect {
+            EffectSpec::Simple(name) => ops::effect(name, grid, None, None),
+            EffectSpec::WithConfig { name, config } => {
+                ops::effect(name, grid, Some(config), None)
+            }
+        };
+        if let Err(err) = result {
+            eprintln!("{}", err);
         }
     }
 }
