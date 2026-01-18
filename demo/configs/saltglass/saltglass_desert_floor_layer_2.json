@@ -3,9 +3,15 @@
   "pipeline": [
     {
       "type": "noise_fill",
-      "noise": "perlin",
-      "frequency": 0.9,
-      "threshold": 0.5
+      "noise": "simplex",
+      "scale": 4.0,
+      "range": [0.0, 1.0],
+      "fill_range": [0.0, 0.3],
+      "octaves": 2,
+      "lacunarity": 1,
+      "persistence": 0.5,
+
+      "frequency": 0.08
     }
   ]
 }

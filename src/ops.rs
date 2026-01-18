@@ -217,8 +217,29 @@ pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn 
                 if let Some(v) = get_f64(params, "frequency") {
                     config.frequency = v;
                 }
+                if let Some(v) = get_f64(params, "scale").or_else(|| get_f64(params, "size")) {
+                    config.scale = v;
+                }
+                if let Some(range) = get_range(params, "range")
+                    .or_else(|| get_range(params, "value_range"))
+                    .or_else(|| get_range(params, "output_range"))
+                {
+                    config.output_range = range;
+                }
+                if let Some(range) = get_range(params, "fill_range") {
+                    config.fill_range = Some(range);
+                }
                 if let Some(v) = get_f64(params, "threshold") {
                     config.threshold = v;
+                }
+                if let Some(v) = get_u32(params, "octaves") {
+                    config.octaves = v.max(1);
+                }
+                if let Some(v) = get_f64(params, "lacunarity") {
+                    config.lacunarity = v;
+                }
+                if let Some(v) = get_f64(params, "persistence") {
+                    config.persistence = v;
                 }
             }
             Ok(Box::new(NoiseFill::new(config)))
@@ -513,6 +534,10 @@ fn get_u64(params: &Params, key: &str) -> Option<u64> {
     params.get(key).and_then(value_to_u64)
 }
 
+fn get_u32(params: &Params, key: &str) -> Option<u32> {
+    get_u64(params, key).and_then(|v| u32::try_from(v).ok())
+}
+
 fn get_f64(params: &Params, key: &str) -> Option<f64> {
     params.get(key).and_then(value_to_f64)
 }
@@ -523,6 +548,10 @@ fn get_bool(params: &Params, key: &str) -> Option<bool> {
 
 fn get_str<'a>(params: &'a Params, key: &str) -> Option<&'a str> {
     params.get(key).and_then(|v| v.as_str())
+}
+
+fn get_range(params: &Params, key: &str) -> Option<(f64, f64)> {
+    parse_range(params.get(key))
 }
 
 fn value_to_u64(value: &serde_json::Value) -> Option<u64> {
@@ -555,6 +584,23 @@ fn parse_point(value: Option<&serde_json::Value>) -> Option<(usize, usize)> {
     let x = value_to_u64(&array[0])? as usize;
     let y = value_to_u64(&array[1])? as usize;
     Some((x, y))
+}
+
+fn parse_range(value: Option<&serde_json::Value>) -> Option<(f64, f64)> {
+    let value = value?;
+    if let Some(arr) = value.as_array() {
+        if arr.len() == 2 {
+            let min = value_to_f64(&arr[0])?;
+            let max = value_to_f64(&arr[1])?;
+            return Some((min, max));
+        }
+    }
+    if let Some(obj) = value.as_object() {
+        let min = obj.get("min").and_then(value_to_f64)?;
+        let max = obj.get("max").and_then(value_to_f64)?;
+        return Some((min, max));
+    }
+    None
 }
 
 fn get_points(params: &Params, key: &str) -> Option<Vec<(usize, usize)>> {

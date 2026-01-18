@@ -1,4 +1,4 @@
-use crate::noise::{Perlin, Simplex, Value, Worley};
+use crate::noise::{NoiseExt, Perlin, Simplex, Value, Worley};
 use crate::{Algorithm, Grid, Tile};
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -13,8 +13,22 @@ pub enum NoiseType {
 #[derive(Debug, Clone)]
 pub struct NoiseFillConfig {
     pub noise: NoiseType,
+    /// Multiplies sample coordinates; higher = smaller features.
     pub frequency: f64,
+    /// Feature size in tiles; higher = larger features (applied as frequency / scale).
+    pub scale: f64,
+    /// Output range after normalizing noise to [0, 1].
+    pub output_range: (f64, f64),
+    /// Fill if value <= threshold (after normalization + range mapping).
     pub threshold: f64,
+    /// Optional inclusive fill range; overrides threshold when set.
+    pub fill_range: Option<(f64, f64)>,
+    /// Fractal octaves (1 = base noise).
+    pub octaves: u32,
+    /// Frequency multiplier between octaves.
+    pub lacunarity: f64,
+    /// Amplitude multiplier between octaves.
+    pub persistence: f64,
 }
 
 impl Default for NoiseFillConfig {
@@ -22,7 +36,13 @@ impl Default for NoiseFillConfig {
         Self {
             noise: NoiseType::Perlin,
             frequency: 0.08,
-            threshold: 0.0,
+            scale: 1.0,
+            output_range: (0.0, 1.0),
+            threshold: 0.5,
+            fill_range: None,
+            octaves: 1,
+            lacunarity: 2.0,
+            persistence: 0.5,
         }
     }
 }
@@ -46,23 +66,29 @@ impl Default for NoiseFill {
 impl Algorithm<Tile> for NoiseFill {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
         let (w, h) = (grid.width(), grid.height());
+        let scale = if self.config.scale > 0.0 {
+            self.config.scale
+        } else {
+            1.0
+        };
+        let frequency = self.config.frequency / scale;
 
         match self.config.noise {
             NoiseType::Perlin => {
-                let noise = Perlin::new(seed).with_frequency(self.config.frequency);
-                fill_from_noise(grid, w, h, &noise, self.config.threshold);
+                let noise = Perlin::new(seed).with_frequency(frequency);
+                fill_with_config(grid, w, h, noise, &self.config);
             }
             NoiseType::Simplex => {
-                let noise = Simplex::new(seed).with_frequency(self.config.frequency);
-                fill_from_noise(grid, w, h, &noise, self.config.threshold);
+                let noise = Simplex::new(seed).with_frequency(frequency);
+                fill_with_config(grid, w, h, noise, &self.config);
             }
             NoiseType::Value => {
-                let noise = Value::new(seed).with_frequency(self.config.frequency);
-                fill_from_noise(grid, w, h, &noise, self.config.threshold);
+                let noise = Value::new(seed).with_frequency(frequency);
+                fill_with_config(grid, w, h, noise, &self.config);
             }
             NoiseType::Worley => {
-                let noise = Worley::new(seed).with_frequency(self.config.frequency);
-                fill_from_noise(grid, w, h, &noise, self.config.threshold);
+                let noise = Worley::new(seed).with_frequency(frequency);
+                fill_with_config(grid, w, h, noise, &self.config);
             }
         }
 
@@ -84,21 +110,70 @@ impl Algorithm<Tile> for NoiseFill {
     }
 }
 
+fn fill_with_config<N: crate::noise::NoiseSource>(
+    grid: &mut Grid<Tile>,
+    w: usize,
+    h: usize,
+    noise: N,
+    config: &NoiseFillConfig,
+) {
+    let (mut out_min, mut out_max) = config.output_range;
+    if out_min > out_max {
+        std::mem::swap(&mut out_min, &mut out_max);
+    }
+    let range_span = out_max - out_min;
+    let fill_range = config
+        .fill_range
+        .map(|(a, b)| if a <= b { (a, b) } else { (b, a) });
+
+    if config.octaves > 1 {
+        let fbm = noise.fbm(config.octaves, config.lacunarity, config.persistence);
+        fill_from_noise(
+            grid,
+            w,
+            h,
+            &fbm,
+            out_min,
+            range_span,
+            fill_range,
+            config.threshold,
+        );
+    } else {
+        fill_from_noise(
+            grid,
+            w,
+            h,
+            &noise,
+            out_min,
+            range_span,
+            fill_range,
+            config.threshold,
+        );
+    }
+}
+
 fn fill_from_noise<N: crate::noise::NoiseSource>(
     grid: &mut Grid<Tile>,
     w: usize,
     h: usize,
     noise: &N,
+    out_min: f64,
+    range_span: f64,
+    fill_range: Option<(f64, f64)>,
     threshold: f64,
 ) {
     for y in 0..h {
         for x in 0..w {
-            let value = noise.sample(x as f64, y as f64);
-            let tile = if value >= threshold {
-                Tile::Floor
-            } else {
-                Tile::Wall
+            let raw = noise.sample(x as f64, y as f64);
+            let mut value = (raw + 1.0) * 0.5;
+            value = out_min + value * range_span;
+
+            let fill = match fill_range {
+                Some((min, max)) => value >= min && value <= max,
+                None => value <= threshold,
             };
+
+            let tile = if fill { Tile::Floor } else { Tile::Wall };
             grid.set(x as i32, y as i32, tile);
         }
     }

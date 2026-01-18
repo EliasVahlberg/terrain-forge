@@ -2,15 +2,26 @@ use super::NoiseSource;
 
 /// Perlin noise generator
 pub struct Perlin {
-    seed: u64,
     frequency: f64,
+    perm: [u8; 512],
 }
 
 impl Perlin {
     pub fn new(seed: u64) -> Self {
+        let mut base = [0u8; 256];
+        for (i, v) in base.iter_mut().enumerate() {
+            *v = i as u8;
+        }
+        let mut rng = crate::Rng::new(seed);
+        rng.shuffle(&mut base);
+
+        let mut perm = [0u8; 512];
+        for i in 0..512 {
+            perm[i] = base[i & 255];
+        }
         Self {
-            seed,
             frequency: 1.0,
+            perm,
         }
     }
 
@@ -19,27 +30,13 @@ impl Perlin {
         self
     }
 
-    // Hash function for gradient selection
-    fn hash(&self, x: i32, y: i32) -> usize {
-        let h = (x as u64)
-            .wrapping_mul(374761393)
-            .wrapping_add((y as u64).wrapping_mul(668265263))
-            .wrapping_add(self.seed);
-        (h ^ (h >> 13)).wrapping_mul(1274126177) as usize & 7
-    }
-
-    // Gradient vectors (8 directions)
-    fn gradient(&self, hash: usize, x: f64, y: f64) -> f64 {
-        match hash {
-            0 => x + y,
-            1 => -x + y,
-            2 => x - y,
-            3 => -x - y,
-            4 => x,
-            5 => -x,
-            6 => y,
-            _ => -y,
-        }
+    fn gradient(hash: u8, x: f64, y: f64) -> f64 {
+        let h = hash & 7;
+        let u = if h < 4 { x } else { y };
+        let v = if h < 4 { y } else { x };
+        let u = if (h & 1) == 0 { u } else { -u };
+        let v = if (h & 2) == 0 { v } else { -v };
+        u + v
     }
 
     fn fade(t: f64) -> f64 {
@@ -56,23 +53,31 @@ impl NoiseSource for Perlin {
         let x = x * self.frequency;
         let y = y * self.frequency;
 
-        let x0 = x.floor() as i32;
-        let y0 = y.floor() as i32;
-        let x1 = x0 + 1;
-        let y1 = y0 + 1;
+        let xi = x.floor() as i32 & 255;
+        let yi = y.floor() as i32 & 255;
+        let xf = x - x.floor();
+        let yf = y - y.floor();
 
-        let dx0 = x - x0 as f64;
-        let dy0 = y - y0 as f64;
-        let dx1 = dx0 - 1.0;
-        let dy1 = dy0 - 1.0;
+        let u = Self::fade(xf);
+        let v = Self::fade(yf);
 
-        let n00 = self.gradient(self.hash(x0, y0), dx0, dy0);
-        let n10 = self.gradient(self.hash(x1, y0), dx1, dy0);
-        let n01 = self.gradient(self.hash(x0, y1), dx0, dy1);
-        let n11 = self.gradient(self.hash(x1, y1), dx1, dy1);
+        let xi = xi as usize;
+        let yi = yi as usize;
+        let xi1 = xi + 1;
+        let yi1 = yi + 1;
 
-        let u = Self::fade(dx0);
-        let v = Self::fade(dy0);
+        let aa = self.perm[xi + self.perm[yi] as usize];
+        let ab = self.perm[xi + self.perm[yi1] as usize];
+        let ba = self.perm[xi1 + self.perm[yi] as usize];
+        let bb = self.perm[xi1 + self.perm[yi1] as usize];
+
+        let x1 = xf - 1.0;
+        let y1 = yf - 1.0;
+
+        let n00 = Self::gradient(aa, xf, yf);
+        let n10 = Self::gradient(ba, x1, yf);
+        let n01 = Self::gradient(ab, xf, y1);
+        let n11 = Self::gradient(bb, x1, y1);
 
         let nx0 = Self::lerp(n00, n10, u);
         let nx1 = Self::lerp(n01, n11, u);
