@@ -55,16 +55,16 @@ fn pipeline_steps_execute_and_log() {
     pipeline.add_combine_with_saved(CombineMode::Union, "base");
 
     let mut grid = Grid::new(25, 25);
-    let context = pipeline.execute_seed(&mut grid, 999).expect("pipeline execute");
+    let context = pipeline
+        .execute_seed(&mut grid, 999)
+        .expect("pipeline execute");
 
     assert!(grid.count(|t| t.is_floor()) > 0);
     assert!(context.get_grid("base").is_some());
-    assert!(
-        context
-            .execution_history()
-            .iter()
-            .any(|entry| entry.contains("Algorithm: rooms"))
-    );
+    assert!(context
+        .execution_history()
+        .iter()
+        .any(|entry| entry.contains("Algorithm: rooms")));
 }
 
 #[test]
@@ -85,7 +85,9 @@ fn pipeline_if_branch_executes() {
     );
 
     let mut grid = Grid::new(20, 20);
-    let context = pipeline.execute_seed(&mut grid, 111).expect("pipeline execute");
+    let context = pipeline
+        .execute_seed(&mut grid, 111)
+        .expect("pipeline execute");
     assert!(context
         .execution_history()
         .iter()
