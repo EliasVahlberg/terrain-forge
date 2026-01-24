@@ -26,3 +26,19 @@ demo/output/backup/
 demo/test_semantic.txt
 demo/output/test_output.png
 demo/output/test_semantic.txt
+
+# AI/Agent files
+AGENTS.md
+.kiro/
+.codex/
+codex-rs/
+.claude/
+.copilot/
+.eden/
+.agent/
+.agentrc
+.agentignore
+.agentlog
+.agentdata/
+.agentcache/
+.skills/
