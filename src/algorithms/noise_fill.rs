@@ -76,19 +76,19 @@ impl Algorithm<Tile> for NoiseFill {
         match self.config.noise {
             NoiseType::Perlin => {
                 let noise = Perlin::new(seed).with_frequency(frequency);
-                fill_with_config(grid, w, h, noise, &self.config);
+                fill_with_config(grid, noise, &self.config);
             }
             NoiseType::Simplex => {
                 let noise = Simplex::new(seed).with_frequency(frequency);
-                fill_with_config(grid, w, h, noise, &self.config);
+                fill_with_config(grid, noise, &self.config);
             }
             NoiseType::Value => {
                 let noise = Value::new(seed).with_frequency(frequency);
-                fill_with_config(grid, w, h, noise, &self.config);
+                fill_with_config(grid, noise, &self.config);
             }
             NoiseType::Worley => {
                 let noise = Worley::new(seed).with_frequency(frequency);
-                fill_with_config(grid, w, h, noise, &self.config);
+                fill_with_config(grid, noise, &self.config);
             }
         }
 
@@ -112,8 +112,6 @@ impl Algorithm<Tile> for NoiseFill {
 
 fn fill_with_config<N: crate::noise::NoiseSource>(
     grid: &mut Grid<Tile>,
-    w: usize,
-    h: usize,
     noise: N,
     config: &NoiseFillConfig,
 ) {
@@ -130,8 +128,6 @@ fn fill_with_config<N: crate::noise::NoiseSource>(
         let fbm = noise.fbm(config.octaves, config.lacunarity, config.persistence);
         fill_from_noise(
             grid,
-            w,
-            h,
             &fbm,
             out_min,
             range_span,
@@ -141,8 +137,6 @@ fn fill_with_config<N: crate::noise::NoiseSource>(
     } else {
         fill_from_noise(
             grid,
-            w,
-            h,
             &noise,
             out_min,
             range_span,
@@ -154,14 +148,13 @@ fn fill_with_config<N: crate::noise::NoiseSource>(
 
 fn fill_from_noise<N: crate::noise::NoiseSource>(
     grid: &mut Grid<Tile>,
-    w: usize,
-    h: usize,
     noise: &N,
     out_min: f64,
     range_span: f64,
     fill_range: Option<(f64, f64)>,
     threshold: f64,
 ) {
+    let (w, h) = (grid.width(), grid.height());
     for y in 0..h {
         for x in 0..w {
             let raw = noise.sample(x as f64, y as f64);
