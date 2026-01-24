@@ -38,7 +38,7 @@ impl Default for NoiseFillConfig {
             frequency: 0.08,
             scale: 1.0,
             output_range: (0.0, 1.0),
-            threshold: 0.5,
+            threshold: 0.0,
             fill_range: None,
             octaves: 1,
             lacunarity: 2.0,
@@ -163,7 +163,7 @@ fn fill_from_noise<N: crate::noise::NoiseSource>(
 
             let fill = match fill_range {
                 Some((min, max)) => value >= min && value <= max,
-                None => value <= threshold,
+                None => value >= threshold,
             };
 
             let tile = if fill { Tile::Floor } else { Tile::Wall };

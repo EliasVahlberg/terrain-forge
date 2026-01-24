@@ -403,7 +403,7 @@ pub fn effect(
             let amplitude = params.and_then(|p| get_f64(p, "amplitude")).unwrap_or(2.0);
             let frequency = params.and_then(|p| get_f64(p, "frequency")).unwrap_or(0.08);
             let seed = params.and_then(|p| get_u64(p, "seed")).unwrap_or(42);
-            let noise = noise::Perlin::new(seed).with_frequency(frequency);
+            let noise = noise::Perlin::new(seed);
             effects::domain_warp(grid, &noise, amplitude, frequency);
             Ok(())
         }

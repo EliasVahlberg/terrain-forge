@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - Unreleased
+
+### Technical
+- Added unified ops facade (`ops`) for name-based algorithm/effect/combine execution with typed params.
+- Introduced a new `Pipeline` step model (algorithms/effects/combines/conditionals) with stored grids and execution logging.
+- Expanded NoiseFill to support scale, output ranges, fill ranges, and fractal octaves; Perlin now uses permutation gradients.
+- Added `BlendMode::Difference` and new effects `invert` and `resize`.
+
+### Docs & Demo
+- Refreshed demo configs and outputs to align with the unified ops/pipeline flow.
+- Added documentation for architecture unification, migration notes, roadmap, and usability review.
+
 ## [0.5.0] - 2026-01-17
 
 ### Added

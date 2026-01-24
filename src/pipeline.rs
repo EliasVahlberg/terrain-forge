@@ -239,7 +239,11 @@ impl Pipeline {
 
 impl Algorithm<Tile> for Pipeline {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
-        let _ = self.execute_seed(grid, seed);
+        if let Err(err) = self.execute_seed(grid, seed) {
+            if cfg!(debug_assertions) {
+                eprintln!("Pipeline execution failed: {}", err);
+            }
+        }
     }
 
     fn name(&self) -> &'static str {
