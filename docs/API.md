@@ -242,7 +242,7 @@ let ridged = Ridged::new(Perlin::new(seed), octaves, lacunarity, persistence);
 Hand-designed patterns that can be placed in generated maps.
 
 ```rust
-use terrain_forge::algorithms::{PrefabPlacer, PrefabConfig, Prefab};
+use terrain_forge::algorithms::{PrefabLibrary, PrefabPlacer, PrefabConfig, Prefab, PrefabTransform};
 
 // Create prefabs from patterns
 let prefab = Prefab::new(&[
@@ -251,21 +251,55 @@ let prefab = Prefab::new(&[
     "###"
 ]);
 
-// NEW: Rotation support
-let rotated = prefab.rotate_90();   // 90° clockwise
-let rotated = prefab.rotate_180();  // 180°
-let rotated = prefab.rotate_270();  // 270° clockwise
+// Rotation + mirroring via transform
+let rotated = PrefabTransform {
+    rotation: 1,
+    mirror_h: false,
+    mirror_v: false,
+}
+.apply(&prefab);
 
 // Prefab placer with rotation
+let mut library = PrefabLibrary::new();
+library.add_prefab(prefab);
 let algo = PrefabPlacer::new(
     PrefabConfig {
         max_prefabs: 5,
         min_spacing: 3,
-        allow_rotation: true,  // NEW: Enable rotation
+        allow_rotation: true,
+        allow_mirroring: false,
+        weighted_selection: true,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
     },
-    vec![prefab]
+    library,
 );
 ```
+
+Additional `PrefabConfig` options:
+- `placement_mode`: `Overwrite | Merge | PaintFloor | PaintWall`
+- `tags`: optional tag filter for prefab selection
+
+Prefab JSON can optionally include a `legend` to map symbols to tiles/markers/masks.
+
+Ops facade example:
+
+```rust
+use terrain_forge::{ops, Grid, Tile};
+
+let mut grid = Grid::new(80, 60);
+let mut params = ops::Params::new();
+params.insert("library_path".to_string(), "prefab_library.json".into());
+params.insert("tags".to_string(), "room".into());
+params.insert("placement_mode".to_string(), "merge".into());
+params.insert("max_prefabs".to_string(), 5.into());
+
+ops::generate("prefab", &mut grid, Some(12345), Some(&params)).unwrap();
+```
+
+Additional library options:
+- `library_paths`: list of JSON files to load and merge.
+- `library_dir`: directory containing JSON prefab libraries.
 
 ## NEW: Spatial Analysis (v0.4.0)
 
@@ -434,58 +468,74 @@ println!("Max depth reached: {}", backtracker.max_depth_reached());
 println!("Constraint violations: {}", backtracker.constraint_violations());
 ```
 
-## NEW: Advanced Prefab System (v0.4.0)
+## Prefab Libraries (v0.5+)
 
-Enhanced prefab system with JSON serialization, weighted selection, and transformations.
+Prefab libraries support JSON serialization, weighted selection, tags, and legend-based markers/masks.
 
 ### Prefab Libraries
 
 ```rust
-use terrain_forge::algorithms::{PrefabLibrary, PrefabData, PrefabTransform};
+use terrain_forge::algorithms::{PrefabLibrary, PrefabData, PrefabLegendEntry};
 use serde_json;
 
 // Create prefab library
 let mut library = PrefabLibrary::new();
 
 // Add prefabs with metadata
-library.add_prefab(PrefabData {
+let mut legend = std::collections::HashMap::new();
+legend.insert(
+    "T".to_string(),
+    PrefabLegendEntry {
+        tile: Some("floor".to_string()),
+        marker: Some("loot_slot".to_string()),
+        mask: None,
+    },
+);
+library.add_prefab(terrain_forge::algorithms::Prefab::from_data(PrefabData {
     name: "treasure_room".to_string(),
+    width: 3,
+    height: 3,
     pattern: vec![
         "###".to_string(),
         "#T#".to_string(),
         "###".to_string(),
     ],
     weight: 2.0,
-    allow_rotation: true,
-    allow_mirroring: true,
     tags: vec!["treasure".to_string(), "small".to_string()],
-});
+    legend: Some(legend),
+}));
 
 // Save/load as JSON
-let json = serde_json::to_string_pretty(&library)?;
-std::fs::write("prefabs.json", json)?;
-let loaded: PrefabLibrary = serde_json::from_str(&std::fs::read_to_string("prefabs.json")?)?;
+library.save_to_json("prefabs.json")?;
+let loaded = PrefabLibrary::load_from_json("prefabs.json")?;
 ```
 
-### Weighted Selection and Transformations
+### Selection and Transformations
 
 ```rust
-use terrain_forge::algorithms::{AdvancedPrefabPlacer, PrefabTransform};
+use terrain_forge::algorithms::{PrefabConfig, PrefabPlacer, PrefabTransform};
 
-let placer = AdvancedPrefabPlacer::new(library);
+let config = PrefabConfig {
+    max_prefabs: 5,
+    min_spacing: 3,
+    allow_rotation: true,
+    allow_mirroring: true,
+    weighted_selection: true,
+    placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+    tags: Some(vec!["treasure".to_string()]),
+};
 
-// Place prefabs with weighted random selection
-placer.place_prefabs(&mut grid, 5, &mut rng);
+let placer = PrefabPlacer::new(config, loaded);
+placer.generate(&mut grid, 12345);
 
-// Manual prefab placement with transformations
-let prefab = library.get_prefab("treasure_room").unwrap();
-let transformed = prefab.apply_transform(PrefabTransform {
-    rotation: 90,
-    mirror_horizontal: true,
-    mirror_vertical: false,
-});
-
-placer.place_prefab_at(&mut grid, &transformed, 15, 20);
+// Manual prefab transformation
+let prefab = terrain_forge::algorithms::Prefab::new(&["#.#", "...", "#.#"]);
+let transformed = PrefabTransform {
+    rotation: 1,
+    mirror_h: true,
+    mirror_v: false,
+};
+let transformed = transformed.apply(&prefab);
 ```
 
 ## Effects
@@ -799,8 +849,8 @@ cargo run --bin demo -- gen enhanced_wfc --text --png
 # NEW: Delaunay triangulation connections  
 cargo run --bin demo -- gen delaunay_connections --text --png
 
-# NEW: Advanced prefab system
-cargo run --bin demo -- gen advanced_prefabs --text --png
+# Prefab demos
+cargo run -p terrain-forge-demo -- demo prefabs
 
 # Generate with semantic layers
 cargo run --bin demo -- gen bsp --semantic --text --png
@@ -1077,17 +1127,27 @@ fn main() {
     
     // NEW: Advanced prefab system
     let mut library = PrefabLibrary::new();
+    let mut legend = std::collections::HashMap::new();
+    legend.insert(
+        "S".to_string(),
+        PrefabLegendEntry {
+            tile: Some("floor".to_string()),
+            marker: Some("story_hook".to_string()),
+            mask: None,
+        },
+    );
     library.add_prefab(PrefabData {
         name: "shrine".to_string(),
+        width: 3,
+        height: 3,
         pattern: vec!["###".to_string(), "#S#".to_string(), "###".to_string()],
         weight: 1.5,
-        allow_rotation: true,
-        allow_mirroring: false,
         tags: vec!["special".to_string()],
+        legend: Some(legend),
     });
     
-    let placer = AdvancedPrefabPlacer::new(library);
-    placer.place_prefabs(&mut grid, 3, &mut Rng::new(99999));
+    let placer = PrefabPlacer::new(PrefabConfig::default(), library);
+    placer.generate(&mut grid, 99999);
     
     // Semantic analysis
     let extractor = SemanticExtractor::for_rooms();

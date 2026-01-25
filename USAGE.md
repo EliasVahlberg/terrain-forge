@@ -92,22 +92,21 @@ fn main() {
             "#T#",
             "###"
         ],
-        "metadata": {
-            "T": {"type": "treasure", "value": 100}
+        "legend": {
+            "T": {"tile": "floor", "marker": "loot_slot"}
         }
     }"#;
     
     let prefab_data: PrefabData = serde_json::from_str(prefab_json).unwrap();
     let mut library = PrefabLibrary::new();
-    library.add_prefab(prefab_data);
+    library.add_prefab(Prefab::from_data(prefab_data));
     
     // Generate with prefabs
-    let mut prefab_gen = PrefabSystem::new(PrefabConfig {
-        library,
-        placement_attempts: 50,
+    let prefab_gen = PrefabPlacer::new(PrefabConfig {
+        max_prefabs: 3,
         min_spacing: 5,
         ..Default::default()
-    });
+    }, library);
     
     prefab_gen.generate(&mut grid, 12345);
     println!("Placed prefabs with transformations");
@@ -350,7 +349,7 @@ cargo run --bin demo -- gen bsp --semantic --png -o semantic.png
 
 # Enhanced algorithms
 cargo run --bin demo -- gen enhanced_wfc --pattern-size 3 -s 42
-cargo run --bin demo -- gen prefab --library examples/prefabs.json
+cargo run -p terrain-forge-demo -- demo prefabs
 
 # Spatial analysis
 cargo run --bin demo -- spatial distance_transform --metric euclidean

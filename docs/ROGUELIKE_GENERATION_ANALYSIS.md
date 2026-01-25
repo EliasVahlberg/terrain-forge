@@ -189,19 +189,31 @@ ops::generate("wfc", &mut grid, Some(seed), None).unwrap();
 ```rust
 use terrain_forge::algorithms::{PrefabPlacer, PrefabConfig, Prefab};
 
-let prefab = Prefab::from_str("###\n#.#\n###");
-let algo = PrefabPlacer::new(PrefabConfig { 
-    prefabs: vec![prefab],
-    rotation: true,  // Automatic 90°/180°/270° variants
-});
+let prefab = Prefab::new(&["###", "#.#", "###"]);
+let mut library = terrain_forge::algorithms::PrefabLibrary::new();
+library.add_prefab(prefab);
+
+let algo = PrefabPlacer::new(
+    PrefabConfig {
+        max_prefabs: 3,
+        min_spacing: 3,
+        allow_rotation: true,  // Automatic 90°/180°/270° variants
+        allow_mirroring: false,
+        weighted_selection: true,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
+    },
+    library,
+);
 ```
 
 **Status**: ✅ Fully supported
 
 **Features**:
 - Automatic prefab rotation (90°/180°/270°)
-- Weighted random selection
-- Connectivity validation after placement
+- Weighted selection + tag filtering
+- Placement modes (overwrite/merge/floor/wall)
+- Optional legend-based markers/masks for semantic output
 
 ---
 

@@ -146,14 +146,11 @@ The framework uses JSON configurations that map directly to TerrainForge's API s
   "name": "rotated_prefabs",
   "algorithm": {
     "type": "prefab",
-    "prefabs": [
-      {
-        "pattern": "###\\n#.#\\n###",
-        "weight": 1.0
-      }
-    ],
-    "rotation": true,
-    "max_attempts": 100
+    "library_path": "prefab_library.json",
+    "tags": ["room"],
+    "placement_mode": "overwrite",
+    "allow_rotation": true,
+    "max_prefabs": 5
   }
 }
 ```
