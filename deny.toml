@@ -32,8 +32,8 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 vulnerability = "deny"
 # Which dependency sources to check for advisories
 unmaintained = "all"
-yanked = "all"
-notice = "all"
+yanked = "warn"
+notice = "warn"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
