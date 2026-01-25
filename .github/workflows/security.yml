@@ -30,5 +30,3 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          cargo-deny-version: "0.16.2"
