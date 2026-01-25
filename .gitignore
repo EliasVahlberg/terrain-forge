@@ -27,6 +27,7 @@ demo/output/prefabs/
 demo/test_semantic.txt
 demo/output/test_output.png
 demo/output/test_semantic.txt
+working_docs/
 
 # AI/Agent files
 AGENTS.md
@@ -43,3 +44,4 @@ codex-rs/
 .agentdata/
 .agentcache/
 .skills/
+prompts/
