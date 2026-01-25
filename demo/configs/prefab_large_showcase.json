@@ -1,0 +1,14 @@
+{
+  "pipeline": [
+    {
+      "type": "prefab",
+      "library_path": "demo/configs/prefabs/large_prefab.json",
+      "max_prefabs": 1,
+      "min_spacing": 2,
+      "allow_rotation": false,
+      "allow_mirroring": false,
+      "weighted_selection": false,
+      "placement_mode": "overwrite"
+    }
+  ]
+}

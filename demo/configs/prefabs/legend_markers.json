@@ -1,0 +1,24 @@
+{
+  "prefabs": [
+    {
+      "name": "marker_room",
+      "width": 6,
+      "height": 5,
+      "pattern": [
+        "######",
+        "#..M.#",
+        "#....#",
+        "#..N.#",
+        "######"
+      ],
+      "weight": 1.0,
+      "tags": ["room", "legend"],
+      "legend": {
+        ".": {"tile": "floor"},
+        "#": {"tile": "wall"},
+        "M": {"tile": "floor", "marker": "loot_slot"},
+        "N": {"tile": "floor", "mask": "no_spawn"}
+      }
+    }
+  ]
+}

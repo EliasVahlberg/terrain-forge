@@ -23,6 +23,7 @@ Thumbs.db
 *.temp
 feature_requests
 demo/output/backup/
+demo/output/prefabs/
 demo/test_semantic.txt
 demo/output/test_output.png
 demo/output/test_semantic.txt

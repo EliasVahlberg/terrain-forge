@@ -1,0 +1,14 @@
+{
+  "pipeline": [
+    {
+      "type": "prefab",
+      "library_dir": "demo/configs/prefabs",
+      "tags": "room",
+      "max_prefabs": 6,
+      "min_spacing": 3,
+      "allow_rotation": true,
+      "allow_mirroring": false,
+      "weighted_selection": true
+    }
+  ]
+}

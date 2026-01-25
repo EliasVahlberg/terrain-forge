@@ -1,0 +1,19 @@
+{
+  "pipeline": [
+    {
+      "type": "bsp",
+      "min_room_size": 5,
+      "max_depth": 6
+    },
+    {
+      "op": "combine",
+      "mode": "union",
+      "source": "cellular"
+    },
+    {
+      "type": "voronoi",
+      "num_points": 30,
+      "floor_chance": 0.6
+    }
+  ]
+}

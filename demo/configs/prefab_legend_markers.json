@@ -1,0 +1,14 @@
+{
+  "pipeline": [
+    {
+      "type": "prefab",
+      "library_path": "demo/configs/prefabs/legend_markers.json",
+      "max_prefabs": 4,
+      "min_spacing": 2,
+      "allow_rotation": true,
+      "allow_mirroring": true,
+      "weighted_selection": false,
+      "placement_mode": "overwrite"
+    }
+  ]
+}

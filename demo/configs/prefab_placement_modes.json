@@ -1,0 +1,20 @@
+{
+  "pipeline": [
+    {
+      "type": "bsp",
+      "min_room_size": 5,
+      "max_depth": 5
+    },
+    {
+      "type": "prefab",
+      "library_path": "demo/configs/prefabs/rooms.json",
+      "tags": "room",
+      "max_prefabs": 5,
+      "min_spacing": 2,
+      "placement_mode": "merge",
+      "allow_rotation": false,
+      "allow_mirroring": false,
+      "weighted_selection": true
+    }
+  ]
+}

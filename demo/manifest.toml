@@ -104,6 +104,49 @@ height = 80
 outputs = ["regions", "semantic"]
 description = "Strata/biomes inside one cave; weighted region labeling."
 
+[[demo]]
+id = "prefabs"
+title = "Prefab Library Demos"
+description = "Prefab library loading, placement modes, and legend-driven metadata."
+tags = ["prefab", "ops", "library", "legend"]
+
+[[demo.runs]]
+name = "prefab_library_paths"
+config = "demo/configs/prefab_library_paths.json"
+seed = 22222
+outputs = ["grid", "text"]
+description = "Load multiple prefab libraries via library_paths."
+
+[[demo.runs]]
+name = "prefab_library_dir"
+config = "demo/configs/prefab_library_dir.json"
+seed = 33333
+outputs = ["grid", "text"]
+description = "Load prefab libraries from a directory and filter by tag."
+
+[[demo.runs]]
+name = "prefab_legend_markers"
+config = "demo/configs/prefab_legend_markers.json"
+seed = 44444
+outputs = ["grid", "semantic", "masks"]
+description = "Legend-based prefab with markers and masks."
+
+[[demo.runs]]
+name = "prefab_placement_modes"
+config = "demo/configs/prefab_placement_modes.json"
+seed = 55555
+outputs = ["grid", "text"]
+description = "Merge-mode prefab placement over BSP base."
+
+[[demo.runs]]
+name = "prefab_large_showcase"
+config = "demo/configs/prefab_large_showcase.json"
+seed = 66666
+width = 140
+height = 90
+outputs = ["grid", "semantic"]
+description = "Large prefab placement from large_prefab.json."
+
 [[demo.runs]]
 name = "siege_approaches"
 spec = "agent > bsp"
@@ -133,7 +176,7 @@ description = "Long winding paths stabilized by seam bridging; large format."
 
 [[demo.runs]]
 name = "hybrid_megadungeon"
-spec = "bsp > rooms | cellular > voronoi"
+config = "demo/configs/hybrid_megadungeon.json"
 seed = 321
 width = 200
 height = 140

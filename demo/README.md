@@ -38,6 +38,7 @@ Use the manifest-driven demo runner for easy access to all demonstrations:
 ./scripts/demo.sh composites            # composite pipelines from DEMO_USECASES/COMPOSITE_DEMOS
 ./scripts/demo.sh semantic              # semantic analysis suite
 ./scripts/demo.sh png                   # visualization suite
+./scripts/demo.sh prefabs               # prefab library + placement mode demos
 ```
 
 Manifest location: `demo/manifest.toml`. Output root: `demo/output/<demo-id>/`.
@@ -159,7 +160,7 @@ Status key: Covered, Partial, Missing.
 - Noise: Partial (Perlin via `domain_warp`). Simplex/Value/Worley/FBM/Ridged not demoed.
 - Analysis + spatial modules: Missing (no demo entries exercise these modules yet).
 - Pipeline intelligence: Missing (PipelineCondition/Template APIs not demoed).
-- Prefab options: Partial (rotation covered; mirroring/weighted selection/library not demoed).
+- Prefab options: Covered (library paths/dir, placement modes, legend markers, weighted selection).
 
 New coverage entries added to `feature_coverage`:
 - `grid_output_smoke`

@@ -1,0 +1,28 @@
+{
+  "prefabs": [
+    {
+      "name": "corridor",
+      "width": 7,
+      "height": 3,
+      "pattern": [
+        "#######",
+        ".......",
+        "#######"
+      ],
+      "weight": 1.0,
+      "tags": ["corridor"]
+    },
+    {
+      "name": "junction",
+      "width": 3,
+      "height": 3,
+      "pattern": [
+        "#.#",
+        "...",
+        "#.#"
+      ],
+      "weight": 0.5,
+      "tags": ["junction", "corridor"]
+    }
+  ]
+}

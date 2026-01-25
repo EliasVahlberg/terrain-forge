@@ -1,0 +1,17 @@
+{
+  "pipeline": [
+    {
+      "type": "prefab",
+      "library_paths": [
+        "demo/configs/prefabs/rooms.json",
+        "demo/configs/prefabs/corridors.json"
+      ],
+      "tags": ["room", "corridor"],
+      "max_prefabs": 8,
+      "min_spacing": 2,
+      "allow_rotation": true,
+      "allow_mirroring": true,
+      "weighted_selection": true
+    }
+  ]
+}
