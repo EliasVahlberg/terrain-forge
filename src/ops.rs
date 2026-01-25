@@ -1,4 +1,20 @@
 //! Unified ops facade: algorithms, effects, and grid combine.
+//!
+//! Use this module for name-based execution with optional JSON params.
+//!
+//! ```rust
+//! use terrain_forge::{Grid, ops};
+//! use terrain_forge::ops::Params;
+//! use serde_json::json;
+//!
+//! let mut grid = Grid::new(80, 60);
+//! let mut params = Params::new();
+//! params.insert("min_room_size".to_string(), json!(6));
+//! params.insert("max_depth".to_string(), json!(5));
+//! params.insert("room_padding".to_string(), json!(1));
+//!
+//! ops::generate("bsp", &mut grid, Some(12345), Some(&params)).unwrap();
+//! ```
 
 use crate::algorithms::*;
 pub use crate::compose::BlendMode as CombineMode;

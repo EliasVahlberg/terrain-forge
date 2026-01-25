@@ -1,4 +1,6 @@
-//! Pipeline for sequential algorithm execution
+//! Pipeline for sequential algorithm execution.
+//!
+//! This is the lightweight, algorithm-only pipeline (not the ops pipeline).
 
 use crate::{Algorithm, Cell, Grid};
 

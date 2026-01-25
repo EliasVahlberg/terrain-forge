@@ -1,4 +1,6 @@
-//! Spatial analysis algorithms
+//! Spatial analysis algorithms.
+//!
+//! Includes distance fields, Dijkstra maps, flow fields, and morphology helpers.
 
 pub mod distance;
 pub mod morphology;

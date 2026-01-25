@@ -2,6 +2,18 @@
 //!
 //! Provides region metadata, spawn markers, and connectivity information
 //! alongside tile generation for game integration.
+//!
+//! ```rust
+//! use terrain_forge::{Algorithm, Grid, Rng, SemanticExtractor};
+//! use terrain_forge::algorithms::Bsp;
+//!
+//! let mut grid = Grid::new(80, 60);
+//! Bsp::default().generate(&mut grid, 12345);
+//!
+//! let mut rng = Rng::new(12345);
+//! let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
+//! println!("Regions: {}", semantic.regions.len());
+//! ```
 
 use crate::{Grid, Tile};
 use std::collections::HashMap;

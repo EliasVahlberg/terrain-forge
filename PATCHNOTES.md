@@ -1,6 +1,6 @@
 # Patch Notes
 
-## v0.6.0 - Quality of Life & Fixes (Unreleased)
+## v0.6.0 - Quality of Life & Fixes (2026-01-25)
 
 - Unified ops facade (`ops`) plus name-based `Pipeline` for composing algorithms, effects, and combines.
 - NoiseFill expanded with scale/output range/fill range/fractal parameters; Perlin updated to permutation-based gradients.

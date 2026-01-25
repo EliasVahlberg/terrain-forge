@@ -1,4 +1,6 @@
-//! Composition system for chaining and layering algorithms
+//! Composition system for chaining and layering algorithms.
+//!
+//! Use `Pipeline` for sequential algorithm chains and `LayeredGenerator` for blends.
 
 mod layer;
 mod pipeline;

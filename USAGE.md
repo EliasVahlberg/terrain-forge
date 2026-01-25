@@ -6,7 +6,7 @@ Migration: [v0.6.0 guide](docs/MIGRATION_0_6.md)
 
 ```toml
 [dependencies]
-terrain-forge = "0.5"
+terrain-forge = "0.6"
 ```
 
 ## Basic Generation
@@ -21,54 +21,44 @@ fn main() {
 }
 ```
 
-## Enhanced Wave Function Collapse
+## Wave Function Collapse with Pattern Extraction
 
 ```rust
-use terrain_forge::{algorithms::*, Grid, Rng, ops};
+use terrain_forge::{algorithms::*, Grid, ops};
 
 fn main() {
-    let mut grid = Grid::new(40, 30);
-    let mut rng = Rng::new(12345);
-    
-    // Create example pattern for learning
     let mut example = Grid::new(10, 10);
     ops::generate("bsp", &mut example, Some(42), None).unwrap();
-    
-    // Enhanced WFC with pattern learning
-    let mut wfc = EnhancedWfc::new(WfcConfig::default());
-    let patterns = wfc.learn_patterns(&example, 3); // 3x3 patterns
-    
-    // Generate with learned patterns
-    wfc.generate_with_patterns(&mut grid, &patterns, &mut rng);
-    println!("Generated with {} learned patterns", patterns.len());
+
+    // Extract patterns (with rotation variants)
+    let patterns = WfcPatternExtractor::extract_patterns(&example, 3);
+
+    // Generate using extracted patterns
+    let mut grid = Grid::new(40, 30);
+    let wfc = Wfc::new(WfcConfig::default());
+    wfc.generate_with_patterns(&mut grid, patterns, 12345);
 }
 ```
 
 ## Delaunay Triangulation
 
 ```rust
-use terrain_forge::{analysis::*, spatial::*, Grid, Rng, ops};
+use terrain_forge::{analysis::*, Grid};
 
 fn main() {
-    let mut grid = Grid::new(60, 40);
-    ops::generate("rooms", &mut grid, Some(12345), None).unwrap();
-    
-    // Extract room centers
-    let room_centers = find_room_centers(&grid);
-    
+    // Provide room centers from your own detection logic
+    let room_centers = vec![
+        Point::new(10.0, 10.0),
+        Point::new(25.0, 20.0),
+        Point::new(40.0, 30.0),
+    ];
+
     // Create Delaunay triangulation
-    let triangulation = delaunay_triangulation(&room_centers);
-    
-    // Generate minimum spanning tree for connections
-    let mst = minimum_spanning_tree(&triangulation);
-    
-    // Connect rooms with corridors
-    for edge in mst {
-        connect_points(&mut grid, edge.from, edge.to);
-    }
-    
-    println!("Connected {} rooms with {} corridors", 
-             room_centers.len(), mst.len());
+    let triangulation = DelaunayTriangulation::new(room_centers.clone());
+
+    // Minimum spanning tree for connections
+    let mst = triangulation.minimum_spanning_tree();
+    println!("MST edges: {}", mst.len());
 }
 ```
 
@@ -101,15 +91,8 @@ fn main() {
     let mut library = PrefabLibrary::new();
     library.add_prefab(Prefab::from_data(prefab_data));
     
-    // Generate with prefabs
-    let prefab_gen = PrefabPlacer::new(PrefabConfig {
-        max_prefabs: 3,
-        min_spacing: 5,
-        ..Default::default()
-    }, library);
-    
+    let prefab_gen = PrefabPlacer::new(PrefabConfig::default(), library);
     prefab_gen.generate(&mut grid, 12345);
-    println!("Placed prefabs with transformations");
 }
 ```
 
@@ -122,30 +105,25 @@ fn main() {
     let mut grid = Grid::new(50, 40);
     ops::generate("cellular", &mut grid, Some(12345), None).unwrap();
     
-    // Distance transforms with multiple metrics
-    let euclidean = DistanceTransform::euclidean().compute(&grid);
-    let manhattan = DistanceTransform::manhattan().compute(&grid);
-    let chebyshev = DistanceTransform::chebyshev().compute(&grid);
-    
-    // Advanced pathfinding with Dijkstra maps
+    // Distance transform
+    let _euclidean = distance_field(&grid, DistanceMetric::Euclidean);
+
+    // Dijkstra map + flow field
     let goals = vec![(10, 10), (40, 30)];
-    let dijkstra_map = DijkstraMap::new(&goals).compute(&grid);
-    
-    // Generate flow fields for AI movement
-    let flow_field = FlowField::from_dijkstra(&dijkstra_map);
-    
-    // Morphological operations
-    let dilated = morphology::dilate(&grid, &StructuringElement::cross());
-    let eroded = morphology::erode(&grid, &StructuringElement::square(3));
-    
-    println!("Computed spatial analysis with multiple metrics");
+    let constraints = PathfindingConstraints::default();
+    let dijkstra_map = dijkstra_map(&grid, &goals, &constraints);
+    let _flow_field = flow_field_from_dijkstra(&dijkstra_map);
+
+    // Morphological operations (returns new grids)
+    let cross = StructuringElement::cross(3);
+    let _opened = morphological_transform(&grid, MorphologyOp::Opening, &cross);
 }
 ```
 
 ## Semantic Generation
 
 ```rust
-use terrain_forge::{SemanticExtractor, Rng};
+use terrain_forge::{Grid, SemanticExtractor, Rng};
 use terrain_forge::algorithms::Bsp;
 
 fn main() {
@@ -160,17 +138,20 @@ fn main() {
     let semantic = SemanticExtractor::for_rooms().extract(&grid, &mut rng);
     
     // Use markers for entity spawning
-    for (x, y, marker) in &semantic.markers {
-        match marker.tag.as_str() {
-            "PlayerStart" => println!("Spawn player at ({}, {})", x, y),
-            "Exit" => println!("Place exit at ({}, {})", x, y),
-            "Treasure" => println!("Place treasure at ({}, {})", x, y),
+    for marker in &semantic.markers {
+        match marker.tag().as_str() {
+            "PlayerStart" => println!("Spawn player at ({}, {})", marker.x, marker.y),
+            "Exit" => println!("Place exit at ({}, {})", marker.x, marker.y),
+            "Treasure" => println!("Place treasure at ({}, {})", marker.x, marker.y),
             _ => {}
         }
     }
     
-    println!("Generated {} regions with {} markers", 
-             semantic.regions.len(), semantic.markers.len());
+    println!(
+        "Generated {} regions with {} markers",
+        semantic.regions.len(),
+        semantic.markers.len()
+    );
 }
 ```
 
@@ -206,7 +187,7 @@ fn main() {
 
 ```rust
 use terrain_forge::algorithms::{GlassSeam, GlassSeamConfig};
-use terrain_forge::Grid;
+use terrain_forge::{ops, Grid};
 
 fn main() {
     let mut grid = Grid::new(80, 60);
@@ -241,15 +222,13 @@ for name in algorithms::list() {
 ## Direct Instantiation
 
 ```rust
-use terrain_forge::{Grid, Algorithm};
+use terrain_forge::Grid;
 use terrain_forge::algorithms::{Bsp, BspConfig};
 
 let config = BspConfig {
     min_room_size: 6,
-    max_room_size: 15,
-    min_depth: 3,
-    max_depth: 8,
-    room_ratio: 0.45,
+    max_depth: 5,
+    room_padding: 1,
 };
 
 let mut grid = Grid::new(80, 60);
@@ -280,12 +259,12 @@ maze.generate(&mut grid, 12345);
 let semantic = SemanticExtractor::for_mazes().extract(&grid, &mut rng);
 
 // Entity spawning works the same across all algorithms
-for (x, y, marker) in &semantic.markers {
-    match marker.tag.as_str() {
-        "PlayerStart" => spawn_player(x, y),
-        "Exit" => place_exit(x, y),
-        "Treasure" => place_loot(x, y),
-        "Enemy" => spawn_enemy(x, y),
+for marker in &semantic.markers {
+    match marker.tag().as_str() {
+        "PlayerStart" => spawn_player(marker.x as usize, marker.y as usize),
+        "Exit" => place_exit(marker.x as usize, marker.y as usize),
+        "Treasure" => place_loot(marker.x as usize, marker.y as usize),
+        "Enemy" => spawn_enemy(marker.x as usize, marker.y as usize),
         _ => {}
     }
 }
@@ -297,132 +276,72 @@ Generate maps that meet specific gameplay requirements:
 
 ```rust
 use terrain_forge::{
-    requirements::{Requirements, ConnectivityRequirement, MarkerRequirement},
-    generate_with_requirements, Grid, Rng
+    generate_with_requirements,
+    semantic::{MarkerType, SemanticRequirements},
 };
 
-let mut grid = Grid::new(80, 60);
-let mut rng = Rng::new(12345);
+let mut requirements = SemanticRequirements::none();
+requirements
+    .required_markers
+    .insert(MarkerType::Custom("PlayerStart".to_string()), 1);
+requirements
+    .required_markers
+    .insert(MarkerType::Custom("Exit".to_string()), 1);
+requirements
+    .min_regions
+    .insert("Room".to_string(), 3);
 
-let requirements = Requirements::builder()
-    .connectivity(ConnectivityRequirement {
-        min_largest_region_ratio: 0.8,
-        max_disconnected_regions: 2,
-    })
-    .marker(MarkerRequirement {
-        marker_type: "PlayerStart".to_string(),
-        min_count: 1,
-        max_count: 1,
-        min_distance_from_edge: 5,
-    })
-    .marker(MarkerRequirement {
-        marker_type: "Exit".to_string(),
-        min_count: 1,
-        max_count: 3,
-        min_distance_between: 15,
-    })
-    .build();
-
-match generate_with_requirements(&mut grid, "bsp", requirements, &mut rng) {
-    Ok(semantic) => {
+match generate_with_requirements("bsp", 80, 60, requirements, Some(5), 12345) {
+    Ok((_grid, semantic)) => {
         println!("Generated valid map with {} markers", semantic.markers.len());
-        for (x, y, marker) in &semantic.markers {
-            println!("  {} at ({}, {})", marker.tag, x, y);
-        }
     }
     Err(e) => println!("Failed to meet requirements: {}", e),
-}
+};
 ```
 
 ## Demo Framework
 
-The demo framework provides extensive examples and testing capabilities:
+The demo runner and manifest live in `demo/`. See `demo/README.md` for the full CLI:
 
 ```bash
-# Generate basic algorithms
-cargo run --bin demo -- gen bsp -s 12345 -o output.png
-cargo run --bin demo -- gen cellular --width 100 --height 80
-
-# Semantic generation with visualization
-cargo run --bin demo -- gen room_accretion --semantic --text -o semantic.txt
-cargo run --bin demo -- gen bsp --semantic --png -o semantic.png
-
-# Enhanced algorithms
-cargo run --bin demo -- gen enhanced_wfc --pattern-size 3 -s 42
-cargo run -p terrain-forge-demo -- demo prefabs
-
-# Spatial analysis
-cargo run --bin demo -- spatial distance_transform --metric euclidean
-cargo run --bin demo -- spatial dijkstra --goals "10,10;40,30"
-
-# NEW: Semantic configuration files
-cargo run -- run configs/semantic_bsp.json
-cargo run -- run configs/semantic_large_rooms.json
-cargo run -- run configs/semantic_organic.json
-
-# Compare algorithms
-cargo run -- compare bsp cellular maze -s 12345
-
-# List available algorithms
-cargo run -- list
+./demo/scripts/demo.sh --list
+./demo/scripts/demo.sh semantic
 ```
 
-## Algorithm Parameters
+## Algorithm Parameters (Examples)
 
-Each algorithm supports extensive configuration:
-
-### BSP (Binary Space Partitioning)
 ```rust
 BspConfig {
-    min_room_size: 6,      // Minimum room dimensions
-    max_room_size: 15,     // Maximum room dimensions  
-    min_depth: 3,          // Minimum tree depth
-    max_depth: 8,          // Maximum tree depth
-    room_ratio: 0.45,      // Ratio of leaf nodes that become rooms
+    min_room_size: 6,
+    max_depth: 5,
+    room_padding: 1,
 }
-```
 
-### Cellular Automata
-```rust
 CellularConfig {
-    initial_density: 0.45,  // Initial wall probability
-    iterations: 5,          // Smoothing iterations
-    birth_limit: 4,         // Neighbors needed for wall birth
-    death_limit: 3,         // Neighbors needed for wall survival
+    initial_floor_chance: 0.45,
+    iterations: 4,
+    birth_limit: 5,
+    death_limit: 4,
 }
-```
 
-### Wave Function Collapse
-```rust
 WfcConfig {
-    pattern_size: 3,           // Pattern dimensions (3x3)
-    enable_backtracking: true, // Allow constraint backtracking
-    max_attempts: 1000,        // Maximum generation attempts
+    floor_weight: 0.4,
+    pattern_size: 3,
+    enable_backtracking: true,
+}
+
+GlassSeamConfig {
+    coverage_threshold: 0.75,
+    required_points: vec![],
+    carve_radius: 0,
+    use_mst_terminals: true,
 }
 ```
 
-### Glass Seam Bridging
-```rust
-GlassSeamParams {
-    ct: 0.75,                   // Connectivity threshold
-    min_area_ratio: 0.05,       // Minimum area ratio filter
-    use_pgd: true,              // Enable Perimeter Gradient Descent
-    n_skew: 2,                  // PGD diagonal search width
-    max_pgd_iterations: 20,     // PGD iteration limit
-    use_delaunay: true,         // Enable Delaunay triangulation filter
-    angular_sectors: 6,         // Directional sectors per vertex
-    occlusion_factor: 1.2,      // Indirect path tolerance
-    max_edge_distance: 100.0,   // Skip distant area pairs
-}
-```
+## Performance Notes
 
-## Performance Considerations
-
-- **Grid Size**: Larger grids increase generation time exponentially for some algorithms
-- **Algorithm Choice**: BSP and Rooms are fastest, WFC and Agent-based are slower
-- **Semantic Analysis**: Adds ~10-20% overhead but provides valuable metadata
-- **Caching**: Reuse `SemanticExtractor` instances for better performance
-- **Parallel Generation**: Use multiple threads for batch generation
+- Bigger grids and WFC are the primary cost drivers.
+- Semantic extraction adds overhead but is reusable across maps.
 
 ## Integration Examples
 
@@ -472,8 +391,10 @@ impl GameMap {
             .extract(&grid, &mut rng);
         
         // Create entities from markers
-        let entities = semantic.markers.iter()
-            .map(|(x, y, marker)| Entity::new(*x, *y, &marker.tag))
+        let entities = semantic
+            .markers
+            .iter()
+            .map(|marker| Entity::new(marker.x as usize, marker.y as usize, marker.tag()))
             .collect();
         
         Self { grid, entities }

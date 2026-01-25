@@ -5,12 +5,27 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use terrain_forge::{Grid, Tile, ops};
+//! use terrain_forge::{Grid, ops};
 //!
 //! let mut grid = Grid::new(80, 60);
 //! ops::generate("bsp", &mut grid, Some(12345), None).unwrap();
 //!
 //! println!("Generated {} floor tiles", grid.count(|t| t.is_floor()));
+//! ```
+//!
+//! ## Quick Start (Direct Instantiation)
+//!
+//! ```rust
+//! use terrain_forge::{Algorithm, Grid};
+//! use terrain_forge::algorithms::{Bsp, BspConfig};
+//!
+//! let mut grid = Grid::new(80, 60);
+//! let bsp = Bsp::new(BspConfig {
+//!     min_room_size: 6,
+//!     max_depth: 5,
+//!     room_padding: 1,
+//! });
+//! bsp.generate(&mut grid, 12345);
 //! ```
 //!
 //! ## Semantic Extraction
@@ -34,7 +49,7 @@
 //!
 //! ## Algorithms
 //!
-//! 14 generation algorithms available via [`algorithms::get`]:
+//! 15 generation algorithms available via [`algorithms::get`]:
 //! - `bsp` - Binary Space Partitioning for structured rooms
 //! - `cellular` - Cellular automata for organic caves
 //! - `drunkard` - Random walk for winding corridors
@@ -45,6 +60,7 @@
 //! - `wfc` - Wave Function Collapse
 //! - `percolation` - Connected cluster generation
 //! - `diamond_square` - Heightmap terrain
+//! - `noise_fill` - Noise-driven threshold fill
 //! - `fractal` - Fractal noise terrain
 //! - `agent` - Multi-agent carving
 //! - `glass_seam` - Region connector

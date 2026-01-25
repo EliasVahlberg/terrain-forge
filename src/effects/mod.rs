@@ -1,4 +1,6 @@
-//! Effects and transforms for post-processing generated maps
+//! Effects and transforms for post-processing generated maps.
+//!
+//! Most effects mutate the grid in place.
 
 mod blend;
 mod connectivity;

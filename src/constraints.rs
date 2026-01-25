@@ -1,4 +1,4 @@
-//! Constraint validation
+//! Constraint validation utilities and helpers.
 
 use crate::{pipeline, semantic};
 use crate::{Grid, Tile};

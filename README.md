@@ -16,10 +16,10 @@ Migration: [v0.6.0 guide](docs/MIGRATION_0_6.md)
 
 ## Features
 
-- **16 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, Noise Fill, and more
+- **15 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, Noise Fill, and more
 - **Spatial Analysis**: Distance transforms, pathfinding, morphological operations
 - **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
-- **Advanced Prefab System**: JSON/TOML support with transformations
+- **Advanced Prefab System**: JSON support with transformations
 - **Requirements System**: Generate maps meeting specific constraints
 - **Connectivity Utilities**: Shortest-path extraction, path carving, marker connections
 
@@ -27,7 +27,7 @@ Migration: [v0.6.0 guide](docs/MIGRATION_0_6.md)
 
 ```toml
 [dependencies]
-terrain-forge = "0.5"
+terrain-forge = "0.6"
 ```
 
 ```rust
@@ -76,7 +76,6 @@ _Color-coded semantic analysis showing dramatic connectivity improvement (+0.57 
 | `rooms`          | Simple room placement                        | ✅ `for_rooms()` |
 | `voronoi`        | Voronoi diagram regions                      | ✅ `default()`   |
 | `wfc`            | Wave Function Collapse                       | ✅ `default()`   |
-| `enhanced_wfc`   | WFC with pattern learning                    | ✅ `default()`   |
 | `percolation`    | Physics-based generation                     | ✅ `default()`   |
 | `diamond_square` | Fractal heightmaps                           | ✅ `default()`   |
 | `fractal`        | Fractal terrain                              | ✅ `default()`   |
@@ -89,7 +88,7 @@ _Color-coded semantic analysis showing dramatic connectivity improvement (+0.57 
 
 - **[Usage Guide](USAGE.md)** - Comprehensive examples and API documentation
 - **[Patch Notes](PATCHNOTES.md)** - Detailed version history and changes
-- **[API Documentation](https://docs.rs/terrain-forge/0.5.0)** - Complete API reference
+- **[API Documentation](https://docs.rs/terrain-forge/0.6.0)** - Complete API reference
 
 ## Version History
 

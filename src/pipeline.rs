@@ -1,7 +1,22 @@
-//! Pipeline intelligence system for conditional generation
+//! Pipeline system for conditional generation and ops orchestration.
 //!
-//! Provides conditional operations, parameter passing, and template systems
-//! for intelligent pipeline composition and control flow.
+//! Supports algorithms, effects, combine steps, conditionals, and reusable templates.
+//!
+//! ```rust
+//! use terrain_forge::{Grid, pipeline::Pipeline};
+//! use terrain_forge::ops::Params;
+//! use serde_json::json;
+//!
+//! let mut grid = Grid::new(80, 60);
+//! let mut params = Params::new();
+//! params.insert("iterations".to_string(), json!(2));
+//!
+//! let mut pipe = Pipeline::new();
+//! pipe.add_algorithm("cellular", Some(42), None)
+//!     .add_effect("erode", Some(params));
+//!
+//! pipe.execute_seed(&mut grid, 12345).unwrap();
+//! ```
 
 use crate::ops::{self, CombineMode, OpError, Params};
 use crate::{Algorithm, Grid, Rng, Tile};
