@@ -103,6 +103,8 @@ fn main() {
         allow_rotation: true,
         allow_mirroring: true,
         weighted_selection: true,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
     };
 
     let placer = PrefabPlacer::new(config, library.clone());
@@ -147,6 +149,8 @@ fn main() {
         allow_rotation: false,
         allow_mirroring: false,
         weighted_selection: false,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
     };
 
     let start = std::time::Instant::now();
@@ -162,6 +166,8 @@ fn main() {
         allow_rotation: true,
         allow_mirroring: true,
         weighted_selection: true,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
     };
 
     let start = std::time::Instant::now();
@@ -201,6 +207,7 @@ fn create_sample_library() -> PrefabLibrary {
         ],
         weight: 3.0,
         tags: vec!["room".to_string(), "small".to_string()],
+        legend: None,
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(small_room));
 
@@ -219,6 +226,7 @@ fn create_sample_library() -> PrefabLibrary {
         ],
         weight: 1.5,
         tags: vec!["room".to_string(), "large".to_string()],
+        legend: None,
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(large_room));
 
@@ -234,10 +242,20 @@ fn create_sample_library() -> PrefabLibrary {
         ],
         weight: 0.8,
         tags: vec!["corridor".to_string(), "connection".to_string()],
+        legend: None,
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(corridor));
 
     // L-shaped room (rare)
+    let mut legend = std::collections::HashMap::new();
+    legend.insert(
+        "M".to_string(),
+        terrain_forge::algorithms::PrefabLegendEntry {
+            tile: Some("floor".to_string()),
+            marker: Some("loot_slot".to_string()),
+            mask: None,
+        },
+    );
     let l_room = PrefabData {
         name: "l_shaped_room".to_string(),
         width: 6,
@@ -246,7 +264,7 @@ fn create_sample_library() -> PrefabLibrary {
             "######".to_string(),
             "#....#".to_string(),
             "#....#".to_string(),
-            "#..###".to_string(),
+            "#..M##".to_string(),
             "#..###".to_string(),
             "######".to_string(),
         ],
@@ -256,6 +274,7 @@ fn create_sample_library() -> PrefabLibrary {
             "special".to_string(),
             "l_shaped".to_string(),
         ],
+        legend: Some(legend),
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(l_room));
 

@@ -44,6 +44,31 @@ pub fn generate(
     Ok(())
 }
 
+/// Generate using a named algorithm with optional semantic output.
+pub fn generate_with_semantic(
+    name: &str,
+    grid: &mut Grid<Tile>,
+    seed: Option<u64>,
+    params: Option<&Params>,
+    semantic: Option<&mut SemanticLayers>,
+) -> OpResult<()> {
+    let name = name.trim();
+    if name == "prefab" {
+        let (config, library) = build_prefab_config(params)?;
+        let placer = PrefabPlacer::new(config, library);
+        if let Some(semantic) = semantic {
+            placer.generate_with_semantic(grid, seed.unwrap_or(0), semantic);
+            return Ok(());
+        }
+        placer.generate(grid, seed.unwrap_or(0));
+        return Ok(());
+    }
+
+    let algo = build_algorithm(name, params)?;
+    algo.generate(grid, seed.unwrap_or(0));
+    Ok(())
+}
+
 /// Build an algorithm instance from a name + optional params.
 pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn Algorithm<Tile>>> {
     let name = name.trim();
@@ -281,34 +306,7 @@ pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn 
             Ok(Box::new(RoomAccretion::new(config)))
         }
         "prefab" => {
-            let mut config = PrefabConfig::default();
-            let mut library = PrefabLibrary::new();
-            if let Some(params) = params {
-                if let Some(prefabs_val) = params.get("prefabs") {
-                    for mut prefab in parse_prefabs(prefabs_val) {
-                        prefab.weight = 1.0;
-                        library.add_prefab(prefab);
-                    }
-                }
-                if let Some(v) = get_usize(params, "max_prefabs") {
-                    config.max_prefabs = v;
-                }
-                if let Some(v) = get_usize(params, "min_spacing") {
-                    config.min_spacing = v;
-                }
-                if let Some(v) = get_bool(params, "allow_rotation") {
-                    config.allow_rotation = v;
-                }
-                if let Some(v) = get_bool(params, "allow_mirroring") {
-                    config.allow_mirroring = v;
-                }
-                if let Some(v) = get_bool(params, "weighted_selection") {
-                    config.weighted_selection = v;
-                }
-            }
-            if library.get_prefabs().is_empty() {
-                library.add_prefab(Prefab::rect(5, 5));
-            }
+            let (config, library) = build_prefab_config(params)?;
             Ok(Box::new(PrefabPlacer::new(config, library)))
         }
         _ => crate::algorithms::get(name)
@@ -686,7 +684,27 @@ fn parse_prefabs(val: &serde_json::Value) -> Vec<Prefab> {
                         let pattern_strs: Vec<&str> =
                             pattern_array.iter().filter_map(|v| v.as_str()).collect();
                         if !pattern_strs.is_empty() {
-                            prefabs.push(Prefab::new(&pattern_strs));
+                            let legend = obj
+                                .get("legend")
+                                .and_then(|v| serde_json::from_value(v.clone()).ok());
+                            let mut prefab = Prefab::from_data(PrefabData {
+                                name: obj
+                                    .get("name")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("unnamed")
+                                    .to_string(),
+                                width: pattern_strs.first().map(|s| s.len()).unwrap_or(0),
+                                height: pattern_strs.len(),
+                                pattern: pattern_strs.iter().map(|s| (*s).to_string()).collect(),
+                                weight: obj.get("weight").and_then(value_to_f64).unwrap_or(1.0)
+                                    as f32,
+                                tags: obj.get("tags").and_then(parse_tags).unwrap_or_default(),
+                                legend,
+                            });
+                            if prefab.name.is_empty() {
+                                prefab.name = "unnamed".to_string();
+                            }
+                            prefabs.push(prefab);
                         }
                     }
                 }
@@ -694,6 +712,132 @@ fn parse_prefabs(val: &serde_json::Value) -> Vec<Prefab> {
         }
     }
     prefabs
+}
+
+fn build_prefab_config(params: Option<&Params>) -> OpResult<(PrefabConfig, PrefabLibrary)> {
+    let mut config = PrefabConfig::default();
+    let mut library = PrefabLibrary::new();
+    if let Some(params) = params {
+        if let Some(paths_val) = params.get("library_paths") {
+            let paths = parse_string_list(paths_val);
+            if !paths.is_empty() {
+                match PrefabLibrary::load_from_paths(paths) {
+                    Ok(loaded) => library.extend_from(loaded),
+                    Err(err) => {
+                        return Err(OpError::new(format!(
+                            "Failed to load prefab library paths: {}",
+                            err
+                        )))
+                    }
+                }
+            }
+        }
+        if let Some(dir) = get_str(params, "library_dir") {
+            match PrefabLibrary::load_from_dir(dir) {
+                Ok(loaded) => library.extend_from(loaded),
+                Err(err) => {
+                    return Err(OpError::new(format!(
+                        "Failed to load prefab library dir '{}': {}",
+                        dir, err
+                    )))
+                }
+            }
+        }
+        if let Some(path) = get_str(params, "library_path") {
+            match PrefabLibrary::load_from_json(path) {
+                Ok(loaded) => library.extend_from(loaded),
+                Err(err) => {
+                    return Err(OpError::new(format!(
+                        "Failed to load prefab library '{}': {}",
+                        path, err
+                    )))
+                }
+            }
+        }
+        if let Some(prefabs_val) = params.get("prefabs") {
+            for prefab in parse_prefabs(prefabs_val) {
+                library.add_prefab(prefab);
+            }
+        }
+        if let Some(tags_val) = params.get("tags") {
+            if let Some(tags) = parse_tags(tags_val) {
+                config.tags = Some(tags);
+            }
+        }
+        if let Some(mode) = get_str(params, "placement_mode") {
+            if let Some(parsed) = parse_prefab_placement_mode(mode) {
+                config.placement_mode = parsed;
+            }
+        }
+        if let Some(v) = get_usize(params, "max_prefabs") {
+            config.max_prefabs = v;
+        }
+        if let Some(v) = get_usize(params, "min_spacing") {
+            config.min_spacing = v;
+        }
+        if let Some(v) = get_bool(params, "allow_rotation") {
+            config.allow_rotation = v;
+        }
+        if let Some(v) = get_bool(params, "allow_mirroring") {
+            config.allow_mirroring = v;
+        }
+        if let Some(v) = get_bool(params, "weighted_selection") {
+            config.weighted_selection = v;
+        }
+    }
+    if library.get_prefabs().is_empty() {
+        library.add_prefab(Prefab::rect(5, 5));
+    }
+    Ok((config, library))
+}
+
+fn parse_tags(value: &serde_json::Value) -> Option<Vec<String>> {
+    if let Some(arr) = value.as_array() {
+        let tags: Vec<String> = arr
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect();
+        if tags.is_empty() {
+            None
+        } else {
+            Some(tags)
+        }
+    } else if let Some(s) = value.as_str() {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(vec![trimmed.to_string()])
+        }
+    } else {
+        None
+    }
+}
+
+fn parse_string_list(value: &serde_json::Value) -> Vec<String> {
+    if let Some(arr) = value.as_array() {
+        arr.iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect()
+    } else if let Some(s) = value.as_str() {
+        if s.trim().is_empty() {
+            Vec::new()
+        } else {
+            vec![s.trim().to_string()]
+        }
+    } else {
+        Vec::new()
+    }
+}
+
+fn parse_prefab_placement_mode(value: &str) -> Option<PrefabPlacementMode> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "overwrite" => Some(PrefabPlacementMode::Overwrite),
+        "merge" => Some(PrefabPlacementMode::Merge),
+        "paint_floor" | "paintfloor" | "floor" => Some(PrefabPlacementMode::PaintFloor),
+        "paint_wall" | "paintwall" | "wall" => Some(PrefabPlacementMode::PaintWall),
+        _ => None,
+    }
 }
 
 fn parse_tile(value: Option<&serde_json::Value>) -> Option<Tile> {

@@ -1,8 +1,12 @@
 //! Integration tests for Phase 4 quality of life features
 
 use terrain_forge::{
-    algorithms::{PrefabData, PrefabLibrary, PrefabTransform, Wfc, WfcConfig, WfcPatternExtractor},
+    algorithms::{
+        PrefabData, PrefabLegendEntry, PrefabLibrary, PrefabPlacementMode, PrefabPlacer,
+        PrefabTransform, Wfc, WfcConfig, WfcPatternExtractor,
+    },
     analysis::{DelaunayTriangulation, Graph, GraphAnalysis, Point},
+    semantic::{ConnectivityGraph, Masks, SemanticLayers},
     Algorithm, Grid, Rng, Tile,
 };
 
@@ -122,6 +126,7 @@ fn test_prefab_library_json() {
         pattern: vec!["###".to_string(), "#.#".to_string(), "###".to_string()],
         weight: 2.0,
         tags: vec!["room".to_string(), "test".to_string()],
+        legend: None,
     };
 
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(prefab_data));
@@ -194,4 +199,164 @@ fn test_weighted_prefab_selection() {
 
     // Should be selected significantly more often (not exact due to randomness)
     assert!(heavy_count > 50);
+}
+
+#[test]
+fn test_prefab_tag_selection_unweighted() {
+    let mut library = PrefabLibrary::new();
+    let mut tagged = terrain_forge::algorithms::Prefab::rect(2, 2);
+    tagged.name = "tagged".to_string();
+    tagged.tags = vec!["room".to_string()];
+    library.add_prefab(tagged);
+
+    let mut other = terrain_forge::algorithms::Prefab::rect(2, 2);
+    other.name = "other".to_string();
+    other.tags = vec!["corridor".to_string()];
+    library.add_prefab(other);
+
+    let mut rng = Rng::new(7);
+    let tags = vec!["room".to_string()];
+    let selected = library
+        .select_with_tags(&mut rng, Some(&tags), false)
+        .expect("expected tagged prefab");
+    assert!(selected.tags.contains(&"room".to_string()));
+}
+
+#[test]
+fn test_prefab_placement_mode_merge_respects_floor() {
+    let mut grid = Grid::new(10, 10);
+    grid.fill(Tile::Floor);
+
+    let mut library = PrefabLibrary::new();
+    let prefab = terrain_forge::algorithms::Prefab::new(&["..", ".."]);
+    library.add_prefab(prefab);
+
+    let config = terrain_forge::algorithms::PrefabConfig {
+        max_prefabs: 1,
+        allow_rotation: false,
+        allow_mirroring: false,
+        weighted_selection: false,
+        placement_mode: PrefabPlacementMode::Merge,
+        ..Default::default()
+    };
+    let placer = PrefabPlacer::new(config, library);
+
+    let before = grid.count(|t: &Tile| t.is_floor());
+    placer.generate(&mut grid, 123);
+    let after = grid.count(|t: &Tile| t.is_floor());
+    assert_eq!(before, after);
+}
+
+#[test]
+fn test_prefab_semantic_markers_and_masks() {
+    let mut legend = std::collections::HashMap::new();
+    legend.insert(
+        "M".to_string(),
+        PrefabLegendEntry {
+            tile: Some("floor".to_string()),
+            marker: Some("loot_slot".to_string()),
+            mask: None,
+        },
+    );
+    legend.insert(
+        "N".to_string(),
+        PrefabLegendEntry {
+            tile: Some("floor".to_string()),
+            marker: None,
+            mask: Some("no_spawn".to_string()),
+        },
+    );
+
+    let prefab_data = PrefabData {
+        name: "marker_test".to_string(),
+        width: 2,
+        height: 1,
+        pattern: vec!["MN".to_string()],
+        weight: 1.0,
+        tags: vec!["test".to_string()],
+        legend: Some(legend),
+    };
+
+    let mut library = PrefabLibrary::new();
+    library.add_prefab(terrain_forge::algorithms::Prefab::from_data(prefab_data));
+
+    let config = terrain_forge::algorithms::PrefabConfig {
+        max_prefabs: 1,
+        allow_rotation: false,
+        allow_mirroring: false,
+        weighted_selection: false,
+        ..Default::default()
+    };
+
+    let mut grid = Grid::new(10, 10);
+    let mut semantic = SemanticLayers {
+        regions: Vec::new(),
+        markers: Vec::new(),
+        masks: Masks {
+            walkable: vec![vec![false; 10]; 10],
+            no_spawn: vec![vec![false; 10]; 10],
+            width: 10,
+            height: 10,
+        },
+        connectivity: ConnectivityGraph {
+            regions: Vec::new(),
+            edges: Vec::new(),
+        },
+    };
+
+    let placer = PrefabPlacer::new(config, library);
+    placer.generate_with_semantic(&mut grid, 999, &mut semantic);
+
+    assert_eq!(semantic.markers.len(), 1);
+    assert_eq!(semantic.markers[0].tag(), "loot_slot");
+    let has_no_spawn = semantic.masks.no_spawn.iter().flatten().any(|v| *v);
+    assert!(has_no_spawn);
+}
+
+#[test]
+fn test_prefab_library_load_from_paths_and_dir() {
+    let base_dir = std::env::temp_dir();
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = base_dir.join(format!("tf_prefab_test_{}", unique));
+    std::fs::create_dir_all(&dir).expect("create temp dir");
+
+    let mut library_a = PrefabLibrary::new();
+    let prefab_a = PrefabData {
+        name: "a".to_string(),
+        width: 1,
+        height: 1,
+        pattern: vec![".".to_string()],
+        weight: 1.0,
+        tags: vec!["alpha".to_string()],
+        legend: None,
+    };
+    library_a.add_prefab(terrain_forge::algorithms::Prefab::from_data(prefab_a));
+    let path_a = dir.join("a.json");
+    library_a.save_to_json(&path_a).expect("save library a");
+
+    let mut library_b = PrefabLibrary::new();
+    let prefab_b = PrefabData {
+        name: "b".to_string(),
+        width: 1,
+        height: 1,
+        pattern: vec![".".to_string()],
+        weight: 1.0,
+        tags: vec!["beta".to_string()],
+        legend: None,
+    };
+    library_b.add_prefab(terrain_forge::algorithms::Prefab::from_data(prefab_b));
+    let path_b = dir.join("b.json");
+    library_b.save_to_json(&path_b).expect("save library b");
+
+    let combined = PrefabLibrary::load_from_paths(vec![path_a.clone(), path_b.clone()])
+        .expect("load from paths");
+    assert_eq!(combined.get_prefabs().len(), 2);
+
+    let combined_dir = PrefabLibrary::load_from_dir(&dir).expect("load from dir");
+    assert_eq!(combined_dir.get_prefabs().len(), 2);
+
+    let _ = std::fs::remove_dir_all(&dir);
 }

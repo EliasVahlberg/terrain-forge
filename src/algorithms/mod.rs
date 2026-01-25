@@ -28,7 +28,10 @@ pub use glass_seam::{GlassSeam, GlassSeamConfig};
 pub use maze::{Maze, MazeConfig};
 pub use noise_fill::{NoiseFill, NoiseFillConfig, NoiseType};
 pub use percolation::{Percolation, PercolationConfig};
-pub use prefab::{Prefab, PrefabConfig, PrefabData, PrefabLibrary, PrefabPlacer, PrefabTransform};
+pub use prefab::{
+    Prefab, PrefabConfig, PrefabData, PrefabLegendEntry, PrefabLibrary, PrefabPlacementMode,
+    PrefabPlacer, PrefabTransform,
+};
 pub use room_accretion::{RoomAccretion, RoomAccretionConfig, RoomTemplate};
 pub use rooms::{SimpleRooms, SimpleRoomsConfig};
 pub use voronoi::{Voronoi, VoronoiConfig};

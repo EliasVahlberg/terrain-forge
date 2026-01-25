@@ -114,6 +114,8 @@ fn main() {
         allow_rotation: false,
         allow_mirroring: false,
         weighted_selection: true,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
     };
 
     let boss_placer = PrefabPlacer::new(boss_config, library.clone());
@@ -126,6 +128,8 @@ fn main() {
         allow_rotation: true,
         allow_mirroring: true,
         weighted_selection: true,
+        placement_mode: terrain_forge::algorithms::PrefabPlacementMode::Overwrite,
+        tags: None,
     };
 
     let treasure_placer = PrefabPlacer::new(treasure_config, library.clone());
@@ -297,6 +301,7 @@ fn create_specialized_library() -> PrefabLibrary {
             "special".to_string(),
             "large".to_string(),
         ],
+        legend: None,
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(boss_room));
 
@@ -318,6 +323,7 @@ fn create_specialized_library() -> PrefabLibrary {
             "special".to_string(),
             "small".to_string(),
         ],
+        legend: None,
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(treasure_room));
 
@@ -337,6 +343,7 @@ fn create_specialized_library() -> PrefabLibrary {
         ],
         weight: 1.2,
         tags: vec!["secret".to_string(), "corridor".to_string()],
+        legend: None,
     };
     library.add_prefab(terrain_forge::algorithms::Prefab::from_data(secret_passage));
 
