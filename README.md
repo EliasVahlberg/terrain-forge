@@ -12,22 +12,25 @@ A comprehensive Rust library for procedural terrain and dungeon generation with 
 
 Crates.io: https://crates.io/crates/terrain-forge
 
-Migration: [v0.6.0 guide](docs/MIGRATION_0_6.md)
+Migration: [v0.7.0 guide](docs/development/MIGRATION_0_7.md) · [v0.6.0 guide](docs/development/MIGRATION_0_6.md)
 
 ## Features
 
 - **15 Generation Algorithms**: BSP, Cellular Automata, WFC, Delaunay Triangulation, Glass Seam Bridging, Noise Fill, and more
+- **Thread-safe**: `Algorithm` trait is `Send + Sync` — generate on any thread
+- **Serializable configs**: All algorithm configs implement `Serialize`/`Deserialize`
 - **Spatial Analysis**: Distance transforms, pathfinding, morphological operations
 - **Semantic Layers**: Game-agnostic metadata for entity spawning and region analysis
 - **Advanced Prefab System**: JSON support with transformations
 - **Requirements System**: Generate maps meeting specific constraints
 - **Connectivity Utilities**: Shortest-path extraction, path carving, marker connections
+- **Grid utilities**: Flood fill, region labeling, neighbor queries, line drawing built into `Grid`
 
 ## Quick Start
 
 ```toml
 [dependencies]
-terrain-forge = "0.6"
+terrain-forge = "0.7"
 ```
 
 ```rust
@@ -88,10 +91,12 @@ _Color-coded semantic analysis showing dramatic connectivity improvement (+0.57 
 
 - **[Usage Guide](USAGE.md)** - Comprehensive examples and API documentation
 - **[Patch Notes](PATCHNOTES.md)** - Detailed version history and changes
-- **[API Documentation](https://docs.rs/terrain-forge/0.6.0)** - Complete API reference
+- **[API Documentation](https://docs.rs/terrain-forge)** - Complete API reference
 
 ## Version History
 
+- **v0.7.0** - Code quality, thread safety, serialization, bug fixes, performance
+- **v0.6.0** - Unified ops facade, pipeline model, NoiseFill expansion
 - **v0.4.0** - Spatial Analysis & Quality of Life improvements
 - **v0.3.0** - Semantic Layers and Requirements System
 - **v0.2.0** - Advanced Algorithms (WFC, Percolation, Fractal)

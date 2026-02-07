@@ -1,5 +1,39 @@
 # Patch Notes
 
+## v0.7.0 - Code Quality, Thread Safety & Bug Fixes (2026-02-07)
+
+### Breaking Changes
+- Removed deprecated `generate_with_semantic()` — use `SemanticExtractor` directly.
+- Added `Cell::set_passable(&mut self, bool)` as a required trait method.
+- `FractalConfig.fractal_type` changed from `String` to `FractalType` enum.
+- `GlassSeam.config` is now private — construct via `GlassSeam::new(config)`.
+- `Algorithm` trait now requires `Send + Sync`.
+- Removed `Pipeline::add` alias — use `add_algorithm`/`add_effect`.
+
+### Bug Fixes
+- Diamond-square square step was a no-op (empty while loop).
+- Delaunay `draw_line` wrote to wrong grid cells.
+- Perlin noise could exceed documented [-1, 1] range.
+
+### New Features
+- `Grid::flood_fill`, `flood_regions`, `neighbors_4`, `neighbors_8`, `grid::line_points`.
+- `Serialize`/`Deserialize` on all 16 algorithm config structs and supporting enums.
+- `LayeredGenerator<C: Cell>` — generic over cell type (default `Tile`, backwards compatible).
+- `NoiseExt::blend(other, control)` for ergonomic noise blending.
+- `Debug`, `Clone` derives on `Rng` and all algorithm/prefab structs.
+- `Display` for `Tile` and `Grid<Tile>`.
+- `#[must_use]` on key constructors and accessors; `#[inline]` on `Grid` hot paths.
+- Comprehensive doc comments; 5 new doc tests; 20 new integration tests (109 total).
+
+### Performance
+- `bridge_gaps` closest-pair search uses perimeter-only filtering.
+- `Graph::diameter` reduced from O(V² · (V+E) log V) to O(V · (V+E) log V).
+
+### Other
+- Deduplicated flood_fill, line_points, neighbors into `Grid` methods.
+- Deprecated `effects::spatial::distance_transform` → use `spatial::distance_field`.
+- Restructured integration tests from phase-numbered to domain-named files.
+
 ## v0.6.0 - Quality of Life & Fixes (2026-01-25)
 
 - Unified ops facade (`ops`) plus name-based `Pipeline` for composing algorithms, effects, and combines.
