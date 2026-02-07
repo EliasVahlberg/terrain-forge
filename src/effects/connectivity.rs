@@ -1,9 +1,11 @@
 //! Connectivity effects
 
+use crate::grid::line_points;
 use crate::semantic::{MarkerType, SemanticLayers};
 use crate::spatial::{shortest_path, PathfindingConstraints};
 use crate::{Grid, Rng, Tile};
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
+use std::collections::VecDeque;
 
 /// Methods for connecting semantic markers
 #[derive(Debug, Clone, Copy)]
@@ -15,18 +17,15 @@ pub enum MarkerConnectMethod {
 /// Label disconnected regions and return labels array and region count
 pub fn label_regions(grid: &Grid<Tile>) -> (Vec<u32>, u32) {
     let (w, h) = (grid.width(), grid.height());
+    let regions = grid.flood_regions();
     let mut labels = vec![0u32; w * h];
-    let mut label = 0u32;
-
-    for y in 0..h {
-        for x in 0..w {
-            if grid[(x, y)].is_floor() && labels[y * w + x] == 0 {
-                label += 1;
-                flood_label(grid, &mut labels, x, y, label, w, h);
-            }
+    for (i, region) in regions.iter().enumerate() {
+        let label = (i + 1) as u32;
+        for &(x, y) in region {
+            labels[y * w + x] = label;
         }
     }
-    (labels, label)
+    (labels, regions.len() as u32)
 }
 
 /// Carve a path into the grid with an optional radius around each step.
@@ -177,68 +176,18 @@ pub fn connect_regions_spanning(
 }
 
 pub fn bridge_gaps(grid: &mut Grid<Tile>, max_distance: usize) {
-    let (w, h) = (grid.width(), grid.height());
-    let mut labels = vec![0u32; w * h];
-    let mut label = 0u32;
-    let mut regions: Vec<Vec<(usize, usize)>> = vec![vec![]];
-
-    for y in 0..h {
-        for x in 0..w {
-            if grid[(x, y)].is_floor() && labels[y * w + x] == 0 {
-                label += 1;
-                let cells = flood_label(grid, &mut labels, x, y, label, w, h);
-                regions.push(cells);
-            }
-        }
-    }
-
-    if label <= 1 {
+    let regions = grid.flood_regions();
+    if regions.len() <= 1 {
         return;
     }
 
-    for r1 in 1..=label as usize {
-        for r2 in (r1 + 1)..=label as usize {
+    for r1 in 0..regions.len() {
+        for r2 in (r1 + 1)..regions.len() {
             if let Some((x1, y1, x2, y2)) = find_closest(&regions[r1], &regions[r2], max_distance) {
                 carve_line(grid, x1, y1, x2, y2);
             }
         }
     }
-}
-
-fn flood_label(
-    grid: &Grid<Tile>,
-    labels: &mut [u32],
-    sx: usize,
-    sy: usize,
-    label: u32,
-    w: usize,
-    h: usize,
-) -> Vec<(usize, usize)> {
-    let mut stack = vec![(sx, sy)];
-    let mut cells = Vec::new();
-
-    while let Some((x, y)) = stack.pop() {
-        let idx = y * w + x;
-        if labels[idx] != 0 || !grid[(x, y)].is_floor() {
-            continue;
-        }
-        labels[idx] = label;
-        cells.push((x, y));
-
-        if x > 0 {
-            stack.push((x - 1, y));
-        }
-        if x + 1 < w {
-            stack.push((x + 1, y));
-        }
-        if y > 0 {
-            stack.push((x, y - 1));
-        }
-        if y + 1 < h {
-            stack.push((x, y + 1));
-        }
-    }
-    cells
 }
 
 fn find_closest(
@@ -365,26 +314,4 @@ fn carve_point(grid: &mut Grid<Tile>, x: i32, y: i32, radius: usize) {
             }
         }
     }
-}
-
-fn line_points(start: (usize, usize), end: (usize, usize)) -> Vec<(usize, usize)> {
-    let (mut x, mut y) = (start.0 as i32, start.1 as i32);
-    let (tx, ty) = (end.0 as i32, end.1 as i32);
-    let mut points = Vec::new();
-
-    while x != tx || y != ty {
-        if x >= 0 && y >= 0 {
-            points.push((x as usize, y as usize));
-        }
-        if (x - tx).abs() > (y - ty).abs() {
-            x += if tx > x { 1 } else { -1 };
-        } else {
-            y += if ty > y { 1 } else { -1 };
-        }
-    }
-    if tx >= 0 && ty >= 0 {
-        points.push((tx as usize, ty as usize));
-    }
-
-    points
 }

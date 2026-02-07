@@ -3,67 +3,15 @@
 use crate::{pipeline, semantic};
 use crate::{Grid, Tile};
 use std::collections::HashMap;
-use std::collections::VecDeque;
 
 pub fn validate_connectivity(grid: &Grid<Tile>) -> f32 {
-    let (w, h) = (grid.width(), grid.height());
-    let mut visited = vec![false; w * h];
-    let mut regions = Vec::new();
-
-    for y in 0..h {
-        for x in 0..w {
-            let idx = y * w + x;
-            if grid[(x, y)].is_floor() && !visited[idx] {
-                let size = flood_fill(grid, &mut visited, x, y, w, h);
-                regions.push(size);
-            }
-        }
-    }
-
+    let regions = grid.flood_regions();
     if regions.is_empty() {
         return 0.0;
     }
-
-    let largest = *regions.iter().max().unwrap_or(&0);
-    let total: usize = regions.iter().sum();
-
+    let largest = regions.iter().map(|r| r.len()).max().unwrap_or(0);
+    let total: usize = regions.iter().map(|r| r.len()).sum();
     largest as f32 / total as f32
-}
-
-fn flood_fill(
-    grid: &Grid<Tile>,
-    visited: &mut [bool],
-    sx: usize,
-    sy: usize,
-    w: usize,
-    h: usize,
-) -> usize {
-    let mut queue = VecDeque::new();
-    queue.push_back((sx, sy));
-    let mut count = 0;
-
-    while let Some((x, y)) = queue.pop_front() {
-        let idx = y * w + x;
-        if visited[idx] || !grid[(x, y)].is_floor() {
-            continue;
-        }
-        visited[idx] = true;
-        count += 1;
-
-        if x > 0 {
-            queue.push_back((x - 1, y));
-        }
-        if x + 1 < w {
-            queue.push_back((x + 1, y));
-        }
-        if y > 0 {
-            queue.push_back((x, y - 1));
-        }
-        if y + 1 < h {
-            queue.push_back((x, y + 1));
-        }
-    }
-    count
 }
 
 pub fn validate_density(grid: &Grid<Tile>, min: f64, max: f64) -> bool {

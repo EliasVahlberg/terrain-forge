@@ -19,7 +19,7 @@ pub fn distance_transform(grid: &Grid<Tile>) -> Vec<Vec<u32>> {
 
     while let Some((x, y)) = queue.pop_front() {
         let d = dist[y][x] + 1;
-        for (nx, ny) in neighbors(x, y, w, h) {
+        for (nx, ny) in grid.neighbors_4(x, y) {
             if dist[ny][nx] > d {
                 dist[ny][nx] = d;
                 queue.push_back((nx, ny));
@@ -43,7 +43,7 @@ pub fn dijkstra_map(grid: &Grid<Tile>, sources: &[(usize, usize)]) -> Vec<Vec<u3
 
     while let Some((x, y)) = queue.pop_front() {
         let d = dist[y][x] + 1;
-        for (nx, ny) in neighbors(x, y, w, h) {
+        for (nx, ny) in grid.neighbors_4(x, y) {
             if grid[(nx, ny)].is_floor() && dist[ny][nx] > d {
                 dist[ny][nx] = d;
                 queue.push_back((nx, ny));
@@ -51,21 +51,4 @@ pub fn dijkstra_map(grid: &Grid<Tile>, sources: &[(usize, usize)]) -> Vec<Vec<u3
         }
     }
     dist
-}
-
-fn neighbors(x: usize, y: usize, w: usize, h: usize) -> impl Iterator<Item = (usize, usize)> {
-    let mut n = Vec::with_capacity(4);
-    if x > 0 {
-        n.push((x - 1, y));
-    }
-    if x + 1 < w {
-        n.push((x + 1, y));
-    }
-    if y > 0 {
-        n.push((x, y - 1));
-    }
-    if y + 1 < h {
-        n.push((x, y + 1));
-    }
-    n.into_iter()
 }

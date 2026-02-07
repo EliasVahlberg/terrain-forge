@@ -110,7 +110,7 @@ pub mod semantic;
 pub mod spatial;
 
 pub use algorithm::Algorithm;
-pub use grid::{Cell, Grid, Tile};
+pub use grid::{line_points, Cell, Grid, Tile};
 pub use ops::{CombineMode, Params};
 pub use rng::Rng;
 pub use semantic::{ConnectivityGraph, Marker, Masks, Region, SemanticConfig, SemanticLayers};

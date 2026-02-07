@@ -109,6 +109,104 @@ impl<C: Cell> Grid<C> {
             .enumerate()
             .map(move |(i, c)| (i % self.width, i / self.width, c))
     }
+
+    /// BFS from `(sx, sy)`, returns all connected passable cells.
+    pub fn flood_fill(&self, sx: usize, sy: usize) -> Vec<(usize, usize)> {
+        let (w, h) = (self.width, self.height);
+        if sx >= w || sy >= h || !self[(sx, sy)].is_passable() {
+            return Vec::new();
+        }
+        let mut visited = vec![false; w * h];
+        let mut stack = vec![(sx, sy)];
+        let mut cells = Vec::new();
+        while let Some((x, y)) = stack.pop() {
+            let idx = y * w + x;
+            if visited[idx] {
+                continue;
+            }
+            visited[idx] = true;
+            cells.push((x, y));
+            if x > 0 && self[(x - 1, y)].is_passable() {
+                stack.push((x - 1, y));
+            }
+            if x + 1 < w && self[(x + 1, y)].is_passable() {
+                stack.push((x + 1, y));
+            }
+            if y > 0 && self[(x, y - 1)].is_passable() {
+                stack.push((x, y - 1));
+            }
+            if y + 1 < h && self[(x, y + 1)].is_passable() {
+                stack.push((x, y + 1));
+            }
+        }
+        cells
+    }
+
+    /// Returns all connected passable regions.
+    pub fn flood_regions(&self) -> Vec<Vec<(usize, usize)>> {
+        let (w, h) = (self.width, self.height);
+        let mut visited = vec![false; w * h];
+        let mut regions = Vec::new();
+        for y in 0..h {
+            for x in 0..w {
+                let idx = y * w + x;
+                if !visited[idx] && self[(x, y)].is_passable() {
+                    let mut stack = vec![(x, y)];
+                    let mut region = Vec::new();
+                    while let Some((cx, cy)) = stack.pop() {
+                        let ci = cy * w + cx;
+                        if visited[ci] {
+                            continue;
+                        }
+                        visited[ci] = true;
+                        region.push((cx, cy));
+                        if cx > 0 && self[(cx - 1, cy)].is_passable() {
+                            stack.push((cx - 1, cy));
+                        }
+                        if cx + 1 < w && self[(cx + 1, cy)].is_passable() {
+                            stack.push((cx + 1, cy));
+                        }
+                        if cy > 0 && self[(cx, cy - 1)].is_passable() {
+                            stack.push((cx, cy - 1));
+                        }
+                        if cy + 1 < h && self[(cx, cy + 1)].is_passable() {
+                            stack.push((cx, cy + 1));
+                        }
+                    }
+                    regions.push(region);
+                }
+            }
+        }
+        regions
+    }
+
+    /// 4-directional neighbors within bounds.
+    pub fn neighbors_4(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> {
+        let (w, h) = (self.width, self.height);
+        let mut n = Vec::with_capacity(4);
+        if x > 0 { n.push((x - 1, y)); }
+        if x + 1 < w { n.push((x + 1, y)); }
+        if y > 0 { n.push((x, y - 1)); }
+        if y + 1 < h { n.push((x, y + 1)); }
+        n.into_iter()
+    }
+
+    /// 8-directional neighbors within bounds.
+    pub fn neighbors_8(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> {
+        let (w, h) = (self.width, self.height);
+        let mut n = Vec::with_capacity(8);
+        for dy in -1i32..=1 {
+            for dx in -1i32..=1 {
+                if dx == 0 && dy == 0 { continue; }
+                let nx = x as i32 + dx;
+                let ny = y as i32 + dy;
+                if nx >= 0 && ny >= 0 && (nx as usize) < w && (ny as usize) < h {
+                    n.push((nx as usize, ny as usize));
+                }
+            }
+        }
+        n.into_iter()
+    }
 }
 
 impl<C: Cell> Index<(usize, usize)> for Grid<C> {
@@ -131,3 +229,24 @@ impl<C: Cell + PartialEq> PartialEq for Grid<C> {
 }
 
 impl<C: Cell + Eq> Eq for Grid<C> {}
+
+/// Bresenham-style line from `start` to `end` (inclusive).
+pub fn line_points(start: (usize, usize), end: (usize, usize)) -> Vec<(usize, usize)> {
+    let (mut x, mut y) = (start.0 as i32, start.1 as i32);
+    let (tx, ty) = (end.0 as i32, end.1 as i32);
+    let mut points = Vec::new();
+    while x != tx || y != ty {
+        if x >= 0 && y >= 0 {
+            points.push((x as usize, y as usize));
+        }
+        if (x - tx).abs() > (y - ty).abs() {
+            x += if tx > x { 1 } else { -1 };
+        } else {
+            y += if ty > y { 1 } else { -1 };
+        }
+    }
+    if tx >= 0 && ty >= 0 {
+        points.push((tx as usize, ty as usize));
+    }
+    points
+}

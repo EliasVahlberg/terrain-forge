@@ -1,6 +1,7 @@
 use crate::effects::carve_path;
+use crate::grid::line_points;
 use crate::{Algorithm, Grid, Rng, Tile};
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
 pub struct GlassSeamConfig {
@@ -153,67 +154,20 @@ struct RegionData {
 }
 
 fn identify_regions(grid: &Grid<Tile>) -> RegionData {
-    let (w, h) = (grid.width(), grid.height());
-    let mut visited = vec![vec![false; h]; w];
-    let mut labels = vec![0u32; w * h];
-    let mut label = 0u32;
-    let mut regions = Vec::new();
-
-    for x in 0..w {
-        for y in 0..h {
-            if !visited[x][y] && grid[(x, y)].is_floor() {
-                label = label.wrapping_add(1).max(1);
-                let region = flood_fill(grid, x, y, &mut visited, &mut labels, w, label);
-                if !region.is_empty() {
-                    regions.push(region);
-                }
-            }
+    let w = grid.width();
+    let regions = grid.flood_regions();
+    let mut labels = vec![0u32; w * grid.height()];
+    for (i, region) in regions.iter().enumerate() {
+        let label = (i + 1) as u32;
+        for &(x, y) in region {
+            labels[y * w + x] = label;
         }
     }
-
     RegionData {
         regions,
         labels,
         width: w,
     }
-}
-
-fn flood_fill(
-    grid: &Grid<Tile>,
-    sx: usize,
-    sy: usize,
-    visited: &mut [Vec<bool>],
-    labels: &mut [u32],
-    width: usize,
-    label: u32,
-) -> Vec<(usize, usize)> {
-    let (w, h) = (grid.width(), grid.height());
-    let mut region = Vec::new();
-    let mut queue = VecDeque::new();
-    queue.push_back((sx, sy));
-
-    while let Some((x, y)) = queue.pop_front() {
-        if x >= w || y >= h || visited[x][y] || !grid[(x, y)].is_floor() {
-            continue;
-        }
-        visited[x][y] = true;
-        region.push((x, y));
-        labels[y * width + x] = label;
-
-        if x > 0 {
-            queue.push_back((x - 1, y));
-        }
-        if x + 1 < w {
-            queue.push_back((x + 1, y));
-        }
-        if y > 0 {
-            queue.push_back((x, y - 1));
-        }
-        if y + 1 < h {
-            queue.push_back((x, y + 1));
-        }
-    }
-    region
 }
 
 fn region_for_point(labels: &[u32], width: usize, point: (usize, usize)) -> Option<usize> {
@@ -324,25 +278,4 @@ fn connect_regions(
 
     let path = line_points(from, to);
     carve_path(grid, &path, radius);
-}
-
-fn line_points(start: (usize, usize), end: (usize, usize)) -> Vec<(usize, usize)> {
-    let (mut x, mut y) = (start.0 as i32, start.1 as i32);
-    let (tx, ty) = (end.0 as i32, end.1 as i32);
-    let mut points = Vec::new();
-
-    while x != tx || y != ty {
-        if x >= 0 && y >= 0 {
-            points.push((x as usize, y as usize));
-        }
-        if (x - tx).abs() > (y - ty).abs() {
-            x += if tx > x { 1 } else { -1 };
-        } else {
-            y += if ty > y { 1 } else { -1 };
-        }
-    }
-    if tx >= 0 && ty >= 0 {
-        points.push((tx as usize, ty as usize));
-    }
-    points
 }
