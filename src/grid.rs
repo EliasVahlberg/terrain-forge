@@ -63,8 +63,8 @@ impl Cell for Tile {
 /// 2D grid of cells.
 ///
 /// The primary data structure for terrain generation. Stores a flat `Vec` of
-/// cells indexed by `(x, y)` coordinates. See the [module docs](self) for
-/// coordinate conventions.
+/// cells indexed by `(x, y)` coordinates. Coordinate convention: `x` grows
+/// right, `y` grows down; `(0, 0)` is the top-left corner.
 ///
 /// # Examples
 ///
