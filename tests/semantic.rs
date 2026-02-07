@@ -40,9 +40,17 @@ fn semantic_requirements_validation() {
 fn semantic_requirements_basic_dungeon() {
     let requirements = SemanticRequirements::basic_dungeon();
     assert_eq!(requirements.min_regions.get("room"), Some(&3));
-    assert_eq!(requirements.required_markers.get(&MarkerType::Spawn), Some(&1));
-    assert_eq!(requirements.required_markers.get(&MarkerType::Exit), Some(&1));
-    assert!(requirements.required_connections.contains(&("room".to_string(), "corridor".to_string())));
+    assert_eq!(
+        requirements.required_markers.get(&MarkerType::Spawn),
+        Some(&1)
+    );
+    assert_eq!(
+        requirements.required_markers.get(&MarkerType::Exit),
+        Some(&1)
+    );
+    assert!(requirements
+        .required_connections
+        .contains(&("room".to_string(), "corridor".to_string())));
 }
 
 #[test]

@@ -9,7 +9,10 @@ fn erode_reduces_floor_count() {
     terrain_forge::ops::generate("cellular", &mut grid, Some(42), None).unwrap();
     let before = grid.count(|t| t.is_floor());
     effects::erode(&mut grid, 1);
-    assert!(grid.count(|t| t.is_floor()) <= before, "erode should not increase floor count");
+    assert!(
+        grid.count(|t| t.is_floor()) <= before,
+        "erode should not increase floor count"
+    );
 }
 
 #[test]
@@ -18,7 +21,10 @@ fn dilate_increases_floor_count() {
     terrain_forge::ops::generate("cellular", &mut grid, Some(42), None).unwrap();
     let before = grid.count(|t| t.is_floor());
     effects::dilate(&mut grid, 1);
-    assert!(grid.count(|t| t.is_floor()) >= before, "dilate should not decrease floor count");
+    assert!(
+        grid.count(|t| t.is_floor()) >= before,
+        "dilate should not decrease floor count"
+    );
 }
 
 #[test]
@@ -27,8 +33,10 @@ fn bridge_gaps_preserves_or_improves_connectivity() {
     terrain_forge::ops::generate("cellular", &mut grid, Some(42), None).unwrap();
     let regions_before = grid.flood_regions().len();
     effects::bridge_gaps(&mut grid, 5);
-    assert!(grid.flood_regions().len() <= regions_before,
-        "bridge_gaps should not increase region count");
+    assert!(
+        grid.flood_regions().len() <= regions_before,
+        "bridge_gaps should not increase region count"
+    );
 }
 
 #[test]

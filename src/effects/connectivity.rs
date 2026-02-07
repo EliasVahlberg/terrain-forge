@@ -198,11 +198,13 @@ pub fn bridge_gaps(grid: &mut Grid<Tile>, max_distance: usize) {
                 .iter()
                 .copied()
                 .filter(|&(x, y)| {
-                    [(-1i32, 0), (1, 0), (0, -1), (0, 1)].iter().any(|&(dx, dy)| {
-                        !grid
-                            .get(x as i32 + dx, y as i32 + dy)
-                            .is_some_and(|c| c.is_passable())
-                    })
+                    [(-1i32, 0), (1, 0), (0, -1), (0, 1)]
+                        .iter()
+                        .any(|&(dx, dy)| {
+                            !grid
+                                .get(x as i32 + dx, y as i32 + dy)
+                                .is_some_and(|c| c.is_passable())
+                        })
                 })
                 .collect()
         })

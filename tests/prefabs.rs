@@ -2,8 +2,8 @@
 
 use terrain_forge::{
     algorithms::{
-        Prefab, PrefabConfig, PrefabData, PrefabLegendEntry, PrefabLibrary,
-        PrefabPlacementMode, PrefabPlacer, PrefabTransform,
+        Prefab, PrefabConfig, PrefabData, PrefabLegendEntry, PrefabLibrary, PrefabPlacementMode,
+        PrefabPlacer, PrefabTransform,
     },
     semantic::{ConnectivityGraph, Masks, SemanticLayers},
     Algorithm, Grid, Rng, Tile,
@@ -13,9 +13,13 @@ use terrain_forge::{
 fn prefab_library_json() {
     let mut library = PrefabLibrary::new();
     library.add_prefab(Prefab::from_data(PrefabData {
-        name: "test_room".to_string(), width: 3, height: 3,
+        name: "test_room".to_string(),
+        width: 3,
+        height: 3,
         pattern: vec!["###".to_string(), "#.#".to_string(), "###".to_string()],
-        weight: 2.0, tags: vec!["room".to_string(), "test".to_string()], legend: None,
+        weight: 2.0,
+        tags: vec!["room".to_string(), "test".to_string()],
+        legend: None,
     }));
     let prefabs = library.get_by_tag("room");
     assert_eq!(prefabs.len(), 1);
@@ -36,7 +40,11 @@ fn prefab_transformations() {
 #[test]
 fn prefab_transform_application() {
     let prefab = Prefab::new(&["##", ".#"]);
-    let transform = PrefabTransform { rotation: 1, mirror_h: false, mirror_v: false };
+    let transform = PrefabTransform {
+        rotation: 1,
+        mirror_h: false,
+        mirror_v: false,
+    };
     let transformed = transform.apply(&prefab);
     assert_eq!(transformed.width, 2);
     assert_eq!(transformed.height, 2);
@@ -79,7 +87,9 @@ fn prefab_tag_selection_unweighted() {
 
     let mut rng = Rng::new(7);
     let tags = vec!["room".to_string()];
-    let selected = library.select_with_tags(&mut rng, Some(&tags), false).expect("expected tagged prefab");
+    let selected = library
+        .select_with_tags(&mut rng, Some(&tags), false)
+        .expect("expected tagged prefab");
     assert!(selected.tags.contains(&"room".to_string()));
 }
 
@@ -92,8 +102,11 @@ fn prefab_placement_mode_merge_respects_floor() {
     library.add_prefab(Prefab::new(&["..", ".."]));
 
     let config = PrefabConfig {
-        max_prefabs: 1, allow_rotation: false, allow_mirroring: false,
-        weighted_selection: false, placement_mode: PrefabPlacementMode::Merge,
+        max_prefabs: 1,
+        allow_rotation: false,
+        allow_mirroring: false,
+        weighted_selection: false,
+        placement_mode: PrefabPlacementMode::Merge,
         ..Default::default()
     };
     let before = grid.count(|t: &Tile| t.is_floor());
@@ -104,30 +117,56 @@ fn prefab_placement_mode_merge_respects_floor() {
 #[test]
 fn prefab_semantic_markers_and_masks() {
     let mut legend = std::collections::HashMap::new();
-    legend.insert("M".to_string(), PrefabLegendEntry {
-        tile: Some("floor".to_string()), marker: Some("loot_slot".to_string()), mask: None,
-    });
-    legend.insert("N".to_string(), PrefabLegendEntry {
-        tile: Some("floor".to_string()), marker: None, mask: Some("no_spawn".to_string()),
-    });
+    legend.insert(
+        "M".to_string(),
+        PrefabLegendEntry {
+            tile: Some("floor".to_string()),
+            marker: Some("loot_slot".to_string()),
+            mask: None,
+        },
+    );
+    legend.insert(
+        "N".to_string(),
+        PrefabLegendEntry {
+            tile: Some("floor".to_string()),
+            marker: None,
+            mask: Some("no_spawn".to_string()),
+        },
+    );
 
     let mut library = PrefabLibrary::new();
     library.add_prefab(Prefab::from_data(PrefabData {
-        name: "marker_test".to_string(), width: 2, height: 1,
-        pattern: vec!["MN".to_string()], weight: 1.0,
-        tags: vec!["test".to_string()], legend: Some(legend),
+        name: "marker_test".to_string(),
+        width: 2,
+        height: 1,
+        pattern: vec!["MN".to_string()],
+        weight: 1.0,
+        tags: vec!["test".to_string()],
+        legend: Some(legend),
     }));
 
     let config = PrefabConfig {
-        max_prefabs: 1, allow_rotation: false, allow_mirroring: false,
-        weighted_selection: false, ..Default::default()
+        max_prefabs: 1,
+        allow_rotation: false,
+        allow_mirroring: false,
+        weighted_selection: false,
+        ..Default::default()
     };
 
     let mut grid = Grid::new(10, 10);
     let mut semantic = SemanticLayers {
-        regions: Vec::new(), markers: Vec::new(),
-        masks: Masks { walkable: vec![vec![false; 10]; 10], no_spawn: vec![vec![false; 10]; 10], width: 10, height: 10 },
-        connectivity: ConnectivityGraph { regions: Vec::new(), edges: Vec::new() },
+        regions: Vec::new(),
+        markers: Vec::new(),
+        masks: Masks {
+            walkable: vec![vec![false; 10]; 10],
+            no_spawn: vec![vec![false; 10]; 10],
+            width: 10,
+            height: 10,
+        },
+        connectivity: ConnectivityGraph {
+            regions: Vec::new(),
+            edges: Vec::new(),
+        },
     };
 
     PrefabPlacer::new(config, library).generate_with_semantic(&mut grid, 999, &mut semantic);
@@ -138,21 +177,30 @@ fn prefab_semantic_markers_and_masks() {
 
 #[test]
 fn prefab_library_load_from_paths_and_dir() {
-    let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
     let dir = std::env::temp_dir().join(format!("tf_prefab_test_{}", unique));
     std::fs::create_dir_all(&dir).expect("create temp dir");
 
     for (name, tag) in [("a", "alpha"), ("b", "beta")] {
         let mut lib = PrefabLibrary::new();
         lib.add_prefab(Prefab::from_data(PrefabData {
-            name: name.to_string(), width: 1, height: 1,
-            pattern: vec![".".to_string()], weight: 1.0,
-            tags: vec![tag.to_string()], legend: None,
+            name: name.to_string(),
+            width: 1,
+            height: 1,
+            pattern: vec![".".to_string()],
+            weight: 1.0,
+            tags: vec![tag.to_string()],
+            legend: None,
         }));
-        lib.save_to_json(dir.join(format!("{}.json", name))).expect("save");
+        lib.save_to_json(dir.join(format!("{}.json", name)))
+            .expect("save");
     }
 
-    let combined = PrefabLibrary::load_from_paths(vec![dir.join("a.json"), dir.join("b.json")]).expect("load from paths");
+    let combined = PrefabLibrary::load_from_paths(vec![dir.join("a.json"), dir.join("b.json")])
+        .expect("load from paths");
     assert_eq!(combined.get_prefabs().len(), 2);
 
     let combined_dir = PrefabLibrary::load_from_dir(&dir).expect("load from dir");

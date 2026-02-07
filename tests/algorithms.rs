@@ -40,7 +40,11 @@ fn all_algorithms_produce_floors() {
             algorithms::get("cellular").unwrap().generate(&mut grid, 42);
         }
         algo.generate(&mut grid, 42);
-        assert!(grid.count(|t| t.is_floor()) > 0, "{} should produce floor tiles", name);
+        assert!(
+            grid.count(|t| t.is_floor()) > 0,
+            "{} should produce floor tiles",
+            name
+        );
     }
 }
 
@@ -52,7 +56,11 @@ fn standard_algorithms_respect_border() {
         algo.generate(&mut grid, 99);
         for x in 0..30 {
             assert!(grid[(x, 0)].is_wall(), "{} should keep top border", name);
-            assert!(grid[(x, 29)].is_wall(), "{} should keep bottom border", name);
+            assert!(
+                grid[(x, 29)].is_wall(),
+                "{} should keep bottom border",
+                name
+            );
         }
         for y in 0..30 {
             assert!(grid[(0, y)].is_wall(), "{} should keep left border", name);
@@ -75,7 +83,8 @@ fn different_seeds_different_output() {
             let mut g2 = Grid::<Tile>::new(50, 50);
             algo.generate(&mut g1, seed_a);
             algo.generate(&mut g2, seed_b);
-            let diffs = (0..50).flat_map(|y| (0..50).map(move |x| (x, y)))
+            let diffs = (0..50)
+                .flat_map(|y| (0..50).map(move |x| (x, y)))
                 .filter(|&(x, y)| g1[(x, y)] != g2[(x, y)])
                 .count();
             if diffs > 0 {
@@ -83,7 +92,11 @@ fn different_seeds_different_output() {
                 break;
             }
         }
-        assert!(found_difference, "{} should produce different output for different seeds", name);
+        assert!(
+            found_difference,
+            "{} should produce different output for different seeds",
+            name
+        );
     }
 }
 
@@ -94,14 +107,21 @@ fn glass_seam_connects_regions() {
     grid.fill_rect(2, 2, 10, 10, Tile::Floor);
     grid.fill_rect(18, 18, 10, 10, Tile::Floor);
     algo.generate(&mut grid, 42);
-    assert!(grid.count(|t| t.is_floor()) > 200, "glass_seam should add connecting paths");
+    assert!(
+        grid.count(|t| t.is_floor()) > 200,
+        "glass_seam should add connecting paths"
+    );
 }
 
 // --- Config-specific behavior ---
 
 #[test]
 fn bsp_min_room_size_respected() {
-    let algo = Bsp::new(BspConfig { min_room_size: 8, max_depth: 3, room_padding: 1 });
+    let algo = Bsp::new(BspConfig {
+        min_room_size: 8,
+        max_depth: 3,
+        room_padding: 1,
+    });
     let mut grid = Grid::new(80, 60);
     algo.generate(&mut grid, 42);
     assert!(grid.count(|t| t.is_floor()) > 0);
@@ -111,18 +131,37 @@ fn bsp_min_room_size_respected() {
 fn cellular_iterations_affect_output() {
     let mut g1 = Grid::new(40, 30);
     let mut g2 = Grid::new(40, 30);
-    CellularAutomata::new(CellularConfig { iterations: 1, ..CellularConfig::default() }).generate(&mut g1, 42);
-    CellularAutomata::new(CellularConfig { iterations: 8, ..CellularConfig::default() }).generate(&mut g2, 42);
-    assert_ne!(g1.count(|t| t.is_floor()), g2.count(|t| t.is_floor()),
-        "different iteration counts should produce different floor counts");
+    CellularAutomata::new(CellularConfig {
+        iterations: 1,
+        ..CellularConfig::default()
+    })
+    .generate(&mut g1, 42);
+    CellularAutomata::new(CellularConfig {
+        iterations: 8,
+        ..CellularConfig::default()
+    })
+    .generate(&mut g2, 42);
+    assert_ne!(
+        g1.count(|t| t.is_floor()),
+        g2.count(|t| t.is_floor()),
+        "different iteration counts should produce different floor counts"
+    );
 }
 
 #[test]
 fn drunkard_floor_percent_scales() {
     let mut g_low = Grid::new(40, 30);
     let mut g_high = Grid::new(40, 30);
-    DrunkardWalk::new(DrunkardConfig { floor_percent: 0.2, ..DrunkardConfig::default() }).generate(&mut g_low, 42);
-    DrunkardWalk::new(DrunkardConfig { floor_percent: 0.6, ..DrunkardConfig::default() }).generate(&mut g_high, 42);
+    DrunkardWalk::new(DrunkardConfig {
+        floor_percent: 0.2,
+        ..DrunkardConfig::default()
+    })
+    .generate(&mut g_low, 42);
+    DrunkardWalk::new(DrunkardConfig {
+        floor_percent: 0.6,
+        ..DrunkardConfig::default()
+    })
+    .generate(&mut g_high, 42);
     assert!(g_high.count(|t| t.is_floor()) > g_low.count(|t| t.is_floor()));
 }
 
@@ -130,20 +169,41 @@ fn drunkard_floor_percent_scales() {
 fn percolation_keep_largest_reduces_regions() {
     let mut g_all = Grid::new(30, 30);
     let mut g_largest = Grid::new(30, 30);
-    Percolation::new(PercolationConfig { keep_largest: false, ..PercolationConfig::default() }).generate(&mut g_all, 42);
-    Percolation::new(PercolationConfig { keep_largest: true, ..PercolationConfig::default() }).generate(&mut g_largest, 42);
-    assert!(g_largest.flood_regions().len() <= g_all.flood_regions().len(),
-        "keep_largest should not increase region count");
+    Percolation::new(PercolationConfig {
+        keep_largest: false,
+        ..PercolationConfig::default()
+    })
+    .generate(&mut g_all, 42);
+    Percolation::new(PercolationConfig {
+        keep_largest: true,
+        ..PercolationConfig::default()
+    })
+    .generate(&mut g_largest, 42);
+    assert!(
+        g_largest.flood_regions().len() <= g_all.flood_regions().len(),
+        "keep_largest should not increase region count"
+    );
 }
 
 #[test]
 fn diamond_square_different_thresholds_differ() {
     let mut g_low = Grid::new(33, 33);
     let mut g_high = Grid::new(33, 33);
-    DiamondSquare::new(DiamondSquareConfig { threshold: 0.2, ..DiamondSquareConfig::default() }).generate(&mut g_low, 42);
-    DiamondSquare::new(DiamondSquareConfig { threshold: 0.7, ..DiamondSquareConfig::default() }).generate(&mut g_high, 42);
-    assert_ne!(g_low.count(|t| t.is_floor()), g_high.count(|t| t.is_floor()),
-        "different thresholds should produce different floor counts");
+    DiamondSquare::new(DiamondSquareConfig {
+        threshold: 0.2,
+        ..DiamondSquareConfig::default()
+    })
+    .generate(&mut g_low, 42);
+    DiamondSquare::new(DiamondSquareConfig {
+        threshold: 0.7,
+        ..DiamondSquareConfig::default()
+    })
+    .generate(&mut g_high, 42);
+    assert_ne!(
+        g_low.count(|t| t.is_floor()),
+        g_high.count(|t| t.is_floor()),
+        "different thresholds should produce different floor counts"
+    );
 }
 
 // --- WFC ---
@@ -164,7 +224,11 @@ fn wfc_pattern_extraction() {
 #[test]
 fn wfc_enhanced_generation() {
     let mut grid = Grid::new(15, 15);
-    let wfc = Wfc::new(WfcConfig { floor_weight: 0.3, pattern_size: 3, enable_backtracking: true });
+    let wfc = Wfc::new(WfcConfig {
+        floor_weight: 0.3,
+        pattern_size: 3,
+        enable_backtracking: true,
+    });
     wfc.generate(&mut grid, 12345);
     assert!(grid.count(|t: &Tile| t.is_floor()) > 0);
     assert!(grid.get(0, 0).unwrap().is_wall());
@@ -179,9 +243,15 @@ fn noise_fill_constant_threshold_produces_expected_tiles() {
     let raw = Value::new(seed).with_frequency(0.0).sample(0.0, 0.0);
     let mapped = (raw + 1.0) * 0.5;
     let config = NoiseFillConfig {
-        noise: NoiseType::Value, frequency: 0.0, scale: 1.0,
-        output_range: (0.0, 1.0), threshold: mapped - 0.01,
-        fill_range: None, octaves: 1, lacunarity: 2.0, persistence: 0.5,
+        noise: NoiseType::Value,
+        frequency: 0.0,
+        scale: 1.0,
+        output_range: (0.0, 1.0),
+        threshold: mapped - 0.01,
+        fill_range: None,
+        octaves: 1,
+        lacunarity: 2.0,
+        persistence: 0.5,
     };
     let mut grid = Grid::new(5, 5);
     NoiseFill::new(config).generate(&mut grid, seed);
@@ -200,10 +270,15 @@ fn noise_fill_with_fill_range() {
     let raw = Value::new(seed).with_frequency(0.0).sample(0.0, 0.0);
     let mapped = (raw + 1.0) * 0.5;
     let config = NoiseFillConfig {
-        noise: NoiseType::Value, frequency: 0.0, scale: 1.0,
-        output_range: (0.0, 1.0), threshold: 0.0,
+        noise: NoiseType::Value,
+        frequency: 0.0,
+        scale: 1.0,
+        output_range: (0.0, 1.0),
+        threshold: 0.0,
         fill_range: Some((mapped - 0.01, mapped + 0.01)),
-        octaves: 1, lacunarity: 2.0, persistence: 0.5,
+        octaves: 1,
+        lacunarity: 2.0,
+        persistence: 0.5,
     };
     let mut grid = Grid::new(5, 5);
     NoiseFill::new(config).generate(&mut grid, seed);
@@ -217,9 +292,15 @@ fn noise_fill_with_fill_range() {
 #[test]
 fn noise_fill_fbm_path_generates_output() {
     let config = NoiseFillConfig {
-        noise: NoiseType::Perlin, frequency: 0.08, scale: 1.0,
-        output_range: (0.0, 1.0), threshold: 0.6,
-        fill_range: None, octaves: 3, lacunarity: 2.0, persistence: 0.5,
+        noise: NoiseType::Perlin,
+        frequency: 0.08,
+        scale: 1.0,
+        output_range: (0.0, 1.0),
+        threshold: 0.6,
+        fill_range: None,
+        octaves: 3,
+        lacunarity: 2.0,
+        persistence: 0.5,
     };
     let mut grid = Grid::new(20, 20);
     NoiseFill::new(config).generate(&mut grid, 42);
@@ -233,15 +314,25 @@ fn noise_fill_seed_changes_output() {
     for seed in 1..5000_u64 {
         let raw = Value::new(seed).with_frequency(0.0).sample(0.0, 0.0);
         let mapped = (raw + 1.0) * 0.5;
-        if mapped < min.1 { min = (seed, mapped); }
-        if mapped > max.1 { max = (seed, mapped); }
+        if mapped < min.1 {
+            min = (seed, mapped);
+        }
+        if mapped > max.1 {
+            max = (seed, mapped);
+        }
     }
     assert!(max.1 > min.1);
     let threshold = (min.1 + max.1) * 0.5;
     let config = NoiseFillConfig {
-        noise: NoiseType::Value, frequency: 0.0, scale: 1.0,
-        output_range: (0.0, 1.0), threshold,
-        fill_range: None, octaves: 1, lacunarity: 2.0, persistence: 0.5,
+        noise: NoiseType::Value,
+        frequency: 0.0,
+        scale: 1.0,
+        output_range: (0.0, 1.0),
+        threshold,
+        fill_range: None,
+        octaves: 1,
+        lacunarity: 2.0,
+        persistence: 0.5,
     };
     let algo = NoiseFill::new(config);
     let mut grid_a = Grid::new(6, 6);
@@ -257,7 +348,9 @@ fn noise_fill_seed_changes_output() {
 fn layered_generator_union_adds_floors() {
     use terrain_forge::compose::LayeredGenerator;
     let mut grid = Grid::new(40, 30);
-    let gen = LayeredGenerator::new().base(Bsp::default()).union(DrunkardWalk::default());
+    let gen = LayeredGenerator::new()
+        .base(Bsp::default())
+        .union(DrunkardWalk::default());
     gen.generate(&mut grid, 42);
     let mut bsp_only = Grid::new(40, 30);
     Bsp::default().generate(&mut bsp_only, 42);

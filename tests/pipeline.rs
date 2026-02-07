@@ -60,10 +60,15 @@ fn pipeline_steps_execute_and_log() {
     pipeline.add_combine_with_saved(CombineMode::Union, "base");
 
     let mut grid = Grid::new(25, 25);
-    let context = pipeline.execute_seed(&mut grid, 999).expect("pipeline execute");
+    let context = pipeline
+        .execute_seed(&mut grid, 999)
+        .expect("pipeline execute");
     assert!(grid.count(|t| t.is_floor()) > 0);
     assert!(context.get_grid("base").is_some());
-    assert!(context.execution_history().iter().any(|e| e.contains("Algorithm: rooms")));
+    assert!(context
+        .execution_history()
+        .iter()
+        .any(|e| e.contains("Algorithm: rooms")));
 }
 
 #[test]
@@ -71,15 +76,30 @@ fn pipeline_if_branch_executes() {
     let mut pipeline = Pipeline::new();
     pipeline.add_algorithm("rooms", Some(7), None);
     pipeline.add_if(
-        PipelineCondition::FloorCount { min: Some(1), max: None },
-        vec![Step::Log { message: "then_branch".to_string() }],
-        vec![Step::Log { message: "else_branch".to_string() }],
+        PipelineCondition::FloorCount {
+            min: Some(1),
+            max: None,
+        },
+        vec![Step::Log {
+            message: "then_branch".to_string(),
+        }],
+        vec![Step::Log {
+            message: "else_branch".to_string(),
+        }],
     );
 
     let mut grid = Grid::new(20, 20);
-    let context = pipeline.execute_seed(&mut grid, 111).expect("pipeline execute");
-    assert!(context.execution_history().iter().any(|e| e == "then_branch"));
-    assert!(!context.execution_history().iter().any(|e| e == "else_branch"));
+    let context = pipeline
+        .execute_seed(&mut grid, 111)
+        .expect("pipeline execute");
+    assert!(context
+        .execution_history()
+        .iter()
+        .any(|e| e == "then_branch"));
+    assert!(!context
+        .execution_history()
+        .iter()
+        .any(|e| e == "else_branch"));
 }
 
 #[test]
@@ -96,18 +116,35 @@ fn pipeline_invalid_algorithm_returns_error() {
 fn pipeline_condition_evaluation() {
     let mut grid = Grid::new(10, 10);
     let context = PipelineContext::new();
-    for i in 0..25 { grid.set(i % 10, i / 10, Tile::Floor); }
+    for i in 0..25 {
+        grid.set(i % 10, i / 10, Tile::Floor);
+    }
 
-    assert!(PipelineCondition::FloorCount { min: Some(20), max: Some(30) }.evaluate(&grid, &context));
-    assert!(!PipelineCondition::FloorCount { min: Some(30), max: None }.evaluate(&grid, &context));
-    assert!(PipelineCondition::Density { min: Some(0.2), max: Some(0.3) }.evaluate(&grid, &context));
+    assert!(PipelineCondition::FloorCount {
+        min: Some(20),
+        max: Some(30)
+    }
+    .evaluate(&grid, &context));
+    assert!(!PipelineCondition::FloorCount {
+        min: Some(30),
+        max: None
+    }
+    .evaluate(&grid, &context));
+    assert!(PipelineCondition::Density {
+        min: Some(0.2),
+        max: Some(0.3)
+    }
+    .evaluate(&grid, &context));
 }
 
 #[test]
 fn pipeline_context() {
     let mut context = PipelineContext::new();
     context.set_parameter("test_key", "test_value");
-    assert_eq!(context.get_parameter("test_key"), Some(&"test_value".to_string()));
+    assert_eq!(
+        context.get_parameter("test_key"),
+        Some(&"test_value".to_string())
+    );
     assert_eq!(context.get_parameter("nonexistent"), None);
 
     context.log_execution("step1");
@@ -134,7 +171,10 @@ fn stage_result() {
     assert_eq!(result.message, Some("error message".to_string()));
 
     let result = StageResult::success().with_parameter("key", "value");
-    assert_eq!(result.output_parameters.get("key"), Some(&"value".to_string()));
+    assert_eq!(
+        result.output_parameters.get("key"),
+        Some(&"value".to_string())
+    );
 }
 
 #[test]
@@ -165,11 +205,15 @@ fn parameter_map() {
 fn conditional_pipeline_execution() {
     let mut pipeline = ConditionalPipeline::new();
     pipeline.add_operation(ConditionalOperation::simple(PipelineOperation::Algorithm {
-        name: "bsp".to_string(), seed: Some(12345),
+        name: "bsp".to_string(),
+        seed: Some(12345),
     }));
-    pipeline.add_operation(ConditionalOperation::simple(PipelineOperation::SetParameter {
-        key: "test_param".to_string(), value: "test_value".to_string(),
-    }));
+    pipeline.add_operation(ConditionalOperation::simple(
+        PipelineOperation::SetParameter {
+            key: "test_param".to_string(),
+            value: "test_value".to_string(),
+        },
+    ));
 
     let mut grid = Grid::new(20, 20);
     let mut context = PipelineContext::new();
@@ -177,7 +221,10 @@ fn conditional_pipeline_execution() {
     let result = pipeline.execute(&mut grid, &mut context, &mut rng);
 
     assert!(result.success);
-    assert_eq!(context.get_parameter("test_param"), Some(&"test_value".to_string()));
+    assert_eq!(
+        context.get_parameter("test_param"),
+        Some(&"test_value".to_string())
+    );
     assert!(grid.count(|t| t.is_floor()) > 0);
 }
 
@@ -187,18 +234,25 @@ fn pipeline_template() {
         .with_parameter("algorithm", "cellular")
         .with_parameter("seed", "54321")
         .with_operation(ConditionalOperation::simple(PipelineOperation::Algorithm {
-            name: "{algorithm}".to_string(), seed: Some(54321),
+            name: "{algorithm}".to_string(),
+            seed: Some(54321),
         }))
-        .with_operation(ConditionalOperation::simple(PipelineOperation::SetParameter {
-            key: "template_used".to_string(), value: "test_template".to_string(),
-        }));
+        .with_operation(ConditionalOperation::simple(
+            PipelineOperation::SetParameter {
+                key: "template_used".to_string(),
+                value: "test_template".to_string(),
+            },
+        ));
 
     let pipeline1 = template.instantiate(None);
     let mut grid1 = Grid::new(15, 15);
     let mut context1 = PipelineContext::new();
     let result1 = pipeline1.execute(&mut grid1, &mut context1, &mut Rng::new(11111));
     assert!(result1.success);
-    assert_eq!(context1.get_parameter("template_used"), Some(&"test_template".to_string()));
+    assert_eq!(
+        context1.get_parameter("template_used"),
+        Some(&"test_template".to_string())
+    );
 
     let mut custom = std::collections::HashMap::new();
     custom.insert("algorithm".to_string(), "bsp".to_string());
@@ -207,7 +261,10 @@ fn pipeline_template() {
     let mut context2 = PipelineContext::new();
     let result2 = pipeline2.execute(&mut grid2, &mut context2, &mut Rng::new(22222));
     assert!(result2.success);
-    assert_eq!(context2.get_parameter("template_used"), Some(&"test_template".to_string()));
+    assert_eq!(
+        context2.get_parameter("template_used"),
+        Some(&"test_template".to_string())
+    );
 }
 
 #[test]

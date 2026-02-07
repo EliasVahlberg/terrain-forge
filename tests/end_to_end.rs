@@ -16,7 +16,9 @@ fn pipeline_with_semantics() {
     pipeline.add_effect("connect_regions_spanning", Some(effect_params));
 
     let mut grid = Grid::new(40, 40);
-    pipeline.execute_seed(&mut grid, 777).expect("pipeline execute");
+    pipeline
+        .execute_seed(&mut grid, 777)
+        .expect("pipeline execute");
     assert!(grid.count(|t| t.is_floor()) > 0);
 
     let semantics = SemanticExtractor::for_rooms().extract(&grid, &mut Rng::new(1001));

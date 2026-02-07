@@ -40,7 +40,11 @@ fn distance_transform_manhattan() {
 #[test]
 fn dijkstra_map_single_goal() {
     let mut grid = Grid::new(5, 5);
-    for y in 0..5 { for x in 0..5 { grid.set(x, y, Tile::Floor); } }
+    for y in 0..5 {
+        for x in 0..5 {
+            grid.set(x, y, Tile::Floor);
+        }
+    }
 
     let dijkstra = dijkstra_map(&grid, &[(2, 2)], &PathfindingConstraints::default());
     assert_eq!(dijkstra.get(2, 2), 0.0);
@@ -52,7 +56,11 @@ fn dijkstra_map_single_goal() {
 #[test]
 fn dijkstra_map_multiple_goals() {
     let mut grid = Grid::new(5, 5);
-    for y in 0..5 { for x in 0..5 { grid.set(x, y, Tile::Floor); } }
+    for y in 0..5 {
+        for x in 0..5 {
+            grid.set(x, y, Tile::Floor);
+        }
+    }
 
     let dijkstra = dijkstra_map(&grid, &[(0, 0), (4, 4)], &PathfindingConstraints::default());
     assert_eq!(dijkstra.get(0, 0), 0.0);
@@ -63,7 +71,11 @@ fn dijkstra_map_multiple_goals() {
 #[test]
 fn flow_field_generation() {
     let mut grid = Grid::new(3, 3);
-    for y in 0..3 { for x in 0..3 { grid.set(x, y, Tile::Floor); } }
+    for y in 0..3 {
+        for x in 0..3 {
+            grid.set(x, y, Tile::Floor);
+        }
+    }
 
     let dijkstra = dijkstra_map(&grid, &[(1, 1)], &PathfindingConstraints::default());
     let flow = flow_field_from_dijkstra(&dijkstra);
@@ -75,9 +87,17 @@ fn flow_field_generation() {
 #[test]
 fn morphological_erosion() {
     let mut grid = Grid::new(5, 5);
-    for y in 1..4 { for x in 1..4 { grid.set(x, y, Tile::Floor); } }
+    for y in 1..4 {
+        for x in 1..4 {
+            grid.set(x, y, Tile::Floor);
+        }
+    }
 
-    let result = morphological_transform(&grid, MorphologyOp::Erosion, &StructuringElement::rectangle(3, 3));
+    let result = morphological_transform(
+        &grid,
+        MorphologyOp::Erosion,
+        &StructuringElement::rectangle(3, 3),
+    );
     assert!(result.get(2, 2).unwrap().is_passable());
     assert!(!result.get(1, 1).unwrap().is_passable());
 }
@@ -87,7 +107,11 @@ fn morphological_dilation() {
     let mut grid = Grid::new(5, 5);
     grid.set(2, 2, Tile::Floor);
 
-    let result = morphological_transform(&grid, MorphologyOp::Dilation, &StructuringElement::rectangle(3, 3));
+    let result = morphological_transform(
+        &grid,
+        MorphologyOp::Dilation,
+        &StructuringElement::rectangle(3, 3),
+    );
     assert!(result.get(2, 2).unwrap().is_passable());
     assert!(result.get(1, 1).unwrap().is_passable());
     assert!(result.get(3, 3).unwrap().is_passable());
