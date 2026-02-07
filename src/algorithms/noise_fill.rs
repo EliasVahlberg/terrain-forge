@@ -47,6 +47,7 @@ impl Default for NoiseFillConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct NoiseFill {
     config: NoiseFillConfig,
 }

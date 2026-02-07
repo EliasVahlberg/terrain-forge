@@ -17,6 +17,7 @@ impl Default for AgentConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct AgentBased {
     config: AgentConfig,
 }

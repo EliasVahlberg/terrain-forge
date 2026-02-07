@@ -15,6 +15,7 @@ impl Default for DlaConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Dla {
     config: DlaConfig,
 }

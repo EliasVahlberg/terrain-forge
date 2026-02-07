@@ -22,6 +22,7 @@ impl Default for FractalConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Fractal {
     config: FractalConfig,
 }

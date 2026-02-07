@@ -11,6 +11,7 @@ impl Default for MazeConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Maze {
     config: MazeConfig,
 }

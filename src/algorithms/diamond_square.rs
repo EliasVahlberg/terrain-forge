@@ -15,6 +15,7 @@ impl Default for DiamondSquareConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct DiamondSquare {
     config: DiamondSquareConfig,
 }

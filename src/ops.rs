@@ -304,7 +304,7 @@ pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn 
                     config.use_mst_terminals = v;
                 }
             }
-            Ok(Box::new(GlassSeam { config }))
+            Ok(Box::new(GlassSeam::new(config)))
         }
         "room_accretion" | "accretion" => {
             let mut config = RoomAccretionConfig::default();

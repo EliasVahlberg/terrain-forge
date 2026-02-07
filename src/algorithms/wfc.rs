@@ -262,7 +262,7 @@ impl WfcPatternExtractor {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct WfcBacktracker {
     states: Vec<WfcState>,
 }
@@ -281,6 +281,7 @@ impl WfcBacktracker {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Wfc {
     config: WfcConfig,
 }

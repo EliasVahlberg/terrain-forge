@@ -15,6 +15,7 @@ impl Default for PercolationConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Percolation {
     config: PercolationConfig,
 }

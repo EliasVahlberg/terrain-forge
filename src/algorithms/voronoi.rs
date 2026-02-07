@@ -15,6 +15,7 @@ impl Default for VoronoiConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Voronoi {
     config: VoronoiConfig,
 }

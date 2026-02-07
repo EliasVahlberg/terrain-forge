@@ -19,6 +19,7 @@ impl Default for CellularConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CellularAutomata {
     config: CellularConfig,
 }

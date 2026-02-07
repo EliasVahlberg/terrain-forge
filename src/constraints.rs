@@ -4,6 +4,7 @@ use crate::{pipeline, semantic};
 use crate::{Grid, Tile};
 use std::collections::HashMap;
 
+#[must_use]
 pub fn validate_connectivity(grid: &Grid<Tile>) -> f32 {
     let regions = grid.flood_regions();
     if regions.is_empty() {
@@ -14,6 +15,7 @@ pub fn validate_connectivity(grid: &Grid<Tile>) -> f32 {
     largest as f32 / total as f32
 }
 
+#[must_use]
 pub fn validate_density(grid: &Grid<Tile>, min: f64, max: f64) -> bool {
     let total = grid.width() * grid.height();
     let floors = grid.count(|t| t.is_floor());
@@ -21,6 +23,7 @@ pub fn validate_density(grid: &Grid<Tile>, min: f64, max: f64) -> bool {
     density >= min && density <= max
 }
 
+#[must_use]
 pub fn validate_border(grid: &Grid<Tile>) -> bool {
     let (w, h) = (grid.width(), grid.height());
     for x in 0..w {

@@ -1,6 +1,6 @@
 use crate::effects::carve_path;
 use crate::grid::line_points;
-use crate::{Algorithm, Grid, Rng, Tile};
+use crate::{Algorithm, Grid, Tile};
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
@@ -22,9 +22,9 @@ impl Default for GlassSeamConfig {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct GlassSeam {
-    pub config: GlassSeamConfig,
+    config: GlassSeamConfig,
 }
 
 impl GlassSeam {
@@ -35,7 +35,7 @@ impl GlassSeam {
 
 impl Algorithm<Tile> for GlassSeam {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
-        let mut rng = Rng::new(seed);
+        let _seed = seed;
 
         // Glass Seam Bridging should only connect existing regions, not create new patterns
         // The grid should already have floor tiles from a previous algorithm
@@ -54,7 +54,7 @@ impl Algorithm<Tile> for GlassSeam {
             .unwrap_or((5, 5));
 
         // Ensure connectivity between existing regions
-        ensure_connectivity(grid, spawn, &self.config, &mut rng);
+        ensure_connectivity(grid, spawn, &self.config);
     }
 
     fn name(&self) -> &'static str {
@@ -77,7 +77,6 @@ fn ensure_connectivity(
     grid: &mut Grid<Tile>,
     spawn: (usize, usize),
     config: &GlassSeamConfig,
-    _rng: &mut Rng,
 ) {
     let RegionData {
         regions,

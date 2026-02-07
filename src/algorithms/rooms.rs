@@ -19,6 +19,7 @@ impl Default for SimpleRoomsConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct SimpleRooms {
     config: SimpleRoomsConfig,
 }

@@ -18,12 +18,6 @@ impl<C: Cell> Pipeline<C> {
         self
     }
 
-    /// Alias for `then` - adds an algorithm to the pipeline
-    #[allow(clippy::should_implement_trait)]
-    pub fn add<A: Algorithm<C> + 'static>(self, algorithm: A) -> Self {
-        self.then(algorithm)
-    }
-
     pub fn execute(&self, grid: &mut Grid<C>, seed: u64) {
         for (i, step) in self.steps.iter().enumerate() {
             step.generate(grid, seed.wrapping_add(i as u64 * 1000));

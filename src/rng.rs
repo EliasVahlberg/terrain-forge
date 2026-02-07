@@ -4,6 +4,7 @@ use rand::{Rng as RandRng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 /// Seeded RNG wrapper for deterministic generation
+#[derive(Debug, Clone)]
 pub struct Rng {
     inner: ChaCha8Rng,
 }

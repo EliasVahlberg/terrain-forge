@@ -17,6 +17,7 @@ impl Default for BspConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Bsp {
     config: BspConfig,
 }

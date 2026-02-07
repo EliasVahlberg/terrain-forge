@@ -40,6 +40,7 @@ pub use wfc::{Pattern, Wfc, WfcBacktracker, WfcConfig, WfcPatternExtractor};
 use crate::{Algorithm, Tile};
 
 /// Get algorithm by name
+#[must_use]
 pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
     match name {
         "bsp" => Some(Box::new(Bsp::default())),
@@ -62,6 +63,7 @@ pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
 }
 
 /// List all available algorithm names
+#[must_use]
 pub fn list() -> &'static [&'static str] {
     &[
         "bsp",

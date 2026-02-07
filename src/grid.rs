@@ -1,5 +1,6 @@
 //! Core grid and cell types for terrain generation
 
+use std::fmt;
 use std::ops::{Index, IndexMut};
 
 /// Trait for grid cells
@@ -43,6 +44,7 @@ pub struct Grid<C: Cell = Tile> {
 }
 
 impl<C: Cell> Grid<C> {
+    #[must_use]
     pub fn new(width: usize, height: usize) -> Self {
         Self {
             width,
@@ -51,17 +53,25 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    #[must_use]
+    #[inline]
     pub fn width(&self) -> usize {
         self.width
     }
+    #[must_use]
+    #[inline]
     pub fn height(&self) -> usize {
         self.height
     }
 
+    #[must_use]
+    #[inline]
     pub fn in_bounds(&self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height
     }
 
+    #[must_use]
+    #[inline]
     pub fn get(&self, x: i32, y: i32) -> Option<&C> {
         if self.in_bounds(x, y) {
             Some(&self.cells[y as usize * self.width + x as usize])
@@ -70,6 +80,7 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    #[inline]
     pub fn get_mut(&mut self, x: i32, y: i32) -> Option<&mut C> {
         if self.in_bounds(x, y) {
             Some(&mut self.cells[y as usize * self.width + x as usize])
@@ -78,6 +89,7 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    #[inline]
     pub fn set(&mut self, x: i32, y: i32, cell: C) -> bool {
         if self.in_bounds(x, y) {
             self.cells[y as usize * self.width + x as usize] = cell;
@@ -99,6 +111,7 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    #[must_use]
     pub fn count<F: Fn(&C) -> bool>(&self, predicate: F) -> usize {
         self.cells.iter().filter(|c| predicate(c)).count()
     }
@@ -211,12 +224,14 @@ impl<C: Cell> Grid<C> {
 
 impl<C: Cell> Index<(usize, usize)> for Grid<C> {
     type Output = C;
+    #[inline]
     fn index(&self, (x, y): (usize, usize)) -> &Self::Output {
         &self.cells[y * self.width + x]
     }
 }
 
 impl<C: Cell> IndexMut<(usize, usize)> for Grid<C> {
+    #[inline]
     fn index_mut(&mut self, (x, y): (usize, usize)) -> &mut Self::Output {
         &mut self.cells[y * self.width + x]
     }
@@ -229,6 +244,29 @@ impl<C: Cell + PartialEq> PartialEq for Grid<C> {
 }
 
 impl<C: Cell + Eq> Eq for Grid<C> {}
+
+impl fmt::Display for Tile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Tile::Wall => write!(f, "#"),
+            Tile::Floor => write!(f, "."),
+        }
+    }
+}
+
+impl fmt::Display for Grid<Tile> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                write!(f, "{}", self[(x, y)])?;
+            }
+            if y + 1 < self.height {
+                writeln!(f)?;
+            }
+        }
+        Ok(())
+    }
+}
 
 /// Bresenham-style line from `start` to `end` (inclusive).
 pub fn line_points(start: (usize, usize), end: (usize, usize)) -> Vec<(usize, usize)> {

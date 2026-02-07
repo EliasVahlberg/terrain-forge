@@ -43,6 +43,7 @@ impl Default for RoomAccretionConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct RoomAccretion {
     config: RoomAccretionConfig,
 }

@@ -15,6 +15,7 @@ impl Default for DrunkardConfig {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct DrunkardWalk {
     config: DrunkardConfig,
 }

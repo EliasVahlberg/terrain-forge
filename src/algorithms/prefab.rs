@@ -62,7 +62,7 @@ pub struct PrefabCell {
     pub mask: Option<String>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Prefab {
     pub name: String,
     pub width: usize,
@@ -246,7 +246,7 @@ pub struct PrefabLibraryData {
     pub prefabs: Vec<PrefabData>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PrefabLibrary {
     prefabs: Vec<Prefab>,
     by_tag: HashMap<String, Vec<usize>>,
@@ -493,6 +493,7 @@ impl PrefabTransform {
         }
     }
 }
+#[derive(Debug, Clone)]
 pub struct PrefabPlacer {
     config: PrefabConfig,
     library: PrefabLibrary,
