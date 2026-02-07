@@ -5,7 +5,7 @@
 use crate::{Algorithm, Cell, Grid};
 
 pub struct Pipeline<C: Cell> {
-    steps: Vec<Box<dyn Algorithm<C>>>,
+    steps: Vec<Box<dyn Algorithm<C> + Send + Sync>>,
 }
 
 impl<C: Cell> Pipeline<C> {

@@ -41,7 +41,7 @@ use crate::{Algorithm, Tile};
 
 /// Get algorithm by name
 #[must_use]
-pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile>>> {
+pub fn get(name: &str) -> Option<Box<dyn Algorithm<Tile> + Send + Sync>> {
     match name {
         "bsp" => Some(Box::new(Bsp::default())),
         "cellular" | "cellular_automata" => Some(Box::new(CellularAutomata::default())),

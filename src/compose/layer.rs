@@ -12,7 +12,7 @@ pub enum BlendMode {
 }
 
 pub struct LayeredGenerator {
-    layers: Vec<(Box<dyn Algorithm<Tile>>, BlendMode)>,
+    layers: Vec<(Box<dyn Algorithm<Tile> + Send + Sync>, BlendMode)>,
 }
 
 impl LayeredGenerator {

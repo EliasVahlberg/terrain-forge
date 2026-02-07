@@ -11,7 +11,7 @@ References are `RN#N` = REVIEW_NOTES item N.
 > | 1 — Bug Fixes | ✅ Done | `a44281b` |
 > | 2 — Deduplication | ✅ Done | `744ea95` |
 > | 3 — Core Type Quality | ✅ Done | `753802d` |
-> | 4 — Trait & API | ⬜ Pending | — |
+> | 4 — Trait & API | ✅ Done | `27d071d` |
 > | 5 — Documentation | ⬜ Pending | — |
 > | 6 — Testing | ⬜ Pending | — |
 > | 7 — Feature Additions | ⬜ Pending | — |
@@ -186,9 +186,9 @@ Change `pub config` to `config` (private) to match all other algorithm structs. 
 
 ---
 
-## Phase 4 — Trait & API Improvements
+## Phase 4 — Trait & API Improvements ✅
 
-> 4b already done in Phase 1c (`Cell::set_passable` landed with the delaunay fix).
+> Completed `27d071d`. 4a done (Send+Sync on Algorithm + all Box<dyn> sites). 4b already done in Phase 1c. 4c done (coordinate convention docs on grid.rs).
 
 Potentially breaking changes. Group into a minor version bump.
 

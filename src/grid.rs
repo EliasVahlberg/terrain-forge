@@ -1,4 +1,19 @@
-//! Core grid and cell types for terrain generation
+//! Core grid and cell types for terrain generation.
+//!
+//! # Coordinate conventions
+//!
+//! Two coordinate types are used throughout:
+//!
+//! - **`i32`** — Used by [`Grid::get`], [`Grid::set`], and [`Grid::in_bounds`].
+//!   Accepts negative values safely (returns `None` / `false`), which avoids
+//!   casts and overflow checks when doing arithmetic near grid edges.
+//!
+//! - **`usize`** — Used by [`Grid::flood_fill`], [`Grid::neighbors_4`],
+//!   [`Grid::neighbors_8`], indexing (`grid[(x, y)]`), and iterators.
+//!   These APIs assume coordinates are already validated or produced by the grid
+//!   itself.
+//!
+//! In both cases `(x, y)` means `(column, row)` with `(0, 0)` at the top-left.
 
 use std::fmt;
 use std::ops::{Index, IndexMut};
