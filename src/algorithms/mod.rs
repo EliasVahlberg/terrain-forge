@@ -23,7 +23,7 @@ pub use cellular::{CellularAutomata, CellularConfig};
 pub use diamond_square::{DiamondSquare, DiamondSquareConfig};
 pub use dla::{Dla, DlaConfig};
 pub use drunkard::{DrunkardConfig, DrunkardWalk};
-pub use fractal::{Fractal, FractalConfig};
+pub use fractal::{Fractal, FractalConfig, FractalType};
 pub use glass_seam::{GlassSeam, GlassSeamConfig};
 pub use maze::{Maze, MazeConfig};
 pub use noise_fill::{NoiseFill, NoiseFillConfig, NoiseType};

@@ -18,7 +18,8 @@ pub use worley::Worley;
 
 /// Trait for noise sources that can be sampled at 2D coordinates
 pub trait NoiseSource {
-    /// Sample noise at 2D coordinates, returns value typically in [-1, 1]
+    /// Sample noise at 2D coordinates, returns value approximately in [-1, 1]
+    /// (may slightly exceed this range depending on the noise implementation)
     fn sample(&self, x: f64, y: f64) -> f64;
 }
 

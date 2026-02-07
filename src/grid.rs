@@ -5,6 +5,7 @@ use std::ops::{Index, IndexMut};
 /// Trait for grid cells
 pub trait Cell: Clone + Default {
     fn is_passable(&self) -> bool;
+    fn set_passable(&mut self) {}
 }
 
 /// Basic tile type for dungeon/terrain generation
@@ -27,6 +28,9 @@ impl Tile {
 impl Cell for Tile {
     fn is_passable(&self) -> bool {
         self.is_floor()
+    }
+    fn set_passable(&mut self) {
+        *self = Tile::Floor;
     }
 }
 

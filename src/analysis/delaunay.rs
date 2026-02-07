@@ -312,10 +312,7 @@ fn draw_line<C: Cell>(grid: &mut Grid<C>, start: Point, end: Point) {
         let y = (start.y + t * (end.y - start.y)) as i32;
 
         if let Some(cell) = grid.get_mut(x, y) {
-            if !cell.is_passable() {
-                // This is a simplified approach - in practice you'd want to set to Floor
-                // but we can't do that generically with the Cell trait
-            }
+            cell.set_passable();
         }
     }
 }

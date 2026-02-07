@@ -86,10 +86,32 @@ impl Algorithm<Tile> for DiamondSquare {
             }
 
             // Square step - set edge midpoints
-            for (y, _row) in heights.iter_mut().enumerate() {
+            for y in 0..h {
                 let x_start = if (y / step) % 2 == 0 { step } else { 0 };
                 let mut x = x_start;
                 while x < w {
+                    let mut sum = 0.0;
+                    let mut count = 0;
+                    if x >= step {
+                        sum += heights[y][x - step];
+                        count += 1;
+                    }
+                    if x + step < w {
+                        sum += heights[y][x + step];
+                        count += 1;
+                    }
+                    if y >= step {
+                        sum += heights[y - step][x];
+                        count += 1;
+                    }
+                    if y + step < h {
+                        sum += heights[y + step][x];
+                        count += 1;
+                    }
+                    if count > 0 {
+                        heights[y][x] =
+                            (sum / count as f64 + (rng.random() - 0.5) * scale).clamp(0.0, 1.0);
+                    }
                     x += step * 2;
                 }
             }

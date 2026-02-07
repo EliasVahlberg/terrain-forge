@@ -1,16 +1,22 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum FractalType {
+    #[default]
+    Mandelbrot,
+    Julia,
+}
+
 #[derive(Debug, Clone)]
 pub struct FractalConfig {
-    // Which fractal to generate: "mandelbrot" or "julia"
-    pub fractal_type: String,
+    pub fractal_type: FractalType,
     pub max_iterations: usize,
 }
 
 impl Default for FractalConfig {
     fn default() -> Self {
         Self {
-            fractal_type: "mandelbrot".to_string(),
+            fractal_type: FractalType::default(),
             max_iterations: 100,
         }
     }
@@ -35,12 +41,9 @@ impl Default for Fractal {
 impl Algorithm<Tile> for Fractal {
     fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
         let mut rng = Rng::new(seed);
-        if self.config.fractal_type == "mandelbrot" {
-            generate_mandelbrot(grid, self.config.max_iterations);
-        } else if self.config.fractal_type == "julia" {
-            generate_julia(grid, &mut rng, self.config.max_iterations);
-        } else {
-            panic!("Unknown fractal type: {}", self.config.fractal_type);
+        match self.config.fractal_type {
+            FractalType::Mandelbrot => generate_mandelbrot(grid, self.config.max_iterations),
+            FractalType::Julia => generate_julia(grid, &mut rng, self.config.max_iterations),
         }
     }
 

@@ -120,53 +120,6 @@ pub use semantic_visualization::{
     visualize_semantic_layers, VisualizationConfig,
 };
 
-/// Generate a map with semantic layers using the new extraction approach
-///
-/// **DEPRECATED**: This function is provided for backward compatibility.
-/// For new code, use the decoupled `SemanticExtractor` approach:
-///
-/// ```rust
-/// use terrain_forge::{algorithms, SemanticExtractor, Grid, Rng};
-///
-/// // Instead of this deprecated approach:
-/// // let (grid, semantic) = generate_with_semantic_tuple("cellular", 80, 60, 12345);
-///
-/// // Use this:
-/// let mut grid = Grid::new(80, 60);
-/// algorithms::get("cellular").unwrap().generate(&mut grid, 12345);
-/// let semantic = SemanticExtractor::for_caves().extract(&grid, &mut Rng::new(12345));
-/// ```
-#[deprecated(
-    since = "0.3.0",
-    note = "Use decoupled SemanticExtractor for better flexibility"
-)]
-pub fn generate_with_semantic(
-    algorithm_name: &str,
-    width: usize,
-    height: usize,
-    seed: u64,
-) -> (Grid<Tile>, Option<SemanticLayers>) {
-    let mut grid = Grid::new(width, height);
-    let mut rng = Rng::new(seed);
-
-    // Generate tiles using any algorithm
-    if let Some(algo) = algorithms::get(algorithm_name) {
-        algo.generate(&mut grid, seed);
-    }
-
-    // Extract semantic layers using the new standalone system
-    let extractor = match algorithm_name {
-        "cellular" => SemanticExtractor::for_caves(),
-        "bsp" | "rooms" | "room_accretion" => SemanticExtractor::for_rooms(),
-        "maze" => SemanticExtractor::for_mazes(),
-        _ => SemanticExtractor::default(),
-    };
-
-    let semantic = extractor.extract(&grid, &mut rng);
-
-    (grid, Some(semantic))
-}
-
 /// Generate a map that meets specific semantic requirements
 ///
 /// This function attempts to generate a map that satisfies the given semantic requirements

@@ -243,7 +243,10 @@ pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn 
             let mut config = FractalConfig::default();
             if let Some(params) = params {
                 if let Some(v) = get_str(params, "fractal_type") {
-                    config.fractal_type = v.to_string();
+                    config.fractal_type = match v {
+                        "julia" => FractalType::Julia,
+                        _ => FractalType::Mandelbrot,
+                    };
                 }
                 if let Some(v) = get_usize(params, "max_iterations") {
                     config.max_iterations = v;
