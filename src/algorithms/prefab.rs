@@ -4,13 +4,21 @@ use std::collections::HashMap;
 use std::path::Path;
 
 #[derive(Debug, Clone)]
+/// Configuration for prefab placement.
 pub struct PrefabConfig {
+    /// Maximum prefabs to place. Default: 3.
     pub max_prefabs: usize,
+    /// Minimum distance between prefabs. Default: 5.
     pub min_spacing: usize,
+    /// Allow rotating prefabs. Default: true.
     pub allow_rotation: bool,
+    /// Allow mirroring prefabs. Default: false.
     pub allow_mirroring: bool,
+    /// Use weight-based selection. Default: true.
     pub weighted_selection: bool,
+    /// How prefabs interact with existing tiles. Default: Overwrite.
     pub placement_mode: PrefabPlacementMode,
+    /// Filter prefabs by tags. Default: None (use all).
     pub tags: Option<Vec<String>>,
 }
 
@@ -29,6 +37,7 @@ impl Default for PrefabConfig {
 }
 
 #[derive(Debug, Clone, Copy)]
+/// How a prefab is applied to the grid.
 pub enum PrefabPlacementMode {
     Overwrite,
     Merge,
@@ -37,6 +46,7 @@ pub enum PrefabPlacementMode {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+/// Maps a pattern character to tile, marker, and mask values.
 pub struct PrefabLegendEntry {
     pub tile: Option<String>,
     pub marker: Option<String>,
@@ -44,6 +54,7 @@ pub struct PrefabLegendEntry {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+/// Serializable prefab definition for JSON/TOML storage.
 pub struct PrefabData {
     pub name: String,
     pub width: usize,
@@ -56,6 +67,7 @@ pub struct PrefabData {
 }
 
 #[derive(Clone, Debug, Default)]
+/// A single cell in a resolved prefab.
 pub struct PrefabCell {
     pub tile: Option<Tile>,
     pub marker: Option<String>,
@@ -63,6 +75,7 @@ pub struct PrefabCell {
 }
 
 #[derive(Debug, Clone)]
+/// A resolved prefab ready for placement.
 pub struct Prefab {
     pub name: String,
     pub width: usize,
@@ -75,6 +88,7 @@ pub struct Prefab {
 }
 
 impl Prefab {
+    /// Creates a prefab from ASCII pattern strings (`#` = wall, `.` = floor).
     pub fn new(pattern: &[&str]) -> Self {
         let height = pattern.len();
         let width = pattern.first().map(|s| s.len()).unwrap_or(0);
@@ -91,6 +105,7 @@ impl Prefab {
         }
     }
 
+    /// Creates a prefab from serializable [`PrefabData`].
     pub fn from_data(data: PrefabData) -> Self {
         let width = data.width;
         let height = data.height;
@@ -109,6 +124,7 @@ impl Prefab {
         }
     }
 
+    /// Creates a rectangular floor prefab.
     pub fn rect(w: usize, h: usize) -> Self {
         Self {
             name: format!("rect_{}x{}", w, h),
@@ -130,6 +146,7 @@ impl Prefab {
     }
 
     /// Rotate prefab 90 degrees clockwise
+    /// Returns a 90° clockwise rotation.
     pub fn rotated(&self) -> Self {
         let mut rotated_cells = vec![PrefabCell::default(); self.width * self.height];
         let mut rotated_symbols = vec!['#'; self.width * self.height];
@@ -157,6 +174,7 @@ impl Prefab {
     }
 
     /// Mirror prefab horizontally
+    /// Returns a horizontally mirrored copy.
     pub fn mirrored_horizontal(&self) -> Self {
         let mut mirrored_cells = vec![PrefabCell::default(); self.width * self.height];
         let mut mirrored_symbols = vec!['#'; self.width * self.height];
@@ -183,6 +201,7 @@ impl Prefab {
     }
 
     /// Mirror prefab vertically
+    /// Returns a vertically mirrored copy.
     pub fn mirrored_vertical(&self) -> Self {
         let mut mirrored_cells = vec![PrefabCell::default(); self.width * self.height];
         let mut mirrored_symbols = vec!['#'; self.width * self.height];
@@ -208,10 +227,12 @@ impl Prefab {
         }
     }
 
+    /// Returns `true` if the cell at `(x, y)` is a floor.
     pub fn get(&self, x: usize, y: usize) -> bool {
         self.cell_tile(x, y) == Some(Tile::Floor)
     }
 
+    /// Returns the tile at `(x, y)`, if set.
     pub fn cell_tile(&self, x: usize, y: usize) -> Option<Tile> {
         if x < self.width && y < self.height {
             self.cells[y * self.width + x].tile
@@ -220,6 +241,7 @@ impl Prefab {
         }
     }
 
+    /// Returns the marker string at `(x, y)`, if set.
     pub fn cell_marker(&self, x: usize, y: usize) -> Option<&str> {
         if x < self.width && y < self.height {
             self.cells[y * self.width + x].marker.as_deref()
@@ -228,6 +250,7 @@ impl Prefab {
         }
     }
 
+    /// Returns the mask string at `(x, y)`, if set.
     pub fn cell_mask(&self, x: usize, y: usize) -> Option<&str> {
         if x < self.width && y < self.height {
             self.cells[y * self.width + x].mask.as_deref()
@@ -236,23 +259,27 @@ impl Prefab {
         }
     }
 
+    /// Returns `true` if this prefab has the given tag.
     pub fn has_tag(&self, tag: &str) -> bool {
         self.tags.contains(&tag.to_string())
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+/// Serializable prefab library for JSON storage.
 pub struct PrefabLibraryData {
     pub prefabs: Vec<PrefabData>,
 }
 
 #[derive(Debug, Clone)]
+/// Collection of prefabs with weighted selection and tag filtering.
 pub struct PrefabLibrary {
     prefabs: Vec<Prefab>,
     by_tag: HashMap<String, Vec<usize>>,
 }
 
 impl PrefabLibrary {
+    /// Creates an empty prefab library.
     pub fn new() -> Self {
         Self {
             prefabs: Vec::new(),
@@ -260,6 +287,7 @@ impl PrefabLibrary {
         }
     }
 
+    /// Adds a prefab to the library, indexing its tags.
     pub fn add_prefab(&mut self, prefab: Prefab) {
         let index = self.prefabs.len();
 
@@ -270,6 +298,7 @@ impl PrefabLibrary {
         self.prefabs.push(prefab);
     }
 
+    /// Loads a library from a JSON file.
     pub fn load_from_json<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn std::error::Error>> {
         let content = std::fs::read_to_string(path)?;
         let data: PrefabLibraryData = serde_json::from_str(&content)?;
@@ -282,6 +311,7 @@ impl PrefabLibrary {
         Ok(library)
     }
 
+    /// Loads and merges libraries from multiple JSON paths.
     pub fn load_from_paths<I, P>(paths: I) -> Result<Self, Box<dyn std::error::Error>>
     where
         I: IntoIterator<Item = P>,
@@ -295,6 +325,7 @@ impl PrefabLibrary {
         Ok(library)
     }
 
+    /// Loads all JSON prefab files from a directory.
     pub fn load_from_dir<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn std::error::Error>> {
         let mut entries: Vec<std::path::PathBuf> = std::fs::read_dir(path)?
             .filter_map(|entry| entry.ok().map(|e| e.path()))
@@ -307,6 +338,7 @@ impl PrefabLibrary {
         Self::load_from_paths(entries)
     }
 
+    /// Saves the library to a JSON file.
     pub fn save_to_json<P: AsRef<Path>>(&self, path: P) -> Result<(), Box<dyn std::error::Error>> {
         let data = PrefabLibraryData {
             prefabs: self
@@ -349,16 +381,19 @@ impl PrefabLibrary {
         pattern
     }
 
+    /// Returns all prefabs in the library.
     pub fn get_prefabs(&self) -> &[Prefab] {
         &self.prefabs
     }
 
+    /// Merges another library into this one.
     pub fn extend_from(&mut self, other: PrefabLibrary) {
         for prefab in other.prefabs {
             self.add_prefab(prefab);
         }
     }
 
+    /// Returns prefabs matching the given tag.
     pub fn get_by_tag(&self, tag: &str) -> Vec<&Prefab> {
         self.by_tag
             .get(tag)
@@ -366,11 +401,13 @@ impl PrefabLibrary {
             .unwrap_or_default()
     }
 
+    /// Selects a random prefab using weights, optionally filtered by tag.
     pub fn select_weighted(&self, rng: &mut Rng, tag: Option<&str>) -> Option<&Prefab> {
         let tags = tag.map(|t| vec![t.to_string()]);
         self.select_with_tags(rng, tags.as_deref(), true)
     }
 
+    /// Selects a random prefab filtered by multiple tags.
     pub fn select_with_tags(
         &self,
         rng: &mut Rng,
@@ -407,6 +444,7 @@ impl PrefabLibrary {
         candidates.last().copied()
     }
 
+    /// Returns prefabs matching any of the given tags.
     pub fn get_by_any_tag(&self, tags: &[String]) -> Vec<&Prefab> {
         if tags.is_empty() {
             return Vec::new();
@@ -425,6 +463,7 @@ impl PrefabLibrary {
         indices.iter().map(|&i| &self.prefabs[i]).collect()
     }
 
+    /// Creates an identity (no-op) transform.
     pub fn create_default() -> Self {
         let mut library = Self::new();
 
@@ -454,6 +493,7 @@ impl Default for PrefabLibrary {
     }
 }
 
+/// Rotation and mirroring transform for prefabs.
 #[derive(Debug, Clone, Default)]
 pub struct PrefabTransform {
     pub rotation: u8, // 0, 1, 2, 3 for 0°, 90°, 180°, 270°
@@ -462,6 +502,7 @@ pub struct PrefabTransform {
 }
 
 impl PrefabTransform {
+    /// Applies this transform to a prefab, returning a new one.
     pub fn apply(&self, prefab: &Prefab) -> Prefab {
         let mut result = prefab.clone();
 
@@ -481,6 +522,7 @@ impl PrefabTransform {
         result
     }
 
+    /// Creates a random transform.
     pub fn random(rng: &mut Rng, allow_rotation: bool, allow_mirroring: bool) -> Self {
         Self {
             rotation: if allow_rotation {
@@ -493,6 +535,7 @@ impl PrefabTransform {
         }
     }
 }
+/// Places prefabs from a [`PrefabLibrary`] onto a grid.
 #[derive(Debug, Clone)]
 pub struct PrefabPlacer {
     config: PrefabConfig,
@@ -500,10 +543,12 @@ pub struct PrefabPlacer {
 }
 
 impl PrefabPlacer {
+    /// Creates a new prefab placer with the given config and library.
     pub fn new(config: PrefabConfig, library: PrefabLibrary) -> Self {
         Self { config, library }
     }
 
+    /// Creates a prefab placer with default config and the given library.
     pub fn with_library(library: PrefabLibrary) -> Self {
         Self::new(PrefabConfig::default(), library)
     }
@@ -526,6 +571,7 @@ impl Algorithm<Tile> for PrefabPlacer {
 }
 
 impl PrefabPlacer {
+    /// Generates prefab placements and returns semantic layer data.
     pub fn generate_with_semantic(
         &self,
         grid: &mut Grid<Tile>,

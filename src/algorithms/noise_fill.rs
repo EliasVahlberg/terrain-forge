@@ -2,6 +2,7 @@ use crate::noise::{NoiseExt, Perlin, Simplex, Value, Worley};
 use crate::{Algorithm, Grid, Tile};
 
 #[derive(Debug, Clone, Copy, Default)]
+/// Noise algorithm to use for fill generation.
 pub enum NoiseType {
     #[default]
     Perlin,
@@ -11,7 +12,9 @@ pub enum NoiseType {
 }
 
 #[derive(Debug, Clone)]
+/// Configuration for noise-driven threshold fill.
 pub struct NoiseFillConfig {
+    /// Noise algorithm to use. Default: Perlin.
     pub noise: NoiseType,
     /// Multiplies sample coordinates; higher = smaller features.
     pub frequency: f64,
@@ -48,11 +51,13 @@ impl Default for NoiseFillConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Noise-driven threshold fill generator.
 pub struct NoiseFill {
     config: NoiseFillConfig,
 }
 
 impl NoiseFill {
+    /// Creates a new noise fill generator with the given config.
     pub fn new(config: NoiseFillConfig) -> Self {
         Self { config }
     }

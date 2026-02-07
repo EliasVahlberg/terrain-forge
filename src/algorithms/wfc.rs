@@ -2,9 +2,13 @@ use crate::{Algorithm, Grid, Rng, Tile};
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug, Clone)]
+/// Configuration for Wave Function Collapse generation.
 pub struct WfcConfig {
+    /// Weight for floor tiles in random collapse. Default: 0.4.
     pub floor_weight: f64,
+    /// Size of extracted patterns (NxN). Default: 3.
     pub pattern_size: usize,
+    /// Enable backtracking on contradiction. Default: true.
     pub enable_backtracking: bool,
 }
 
@@ -19,6 +23,7 @@ impl Default for WfcConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+/// A tile pattern extracted from an example grid.
 pub struct Pattern {
     tiles: Vec<Vec<Tile>>,
 }
@@ -57,6 +62,7 @@ impl Pattern {
 }
 
 #[derive(Debug, Clone)]
+/// Internal state of a WFC solve.
 pub struct WfcState {
     possibilities: Vec<Vec<Vec<usize>>>,
     patterns: Vec<Pattern>,
@@ -220,9 +226,11 @@ impl WfcState {
     }
 }
 
+/// Extracts tile patterns from example grids for WFC.
 pub struct WfcPatternExtractor;
 
 impl WfcPatternExtractor {
+    /// Extracts all unique NxN patterns (with rotations) from the grid.
     pub fn extract_patterns(grid: &Grid<Tile>, pattern_size: usize) -> Vec<Pattern> {
         let mut patterns = Vec::new();
         let mut pattern_set = std::collections::HashSet::new();
@@ -263,34 +271,41 @@ impl WfcPatternExtractor {
 }
 
 #[derive(Debug, Clone, Default)]
+/// Backtracking state manager for WFC.
 pub struct WfcBacktracker {
     states: Vec<WfcState>,
 }
 
 impl WfcBacktracker {
+    /// Creates a new backtracker.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Saves a WFC state snapshot.
     pub fn save_state(&mut self, state: &WfcState) {
         self.states.push(state.clone());
     }
 
+    /// Restores the most recent saved state.
     pub fn backtrack(&mut self) -> Option<WfcState> {
         self.states.pop()
     }
 }
 
 #[derive(Debug, Clone)]
+/// Wave Function Collapse terrain generator.
 pub struct Wfc {
     config: WfcConfig,
 }
 
 impl Wfc {
+    /// Creates a new WFC generator with the given config.
     pub fn new(config: WfcConfig) -> Self {
         Self { config }
     }
 
+    /// Generates terrain using pre-extracted patterns.
     pub fn generate_with_patterns(&self, grid: &mut Grid<Tile>, patterns: Vec<Pattern>, seed: u64) {
         let mut rng = Rng::new(seed);
         let mut state = WfcState::new(grid.width(), grid.height(), patterns);

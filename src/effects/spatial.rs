@@ -3,6 +3,7 @@
 use crate::{Grid, Tile};
 use std::collections::VecDeque;
 
+/// Computes Manhattan distance from each cell to the nearest wall.
 pub fn distance_transform(grid: &Grid<Tile>) -> Vec<Vec<u32>> {
     let (w, h) = (grid.width(), grid.height());
     let mut dist = vec![vec![u32::MAX; w]; h];
@@ -29,6 +30,7 @@ pub fn distance_transform(grid: &Grid<Tile>) -> Vec<Vec<u32>> {
     dist
 }
 
+/// Computes Dijkstra distance map from source cells.
 pub fn dijkstra_map(grid: &Grid<Tile>, sources: &[(usize, usize)]) -> Vec<Vec<u32>> {
     let (w, h) = (grid.width(), grid.height());
     let mut dist = vec![vec![u32::MAX; w]; h];

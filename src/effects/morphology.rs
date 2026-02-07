@@ -2,6 +2,7 @@
 
 use crate::{Grid, Tile};
 
+/// Erodes floor tiles — removes isolated floors.
 pub fn erode(grid: &mut Grid<Tile>, iterations: usize) {
     let (w, h) = (grid.width(), grid.height());
     for _ in 0..iterations {
@@ -25,6 +26,7 @@ pub fn erode(grid: &mut Grid<Tile>, iterations: usize) {
     }
 }
 
+/// Dilates floor tiles — fills isolated walls.
 pub fn dilate(grid: &mut Grid<Tile>, iterations: usize) {
     let (w, h) = (grid.width(), grid.height());
     for _ in 0..iterations {
@@ -48,11 +50,13 @@ pub fn dilate(grid: &mut Grid<Tile>, iterations: usize) {
     }
 }
 
+/// Morphological opening (erode then dilate).
 pub fn open(grid: &mut Grid<Tile>, iterations: usize) {
     erode(grid, iterations);
     dilate(grid, iterations);
 }
 
+/// Morphological closing (dilate then erode).
 pub fn close(grid: &mut Grid<Tile>, iterations: usize) {
     dilate(grid, iterations);
     erode(grid, iterations);

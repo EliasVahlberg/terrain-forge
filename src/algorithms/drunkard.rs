@@ -1,8 +1,11 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for drunkard walk generation.
 pub struct DrunkardConfig {
+    /// Target floor percentage (0.0–1.0). Default: 0.4.
     pub floor_percent: f64,
+    /// Maximum walk steps. Default: 50000.
     pub max_iterations: usize,
 }
 
@@ -16,11 +19,13 @@ impl Default for DrunkardConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Drunkard walk cave generator.
 pub struct DrunkardWalk {
     config: DrunkardConfig,
 }
 
 impl DrunkardWalk {
+    /// Creates a new drunkard walk generator with the given config.
     pub fn new(config: DrunkardConfig) -> Self {
         Self { config }
     }

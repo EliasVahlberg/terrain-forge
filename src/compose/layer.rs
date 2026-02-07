@@ -4,42 +4,54 @@ use crate::{Algorithm, Grid, Tile};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BlendMode {
+    /// Replace existing tiles.
     Replace,
+    /// Union (OR) of floor tiles.
     Union,
+    /// Intersection (AND) of floor tiles.
     Intersect,
+    /// Difference — floor only where first has floor and second has wall.
     Difference,
+    /// Mask — keep first layer only where second is floor.
     Mask,
 }
 
+/// Layered generator that blends multiple algorithms.
 pub struct LayeredGenerator {
     layers: Vec<(Box<dyn Algorithm<Tile> + Send + Sync>, BlendMode)>,
 }
 
 impl LayeredGenerator {
+    /// Creates an empty layered generator.
     pub fn new() -> Self {
         Self { layers: Vec::new() }
     }
 
+    /// Sets the base layer (replaces).
     pub fn base<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Replace));
         self
     }
 
+    /// Adds a union layer.
     pub fn union<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Union));
         self
     }
 
+    /// Adds an intersection layer.
     pub fn intersect<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Intersect));
         self
     }
 
+    /// Adds a difference layer.
     pub fn difference<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Difference));
         self
     }
 
+    /// Adds a layer with the specified blend mode.
     pub fn add<A: Algorithm<Tile> + 'static>(mut self, algo: A, mode: BlendMode) -> Self {
         self.layers.push((Box::new(algo), mode));
         self

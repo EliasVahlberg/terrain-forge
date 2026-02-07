@@ -2,6 +2,7 @@
 
 use crate::{Grid, Tile};
 
+/// Applies a threshold to a value grid, setting floor where value ≤ threshold.
 pub fn threshold(values: &[Vec<f64>], grid: &mut Grid<Tile>, thresh: f64) {
     let h = values.len().min(grid.height());
     let w = values
@@ -25,6 +26,7 @@ pub fn threshold(values: &[Vec<f64>], grid: &mut Grid<Tile>, thresh: f64) {
     }
 }
 
+/// Blends two grids using a linear gradient.
 pub fn gradient_blend(
     base: &Grid<Tile>,
     overlay: &Grid<Tile>,
@@ -51,6 +53,7 @@ pub fn gradient_blend(
     }
 }
 
+/// Blends two grids using a radial gradient from center.
 pub fn radial_blend(
     base: &Grid<Tile>,
     overlay: &Grid<Tile>,

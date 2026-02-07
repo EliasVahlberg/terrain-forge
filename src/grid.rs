@@ -18,24 +18,33 @@
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
-/// Trait for grid cells
+/// Trait for grid cells.
+///
+/// Implement this for custom cell types to use with [`Grid`].
+/// The default implementation is [`Tile`].
 pub trait Cell: Clone + Default {
+    /// Returns `true` if this cell is passable (walkable).
     fn is_passable(&self) -> bool;
+    /// Marks this cell as passable. Default implementation is a no-op.
     fn set_passable(&mut self) {}
 }
 
-/// Basic tile type for dungeon/terrain generation
+/// Basic tile type for dungeon/terrain generation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
 pub enum Tile {
+    /// Impassable wall tile.
     #[default]
     Wall,
+    /// Passable floor tile.
     Floor,
 }
 
 impl Tile {
+    /// Returns `true` if this tile is a wall.
     pub fn is_wall(&self) -> bool {
         matches!(self, Tile::Wall)
     }
+    /// Returns `true` if this tile is a floor.
     pub fn is_floor(&self) -> bool {
         matches!(self, Tile::Floor)
     }
@@ -50,7 +59,21 @@ impl Cell for Tile {
     }
 }
 
-/// 2D grid of cells
+/// 2D grid of cells.
+///
+/// The primary data structure for terrain generation. Stores a flat `Vec` of
+/// cells indexed by `(x, y)` coordinates. See the [module docs](self) for
+/// coordinate conventions.
+///
+/// # Examples
+///
+/// ```
+/// use terrain_forge::{Grid, Tile};
+///
+/// let mut grid = Grid::new(10, 10);
+/// grid.set(5, 5, Tile::Floor);
+/// assert_eq!(grid.count(|t| t.is_floor()), 1);
+/// ```
 #[derive(Debug, Clone)]
 pub struct Grid<C: Cell = Tile> {
     width: usize,
@@ -59,6 +82,7 @@ pub struct Grid<C: Cell = Tile> {
 }
 
 impl<C: Cell> Grid<C> {
+    /// Creates a new grid filled with `C::default()`.
     #[must_use]
     pub fn new(width: usize, height: usize) -> Self {
         Self {
@@ -68,23 +92,27 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    /// Grid width in cells.
     #[must_use]
     #[inline]
     pub fn width(&self) -> usize {
         self.width
     }
+    /// Grid height in cells.
     #[must_use]
     #[inline]
     pub fn height(&self) -> usize {
         self.height
     }
 
+    /// Returns `true` if `(x, y)` is within bounds. Safely handles negative values.
     #[must_use]
     #[inline]
     pub fn in_bounds(&self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height
     }
 
+    /// Returns a reference to the cell at `(x, y)`, or `None` if out of bounds.
     #[must_use]
     #[inline]
     pub fn get(&self, x: i32, y: i32) -> Option<&C> {
@@ -95,6 +123,7 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    /// Returns a mutable reference to the cell at `(x, y)`, or `None` if out of bounds.
     #[inline]
     pub fn get_mut(&mut self, x: i32, y: i32) -> Option<&mut C> {
         if self.in_bounds(x, y) {
@@ -104,6 +133,7 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    /// Sets the cell at `(x, y)`. Returns `true` if in bounds.
     #[inline]
     pub fn set(&mut self, x: i32, y: i32, cell: C) -> bool {
         if self.in_bounds(x, y) {
@@ -114,10 +144,12 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    /// Fills the entire grid with the given cell value.
     pub fn fill(&mut self, cell: C) {
         self.cells.fill(cell);
     }
 
+    /// Fills a rectangular region with the given cell value.
     pub fn fill_rect(&mut self, x: i32, y: i32, w: usize, h: usize, cell: C) {
         for dy in 0..h {
             for dx in 0..w {
@@ -126,11 +158,13 @@ impl<C: Cell> Grid<C> {
         }
     }
 
+    /// Counts cells matching the predicate.
     #[must_use]
     pub fn count<F: Fn(&C) -> bool>(&self, predicate: F) -> usize {
         self.cells.iter().filter(|c| predicate(c)).count()
     }
 
+    /// Iterates over all cells as `(x, y, &cell)`.
     pub fn iter(&self) -> impl Iterator<Item = (usize, usize, &C)> {
         self.cells
             .iter()

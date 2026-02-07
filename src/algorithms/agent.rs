@@ -1,9 +1,13 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for agent-based carving.
 pub struct AgentConfig {
+    /// Number of carving agents. Default: 5.
     pub num_agents: usize,
+    /// Steps each agent takes. Default: 200.
     pub steps_per_agent: usize,
+    /// Probability of turning each step (0.0–1.0). Default: 0.3.
     pub turn_chance: f64,
 }
 
@@ -18,11 +22,13 @@ impl Default for AgentConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Agent-based terrain carver.
 pub struct AgentBased {
     config: AgentConfig,
 }
 
 impl AgentBased {
+    /// Creates a new agent-based generator with the given config.
     pub fn new(config: AgentConfig) -> Self {
         Self { config }
     }

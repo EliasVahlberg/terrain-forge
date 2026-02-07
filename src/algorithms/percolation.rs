@@ -1,8 +1,11 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for percolation-based generation.
 pub struct PercolationConfig {
+    /// Probability of each cell being floor. Default: 0.45.
     pub fill_probability: f64,
+    /// Keep only the largest connected region. Default: true.
     pub keep_largest: bool,
 }
 
@@ -16,11 +19,13 @@ impl Default for PercolationConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Percolation cluster generator.
 pub struct Percolation {
     config: PercolationConfig,
 }
 
 impl Percolation {
+    /// Creates a new percolation generator with the given config.
     pub fn new(config: PercolationConfig) -> Self {
         Self { config }
     }

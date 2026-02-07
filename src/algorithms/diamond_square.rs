@@ -1,8 +1,11 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for diamond-square heightmap generation.
 pub struct DiamondSquareConfig {
+    /// Roughness factor controlling height variation. Default: 0.6.
     pub roughness: f64,
+    /// Height threshold for floor/wall cutoff (0.0–1.0). Default: 0.4.
     pub threshold: f64,
 }
 
@@ -16,11 +19,13 @@ impl Default for DiamondSquareConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Diamond-square heightmap terrain generator.
 pub struct DiamondSquare {
     config: DiamondSquareConfig,
 }
 
 impl DiamondSquare {
+    /// Creates a new diamond-square generator with the given config.
     pub fn new(config: DiamondSquareConfig) -> Self {
         Self { config }
     }

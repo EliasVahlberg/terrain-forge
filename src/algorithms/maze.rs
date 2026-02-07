@@ -1,7 +1,9 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for perfect maze generation.
 pub struct MazeConfig {
+    /// Width of corridors in cells. Default: 1.
     pub corridor_width: usize,
 }
 
@@ -12,11 +14,13 @@ impl Default for MazeConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Perfect maze generator (recursive backtracker).
 pub struct Maze {
     config: MazeConfig,
 }
 
 impl Maze {
+    /// Creates a new maze generator with the given config.
     pub fn new(config: MazeConfig) -> Self {
         Self { config }
     }

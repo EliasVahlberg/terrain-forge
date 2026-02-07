@@ -4,10 +4,15 @@ use crate::{Algorithm, Grid, Tile};
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
+/// Configuration for glass seam bridging connectivity.
 pub struct GlassSeamConfig {
+    /// Target connectivity coverage (0.0–1.0). Default: 0.8.
     pub coverage_threshold: f64,
+    /// Points that must be connected. Default: empty.
     pub required_points: Vec<(usize, usize)>,
+    /// Radius of carved tunnels. Default: 1.
     pub carve_radius: usize,
+    /// Use MST to link required terminals. Default: false.
     pub use_mst_terminals: bool,
 }
 
@@ -23,11 +28,13 @@ impl Default for GlassSeamConfig {
 }
 
 #[derive(Debug, Clone, Default)]
+/// Glass seam bridging algorithm for connecting disconnected regions.
 pub struct GlassSeam {
     config: GlassSeamConfig,
 }
 
 impl GlassSeam {
+    /// Creates a new glass seam generator with the given config.
     pub fn new(config: GlassSeamConfig) -> Self {
         Self { config }
     }

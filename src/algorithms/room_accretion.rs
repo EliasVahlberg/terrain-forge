@@ -1,13 +1,18 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for Brogue-style room accretion.
 pub struct RoomAccretionConfig {
+    /// Room shape templates to use.
     pub templates: Vec<RoomTemplate>,
+    /// Maximum number of rooms. Default: 20.
     pub max_rooms: usize,
+    /// Probability of adding extra connections. Default: 0.1.
     pub loop_chance: f64,
 }
 
 #[derive(Debug, Clone)]
+/// Room shape template for accretion.
 pub enum RoomTemplate {
     Rectangle {
         min: usize,
@@ -44,11 +49,13 @@ impl Default for RoomAccretionConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Brogue-style organic room accretion generator.
 pub struct RoomAccretion {
     config: RoomAccretionConfig,
 }
 
 impl RoomAccretion {
+    /// Creates a new room accretion generator with the given config.
     pub fn new(config: RoomAccretionConfig) -> Self {
         Self { config }
     }

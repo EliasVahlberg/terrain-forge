@@ -10,6 +10,7 @@ impl Simplex {
     const F2: f64 = 0.3660254037844386; // (sqrt(3) - 1) / 2
     const G2: f64 = 0.21132486540518713; // (3 - sqrt(3)) / 6
 
+    /// Creates a new noise generator from the given seed.
     pub fn new(seed: u64) -> Self {
         Self {
             seed,
@@ -17,6 +18,7 @@ impl Simplex {
         }
     }
 
+    /// Sets the base frequency.
     pub fn with_frequency(mut self, frequency: f64) -> Self {
         self.frequency = frequency;
         self

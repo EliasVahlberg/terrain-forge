@@ -28,6 +28,7 @@ pub type Params = HashMap<String, serde_json::Value>;
 pub type OpResult<T> = Result<T, OpError>;
 
 #[derive(Debug, Clone)]
+/// Error type for ops operations.
 pub struct OpError {
     message: String,
 }
@@ -49,6 +50,17 @@ impl std::fmt::Display for OpError {
 impl std::error::Error for OpError {}
 
 /// Generate using a named algorithm with optional seed and params.
+/// Generates terrain by algorithm name with optional seed and params.
+///
+/// # Examples
+///
+/// ```
+/// use terrain_forge::{Grid, ops};
+///
+/// let mut grid = Grid::new(40, 30);
+/// ops::generate("bsp", &mut grid, Some(42), None).unwrap();
+/// assert!(grid.count(|t| t.is_floor()) > 0);
+/// ```
 pub fn generate(
     name: &str,
     grid: &mut Grid<Tile>,
@@ -61,6 +73,7 @@ pub fn generate(
 }
 
 /// Generate using a named algorithm with optional semantic output.
+/// Generates terrain and extracts semantic layers.
 pub fn generate_with_semantic(
     name: &str,
     grid: &mut Grid<Tile>,
@@ -86,6 +99,7 @@ pub fn generate_with_semantic(
 }
 
 /// Build an algorithm instance from a name + optional params.
+/// Builds an algorithm instance from a name and optional params.
 pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn Algorithm<Tile> + Send + Sync>> {
     let name = name.trim();
     match name {
@@ -334,6 +348,7 @@ pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn 
 }
 
 /// Apply a named effect with optional params.
+/// Applies a named effect to the grid.
 pub fn effect(
     name: &str,
     grid: &mut Grid<Tile>,
@@ -512,6 +527,7 @@ pub fn effect(
 }
 
 /// Combine another grid into the current grid using a mode.
+/// Combines two grids using the specified blend mode.
 pub fn combine(mode: CombineMode, grid: &mut Grid<Tile>, other: &Grid<Tile>) -> OpResult<()> {
     let w = grid.width().min(other.width());
     let h = grid.height().min(other.height());

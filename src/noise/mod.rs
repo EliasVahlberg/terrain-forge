@@ -16,7 +16,21 @@ pub use simplex::Simplex;
 pub use value::Value;
 pub use worley::Worley;
 
-/// Trait for noise sources that can be sampled at 2D coordinates
+/// Trait for noise sources that can be sampled at 2D coordinates.
+///
+/// # Examples
+///
+/// ```
+/// use terrain_forge::noise::{Perlin, NoiseSource, NoiseExt};
+///
+/// let noise = Perlin::new(42);
+/// let value = noise.sample(1.0, 2.0);
+/// assert!(value.is_finite());
+///
+/// let fbm = Perlin::new(42).fbm(4, 2.0, 0.5);
+/// let value = fbm.sample(1.0, 2.0);
+/// assert!(value.is_finite());
+/// ```
 pub trait NoiseSource {
     /// Sample noise at 2D coordinates, returns value approximately in [-1, 1]
     /// (may slightly exceed this range depending on the noise implementation)

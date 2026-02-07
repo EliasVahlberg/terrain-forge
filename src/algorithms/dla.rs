@@ -1,8 +1,11 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for diffusion-limited aggregation.
 pub struct DlaConfig {
+    /// Number of particles to release. Default: 500.
     pub num_particles: usize,
+    /// Maximum random walk steps per particle. Default: 1000.
     pub max_walk_steps: usize,
 }
 
@@ -16,11 +19,13 @@ impl Default for DlaConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Diffusion-limited aggregation generator.
 pub struct Dla {
     config: DlaConfig,
 }
 
 impl Dla {
+    /// Creates a new DLA generator with the given config.
     pub fn new(config: DlaConfig) -> Self {
         Self { config }
     }

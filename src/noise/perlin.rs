@@ -7,6 +7,7 @@ pub struct Perlin {
 }
 
 impl Perlin {
+    /// Creates a new noise generator from the given seed.
     pub fn new(seed: u64) -> Self {
         let mut base = [0u8; 256];
         for (i, v) in base.iter_mut().enumerate() {
@@ -25,6 +26,7 @@ impl Perlin {
         }
     }
 
+    /// Sets the base frequency.
     pub fn with_frequency(mut self, frequency: f64) -> Self {
         self.frequency = frequency;
         self

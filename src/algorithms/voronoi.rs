@@ -1,8 +1,11 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for Voronoi region generation.
 pub struct VoronoiConfig {
+    /// Number of Voronoi seed points. Default: 15.
     pub num_points: usize,
+    /// Probability of a region being floor. Default: 0.5.
     pub floor_chance: f64,
 }
 
@@ -16,11 +19,13 @@ impl Default for VoronoiConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Voronoi diagram region generator.
 pub struct Voronoi {
     config: VoronoiConfig,
 }
 
 impl Voronoi {
+    /// Creates a new Voronoi generator with the given config.
     pub fn new(config: VoronoiConfig) -> Self {
         Self { config }
     }

@@ -1,15 +1,21 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+/// Type of fractal to generate.
 pub enum FractalType {
     #[default]
+    /// Mandelbrot set (default).
     Mandelbrot,
+    /// Julia set.
     Julia,
 }
 
 #[derive(Debug, Clone)]
+/// Configuration for fractal terrain generation.
 pub struct FractalConfig {
+    /// Which fractal set to use. Default: Mandelbrot.
     pub fractal_type: FractalType,
+    /// Maximum escape iterations. Default: 100.
     pub max_iterations: usize,
 }
 
@@ -23,11 +29,13 @@ impl Default for FractalConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Fractal terrain generator.
 pub struct Fractal {
     config: FractalConfig,
 }
 
 impl Fractal {
+    /// Creates a new fractal generator with the given config.
     pub fn new(config: FractalConfig) -> Self {
         Self { config }
     }

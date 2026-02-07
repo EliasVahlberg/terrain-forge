@@ -2,6 +2,7 @@
 
 use crate::{Grid, Rng, Tile};
 
+/// Mirrors the grid horizontally and/or vertically.
 pub fn mirror(grid: &mut Grid<Tile>, horizontal: bool, vertical: bool) {
     let (w, h) = (grid.width(), grid.height());
 
@@ -24,6 +25,7 @@ pub fn mirror(grid: &mut Grid<Tile>, horizontal: bool, vertical: bool) {
     }
 }
 
+/// Rotates the grid by the given degrees (0, 90, 180, 270).
 pub fn rotate(grid: &mut Grid<Tile>, degrees: u32) {
     let (w, h) = (grid.width(), grid.height());
 
@@ -53,6 +55,7 @@ pub fn rotate(grid: &mut Grid<Tile>, degrees: u32) {
     }
 }
 
+/// Randomly scatters floor tiles at the given density.
 pub fn scatter(grid: &mut Grid<Tile>, density: f64, seed: u64) {
     let mut rng = Rng::new(seed);
     for y in 1..grid.height() - 1 {
@@ -64,6 +67,7 @@ pub fn scatter(grid: &mut Grid<Tile>, density: f64, seed: u64) {
     }
 }
 
+/// Inverts all tiles (wall ↔ floor).
 pub fn invert(grid: &mut Grid<Tile>) {
     for y in 0..grid.height() {
         for x in 0..grid.width() {
@@ -77,6 +81,7 @@ pub fn invert(grid: &mut Grid<Tile>) {
     }
 }
 
+/// Resizes the grid, padding with the given tile.
 pub fn resize(grid: &mut Grid<Tile>, width: usize, height: usize, pad: Tile) {
     let mut next = Grid::new(width, height);
     next.fill(pad);

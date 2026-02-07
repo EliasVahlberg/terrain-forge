@@ -4,6 +4,21 @@
 
 use crate::{Algorithm, Cell, Grid};
 
+/// Sequential algorithm pipeline.
+///
+/// # Examples
+///
+/// ```
+/// use terrain_forge::Grid;
+/// use terrain_forge::compose::Pipeline;
+/// use terrain_forge::algorithms::{Bsp, CellularAutomata};
+///
+/// let mut grid = Grid::new(40, 30);
+/// let pipe = Pipeline::new()
+///     .then(Bsp::default())
+///     .then(CellularAutomata::default());
+/// pipe.execute(&mut grid, 42);
+/// ```
 pub struct Pipeline<C: Cell> {
     steps: Vec<Box<dyn Algorithm<C> + Send + Sync>>,
 }

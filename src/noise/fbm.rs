@@ -9,6 +9,7 @@ pub struct Fbm<S: NoiseSource> {
 }
 
 impl<S: NoiseSource> Fbm<S> {
+    /// Creates a new FBM noise from the given source.
     pub fn new(source: S, octaves: u32, lacunarity: f64, persistence: f64) -> Self {
         Self {
             source,

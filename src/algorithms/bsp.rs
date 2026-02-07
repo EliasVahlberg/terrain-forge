@@ -1,9 +1,13 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for BSP (Binary Space Partitioning) dungeon generation.
 pub struct BspConfig {
+    /// Minimum room dimension. Default: 5.
     pub min_room_size: usize,
+    /// Maximum BSP tree depth. Default: 4.
     pub max_depth: usize,
+    /// Padding between rooms and partition edges. Default: 1.
     pub room_padding: usize,
 }
 
@@ -18,11 +22,13 @@ impl Default for BspConfig {
 }
 
 #[derive(Debug, Clone)]
+/// BSP dungeon generator.
 pub struct Bsp {
     config: BspConfig,
 }
 
 impl Bsp {
+    /// Creates a new BSP generator with the given config.
     pub fn new(config: BspConfig) -> Self {
         Self { config }
     }

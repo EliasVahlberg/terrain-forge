@@ -9,12 +9,15 @@ use std::collections::VecDeque;
 
 /// Methods for connecting semantic markers
 #[derive(Debug, Clone, Copy)]
+/// Method for connecting markers.
 pub enum MarkerConnectMethod {
+    /// Connect with a straight line.
     Line,
+    /// Connect with an L-shaped path.
     Path,
 }
 
-/// Label disconnected regions and return labels array and region count
+/// Labels connected floor regions, returning (label grid, region count).
 pub fn label_regions(grid: &Grid<Tile>) -> (Vec<u32>, u32) {
     let (w, h) = (grid.width(), grid.height());
     let regions = grid.flood_regions();
@@ -29,6 +32,7 @@ pub fn label_regions(grid: &Grid<Tile>) -> (Vec<u32>, u32) {
 }
 
 /// Carve a path into the grid with an optional radius around each step.
+/// Carves a path of floor tiles with the given radius.
 pub fn carve_path(grid: &mut Grid<Tile>, path: &[(usize, usize)], radius: usize) {
     if path.is_empty() {
         return;
@@ -40,6 +44,7 @@ pub fn carve_path(grid: &mut Grid<Tile>, path: &[(usize, usize)], radius: usize)
 }
 
 /// Clear a rectangular area centered at `center` with size (w, h).
+/// Clears a rectangular area to floor.
 pub fn clear_rect(grid: &mut Grid<Tile>, center: (usize, usize), w: usize, h: usize) {
     if w == 0 || h == 0 {
         return;
@@ -51,6 +56,7 @@ pub fn clear_rect(grid: &mut Grid<Tile>, center: (usize, usize), w: usize, h: us
 }
 
 /// Connect the first matching marker of each type.
+/// Connects marker positions using the specified method.
 pub fn connect_markers(
     grid: &mut Grid<Tile>,
     layers: &SemanticLayers,
@@ -90,6 +96,7 @@ pub fn connect_markers(
 }
 
 /// Connect regions using spanning tree with optional extra connections for loops
+/// Connects regions via spanning tree with optional extra loops.
 pub fn connect_regions_spanning(
     grid: &mut Grid<Tile>,
     extra_connection_chance: f64,
@@ -175,6 +182,7 @@ pub fn connect_regions_spanning(
     connections_made
 }
 
+/// Bridges small gaps between floor regions.
 pub fn bridge_gaps(grid: &mut Grid<Tile>, max_distance: usize) {
     let regions = grid.flood_regions();
     if regions.len() <= 1 {
@@ -215,6 +223,7 @@ fn carve_line(grid: &mut Grid<Tile>, x1: usize, y1: usize, x2: usize, y2: usize)
     carve_path(grid, &path, 0);
 }
 
+/// Removes dead-end corridors.
 pub fn remove_dead_ends(grid: &mut Grid<Tile>, iterations: usize) {
     let (w, h) = (grid.width(), grid.height());
 
@@ -243,6 +252,7 @@ pub fn remove_dead_ends(grid: &mut Grid<Tile>, iterations: usize) {
     }
 }
 
+/// Finds chokepoint cells (removal would disconnect regions).
 pub fn find_chokepoints(grid: &Grid<Tile>) -> Vec<(usize, usize)> {
     let (w, h) = (grid.width(), grid.height());
     let mut chokepoints = Vec::new();

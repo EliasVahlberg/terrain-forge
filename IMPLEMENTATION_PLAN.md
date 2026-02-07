@@ -4,16 +4,16 @@ Phased plan to address issues from `REVIEW_NOTES.md`, prioritized for usability 
 
 References are `RN#N` = REVIEW_NOTES item N.
 
-> **Status (2026-02-07):** Phases 1–3 complete and committed. 84 tests pass, clippy clean, demo verified.
+> **Status (2026-02-07):** Phases 1–6 complete and committed. 109 tests pass, clippy clean, demo verified.
 >
 > | Phase | Status | Commit |
 > |-------|--------|--------|
 > | 1 — Bug Fixes | ✅ Done | `a44281b` |
 > | 2 — Deduplication | ✅ Done | `744ea95` |
 > | 3 — Core Type Quality | ✅ Done | `753802d` |
-> | 4 — Trait & API | ✅ Done | `27d071d` |
-> | 5 — Documentation | ⬜ Pending | — |
-> | 6 — Testing | ⬜ Pending | — |
+> | 4 — Trait & API | ✅ Done | `123e266` |
+> | 5 — Documentation | ✅ Done | `fad8d31` |
+> | 6 — Testing | ✅ Done | `fad8d31` |
 > | 7 — Feature Additions | ⬜ Pending | — |
 > | 8 — Performance | ⬜ Pending | — |
 
@@ -224,7 +224,9 @@ Add a module-level doc section explaining the i32/usize split. No code change �
 
 ---
 
-## Phase 5 — Documentation
+## Phase 5 — Documentation ✅
+
+> Completed `fad8d31`. Documented all core types, algorithm configs/fields, effects, noise, constraints, ops. Added doc examples to Algorithm, ops::generate, Pipeline, NoiseSource. Missing docs reduced from 459 to ~201 (remaining: pipeline.rs, semantic.rs, analysis/ internal types).
 
 After API changes have settled. Bulk doc-comment pass.
 
@@ -260,7 +262,9 @@ These are tested by `cargo test`, so they also serve as regression tests.
 
 ---
 
-## Phase 6 — Testing
+## Phase 6 — Testing ✅
+
+> Completed `fad8d31`. 20 new tests: algorithm config behavior (5), effects (7), grid utilities (6), compose (1), constraints (1). Total: 109 tests. Skipped per-file `#[cfg(test)]` modules — integration tests already cover determinism/non-empty for all algorithms. Property-based testing (6c stretch goal) deferred.
 
 ### 6a. Algorithm unit tests (RN#19)
 

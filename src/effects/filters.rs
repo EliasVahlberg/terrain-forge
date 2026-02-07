@@ -2,6 +2,7 @@
 
 use crate::{Grid, Tile};
 
+/// Applies Gaussian blur to the grid.
 pub fn gaussian_blur(grid: &mut Grid<Tile>, radius: usize) {
     let (w, h) = (grid.width(), grid.height());
     let mut counts = vec![vec![0f64; w]; h];
@@ -38,6 +39,7 @@ pub fn gaussian_blur(grid: &mut Grid<Tile>, radius: usize) {
     }
 }
 
+/// Applies median filter to the grid.
 pub fn median_filter(grid: &mut Grid<Tile>, radius: usize) {
     let (w, h) = (grid.width(), grid.height());
     let snapshot: Vec<bool> = (0..w * h)

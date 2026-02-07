@@ -3,6 +3,7 @@
 use crate::noise::NoiseSource;
 use crate::{Grid, Tile};
 
+/// Returns coordinates of floor cells adjacent to walls.
 pub fn edge_detect(grid: &Grid<Tile>) -> Vec<(usize, usize)> {
     let (w, h) = (grid.width(), grid.height());
     let mut edges = Vec::new();
@@ -22,6 +23,7 @@ pub fn edge_detect(grid: &Grid<Tile>) -> Vec<(usize, usize)> {
     edges
 }
 
+/// Warps the grid using noise-based displacement.
 pub fn domain_warp<N: NoiseSource>(
     grid: &mut Grid<Tile>,
     noise: &N,

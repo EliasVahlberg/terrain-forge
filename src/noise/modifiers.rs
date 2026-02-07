@@ -56,6 +56,7 @@ pub struct Blend<A: NoiseSource, B: NoiseSource, C: NoiseSource> {
 }
 
 impl<A: NoiseSource, B: NoiseSource, C: NoiseSource> Blend<A, B, C> {
+    /// Creates a new blend of two noise sources controlled by a third.
     pub fn new(source_a: A, source_b: B, control: C) -> Self {
         Self {
             source_a,

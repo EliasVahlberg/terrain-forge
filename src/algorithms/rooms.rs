@@ -1,10 +1,15 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for simple room placement.
 pub struct SimpleRoomsConfig {
+    /// Minimum room dimension. Default: 4.
     pub min_room_size: usize,
+    /// Maximum room dimension. Default: 10.
     pub max_room_size: usize,
+    /// Maximum number of rooms to place. Default: 10.
     pub max_rooms: usize,
+    /// Minimum gap between rooms. Default: 1.
     pub min_spacing: usize,
 }
 
@@ -20,11 +25,13 @@ impl Default for SimpleRoomsConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Simple rectangular room placement generator.
 pub struct SimpleRooms {
     config: SimpleRoomsConfig,
 }
 
 impl SimpleRooms {
+    /// Creates a new room generator with the given config.
     pub fn new(config: SimpleRoomsConfig) -> Self {
         Self { config }
     }

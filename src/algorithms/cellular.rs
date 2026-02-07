@@ -1,10 +1,15 @@
 use crate::{Algorithm, Grid, Rng, Tile};
 
 #[derive(Debug, Clone)]
+/// Configuration for cellular automata cave generation.
 pub struct CellularConfig {
+    /// Probability of a cell starting as floor. Default: 0.45.
     pub initial_floor_chance: f64,
+    /// Number of automata iterations. Default: 4.
     pub iterations: usize,
+    /// Neighbor count to birth a floor cell. Default: 5.
     pub birth_limit: usize,
+    /// Neighbor count below which a floor cell dies. Default: 4.
     pub death_limit: usize,
 }
 
@@ -20,11 +25,13 @@ impl Default for CellularConfig {
 }
 
 #[derive(Debug, Clone)]
+/// Cellular automata cave generator.
 pub struct CellularAutomata {
     config: CellularConfig,
 }
 
 impl CellularAutomata {
+    /// Creates a new cellular automata generator with the given config.
     pub fn new(config: CellularConfig) -> Self {
         Self { config }
     }

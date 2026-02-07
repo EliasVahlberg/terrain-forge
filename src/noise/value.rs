@@ -7,6 +7,7 @@ pub struct Value {
 }
 
 impl Value {
+    /// Creates a new noise generator from the given seed.
     pub fn new(seed: u64) -> Self {
         Self {
             seed,
@@ -14,6 +15,7 @@ impl Value {
         }
     }
 
+    /// Sets the base frequency.
     pub fn with_frequency(mut self, frequency: f64) -> Self {
         self.frequency = frequency;
         self
