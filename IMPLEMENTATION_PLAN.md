@@ -4,9 +4,24 @@ Phased plan to address issues from `REVIEW_NOTES.md`, prioritized for usability 
 
 References are `RN#N` = REVIEW_NOTES item N.
 
+> **Status (2026-02-07):** Phases 1–3 complete and committed. 84 tests pass, clippy clean, demo verified.
+>
+> | Phase | Status | Commit |
+> |-------|--------|--------|
+> | 1 — Bug Fixes | ✅ Done | `a44281b` |
+> | 2 — Deduplication | ✅ Done | `744ea95` |
+> | 3 — Core Type Quality | ✅ Done | `753802d` |
+> | 4 — Trait & API | ⬜ Pending | — |
+> | 5 — Documentation | ⬜ Pending | — |
+> | 6 — Testing | ⬜ Pending | — |
+> | 7 — Feature Additions | ⬜ Pending | — |
+> | 8 — Performance | ⬜ Pending | — |
+
 ---
 
-## Phase 1 — Bug Fixes
+## Phase 1 — Bug Fixes ✅
+
+> Completed `a44281b`. All 5 items fixed. Option A chosen for 1c (`Cell::set_passable`).
 
 Fix correctness issues. No API changes, no new dependencies.
 
@@ -60,7 +75,9 @@ Deprecated since v0.3.0, now at v0.6.0. Delete the function entirely. This is a 
 
 ---
 
-## Phase 2 — Deduplicate Shared Utilities
+## Phase 2 — Deduplicate Shared Utilities ✅
+
+> Completed `744ea95`. Net −142 lines. Also added `Grid::flood_regions()` and `Grid::neighbors_4`/`neighbors_8`. `spatial/distance.rs` neighbors kept as-is (different purpose: returns offset arrays by metric).
 
 Extract repeated logic into shared helpers. Reduces maintenance surface before adding docs/tests.
 
@@ -115,7 +132,9 @@ Bounds-checked, returns only in-bounds neighbors. Replace the two local helpers.
 
 ---
 
-## Phase 3 — Core Type Quality
+## Phase 3 — Core Type Quality ✅
+
+> Completed `753802d`. All items done. `Pipeline::add` removed entirely (unused) rather than renamed. `NoiseSource::sample` `#[must_use]` deferred (trait method, would require all impls to annotate).
 
 Derive improvements and annotations on foundational types. Mechanical changes, low risk.
 
@@ -168,6 +187,8 @@ Change `pub config` to `config` (private) to match all other algorithm structs. 
 ---
 
 ## Phase 4 — Trait & API Improvements
+
+> 4b already done in Phase 1c (`Cell::set_passable` landed with the delaunay fix).
 
 Potentially breaking changes. Group into a minor version bump.
 
