@@ -73,6 +73,14 @@ pub trait NoiseExt: NoiseSource + Sized {
     fn fbm(self, octaves: u32, lacunarity: f64, persistence: f64) -> Fbm<Self> {
         Fbm::new(self, octaves, lacunarity, persistence)
     }
+
+    /// Blend this noise source with another, controlled by a third.
+    ///
+    /// The control source maps `[-1, 1]` to `[0, 1]` for interpolation:
+    /// control = -1 → 100% self, control = 1 → 100% other.
+    fn blend<B: NoiseSource, C: NoiseSource>(self, other: B, control: C) -> Blend<Self, B, C> {
+        Blend::new(self, other, control)
+    }
 }
 
 impl<T: NoiseSource> NoiseExt for T {}

@@ -17,6 +17,7 @@ pub use connectivity::{
 };
 pub use filters::{gaussian_blur, median_filter};
 pub use morphology::{close, dilate, erode, open};
+#[allow(deprecated)]
 pub use spatial::{dijkstra_map, distance_transform};
 pub use transform::{invert, mirror, resize, rotate, scatter};
 pub use warp::{domain_warp, edge_detect};

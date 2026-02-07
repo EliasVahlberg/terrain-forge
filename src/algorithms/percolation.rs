@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for percolation-based generation.
 pub struct PercolationConfig {
     /// Probability of each cell being floor. Default: 0.45.
@@ -18,7 +19,7 @@ impl Default for PercolationConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Percolation cluster generator.
 pub struct Percolation {
     config: PercolationConfig,

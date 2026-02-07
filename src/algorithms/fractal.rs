@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 /// Type of fractal to generate.
 pub enum FractalType {
     #[default]
@@ -10,7 +11,7 @@ pub enum FractalType {
     Julia,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for fractal terrain generation.
 pub struct FractalConfig {
     /// Which fractal set to use. Default: Mandelbrot.

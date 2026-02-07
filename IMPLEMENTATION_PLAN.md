@@ -14,7 +14,7 @@ References are `RN#N` = REVIEW_NOTES item N.
 > | 4 — Trait & API | ✅ Done | `123e266` |
 > | 5 — Documentation | ✅ Done | `fad8d31` |
 > | 6 — Testing | ✅ Done | `fad8d31` |
-> | 7 — Feature Additions | ⬜ Pending | — |
+> | 7 — Feature Additions | ✅ Done | — |
 > | 8 — Performance | ⬜ Pending | — |
 
 ---
@@ -290,7 +290,9 @@ Add `proptest` as a dev dependency. Write property tests for:
 
 ---
 
-## Phase 7 — Feature Additions
+## Phase 7 — Feature Additions ✅
+
+> Completed. 7a: Added Serialize/Deserialize to all config structs, supporting enums, Tile, BlendMode (serde already a hard dep via ops Params type). 7b: Made LayeredGenerator generic over C: Cell with default type parameter = Tile. 7c: Added NoiseExt::blend method. 7d: Deprecated effects::spatial::distance_transform in favor of spatial::distance_field.
 
 Lower priority. Each is independently valuable.
 

@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for agent-based carving.
 pub struct AgentConfig {
     /// Number of carving agents. Default: 5.
@@ -21,7 +22,7 @@ impl Default for AgentConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Agent-based terrain carver.
 pub struct AgentBased {
     config: AgentConfig,

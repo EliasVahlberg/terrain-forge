@@ -1,9 +1,10 @@
 use crate::effects::carve_path;
 use crate::grid::line_points;
 use crate::{Algorithm, Grid, Tile};
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for glass seam bridging connectivity.
 pub struct GlassSeamConfig {
     /// Target connectivity coverage (0.0–1.0). Default: 0.8.
@@ -80,11 +81,7 @@ fn find_spawn_point(grid: &Grid<Tile>) -> Option<(usize, usize)> {
     None
 }
 
-fn ensure_connectivity(
-    grid: &mut Grid<Tile>,
-    spawn: (usize, usize),
-    config: &GlassSeamConfig,
-) {
+fn ensure_connectivity(grid: &mut Grid<Tile>, spawn: (usize, usize), config: &GlassSeamConfig) {
     let RegionData {
         regions,
         labels,

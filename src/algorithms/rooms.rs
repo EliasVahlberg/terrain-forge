@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for simple room placement.
 pub struct SimpleRoomsConfig {
     /// Minimum room dimension. Default: 4.
@@ -24,7 +25,7 @@ impl Default for SimpleRoomsConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Simple rectangular room placement generator.
 pub struct SimpleRooms {
     config: SimpleRoomsConfig,

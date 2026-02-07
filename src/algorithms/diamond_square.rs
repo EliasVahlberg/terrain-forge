@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for diamond-square heightmap generation.
 pub struct DiamondSquareConfig {
     /// Roughness factor controlling height variation. Default: 0.6.
@@ -18,7 +19,7 @@ impl Default for DiamondSquareConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Diamond-square heightmap terrain generator.
 pub struct DiamondSquare {
     config: DiamondSquareConfig,

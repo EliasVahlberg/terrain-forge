@@ -1,7 +1,8 @@
 use crate::noise::{NoiseExt, Perlin, Simplex, Value, Worley};
 use crate::{Algorithm, Grid, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 /// Noise algorithm to use for fill generation.
 pub enum NoiseType {
     #[default]
@@ -11,7 +12,7 @@ pub enum NoiseType {
     Worley,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for noise-driven threshold fill.
 pub struct NoiseFillConfig {
     /// Noise algorithm to use. Default: Perlin.

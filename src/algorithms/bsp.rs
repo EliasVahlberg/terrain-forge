@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for BSP (Binary Space Partitioning) dungeon generation.
 pub struct BspConfig {
     /// Minimum room dimension. Default: 5.
@@ -21,7 +22,7 @@ impl Default for BspConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// BSP dungeon generator.
 pub struct Bsp {
     config: BspConfig,

@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for drunkard walk generation.
 pub struct DrunkardConfig {
     /// Target floor percentage (0.0–1.0). Default: 0.4.
@@ -18,7 +19,7 @@ impl Default for DrunkardConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Drunkard walk cave generator.
 pub struct DrunkardWalk {
     config: DrunkardConfig,

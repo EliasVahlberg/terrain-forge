@@ -15,6 +15,7 @@
 //!
 //! In both cases `(x, y)` means `(column, row)` with `(0, 0)` at the top-left.
 
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
@@ -30,7 +31,7 @@ pub trait Cell: Clone + Default {
 }
 
 /// Basic tile type for dungeon/terrain generation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash, Serialize, Deserialize)]
 pub enum Tile {
     /// Impassable wall tile.
     #[default]
@@ -246,10 +247,18 @@ impl<C: Cell> Grid<C> {
     pub fn neighbors_4(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> {
         let (w, h) = (self.width, self.height);
         let mut n = Vec::with_capacity(4);
-        if x > 0 { n.push((x - 1, y)); }
-        if x + 1 < w { n.push((x + 1, y)); }
-        if y > 0 { n.push((x, y - 1)); }
-        if y + 1 < h { n.push((x, y + 1)); }
+        if x > 0 {
+            n.push((x - 1, y));
+        }
+        if x + 1 < w {
+            n.push((x + 1, y));
+        }
+        if y > 0 {
+            n.push((x, y - 1));
+        }
+        if y + 1 < h {
+            n.push((x, y + 1));
+        }
         n.into_iter()
     }
 
@@ -259,7 +268,9 @@ impl<C: Cell> Grid<C> {
         let mut n = Vec::with_capacity(8);
         for dy in -1i32..=1 {
             for dx in -1i32..=1 {
-                if dx == 0 && dy == 0 { continue; }
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
                 let nx = x as i32 + dx;
                 let ny = y as i32 + dy;
                 if nx >= 0 && ny >= 0 && (nx as usize) < w && (ny as usize) < h {

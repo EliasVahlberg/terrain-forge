@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for prefab placement.
 pub struct PrefabConfig {
     /// Maximum prefabs to place. Default: 3.
@@ -36,7 +36,7 @@ impl Default for PrefabConfig {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 /// How a prefab is applied to the grid.
 pub enum PrefabPlacementMode {
     Overwrite,

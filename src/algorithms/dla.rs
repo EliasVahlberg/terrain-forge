@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for diffusion-limited aggregation.
 pub struct DlaConfig {
     /// Number of particles to release. Default: 500.
@@ -18,7 +19,7 @@ impl Default for DlaConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Diffusion-limited aggregation generator.
 pub struct Dla {
     config: DlaConfig,

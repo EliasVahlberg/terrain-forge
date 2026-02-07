@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for Brogue-style room accretion.
 pub struct RoomAccretionConfig {
     /// Room shape templates to use.
@@ -11,7 +12,7 @@ pub struct RoomAccretionConfig {
     pub loop_chance: f64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Room shape template for accretion.
 pub enum RoomTemplate {
     Rectangle {

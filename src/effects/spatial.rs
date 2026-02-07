@@ -4,6 +4,12 @@ use crate::{Grid, Tile};
 use std::collections::VecDeque;
 
 /// Computes Manhattan distance from each cell to the nearest wall.
+///
+/// Use [`crate::spatial::distance_field`] instead, which supports multiple metrics.
+#[deprecated(
+    since = "0.7.0",
+    note = "Use spatial::distance_field with DistanceMetric::Manhattan"
+)]
 pub fn distance_transform(grid: &Grid<Tile>) -> Vec<Vec<u32>> {
     let (w, h) = (grid.width(), grid.height());
     let mut dist = vec![vec![u32::MAX; w]; h];

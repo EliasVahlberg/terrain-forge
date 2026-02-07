@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for perfect maze generation.
 pub struct MazeConfig {
     /// Width of corridors in cells. Default: 1.
@@ -13,7 +14,7 @@ impl Default for MazeConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Perfect maze generator (recursive backtracker).
 pub struct Maze {
     config: MazeConfig,

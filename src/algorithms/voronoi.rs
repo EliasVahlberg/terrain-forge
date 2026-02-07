@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for Voronoi region generation.
 pub struct VoronoiConfig {
     /// Number of Voronoi seed points. Default: 15.
@@ -18,7 +19,7 @@ impl Default for VoronoiConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Voronoi diagram region generator.
 pub struct Voronoi {
     config: VoronoiConfig,

@@ -1,7 +1,8 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for Wave Function Collapse generation.
 pub struct WfcConfig {
     /// Weight for floor tiles in random collapse. Default: 0.4.
@@ -22,7 +23,7 @@ impl Default for WfcConfig {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A tile pattern extracted from an example grid.
 pub struct Pattern {
     tiles: Vec<Vec<Tile>>,
@@ -61,7 +62,7 @@ impl Pattern {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Internal state of a WFC solve.
 pub struct WfcState {
     possibilities: Vec<Vec<Vec<usize>>>,
@@ -293,7 +294,7 @@ impl WfcBacktracker {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Wave Function Collapse terrain generator.
 pub struct Wfc {
     config: WfcConfig,

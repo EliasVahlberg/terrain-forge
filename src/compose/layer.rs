@@ -1,8 +1,10 @@
 //! Layered generation with blend modes
 
-use crate::{Algorithm, Grid, Tile};
+use crate::grid::Cell;
+use crate::{Algorithm, Grid};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum BlendMode {
     /// Replace existing tiles.
     Replace,
@@ -17,55 +19,61 @@ pub enum BlendMode {
 }
 
 /// Layered generator that blends multiple algorithms.
-pub struct LayeredGenerator {
-    layers: Vec<(Box<dyn Algorithm<Tile> + Send + Sync>, BlendMode)>,
+///
+/// Generic over `C: Cell`, so it works with both [`Tile`](crate::Tile) and custom cell types.
+pub struct LayeredGenerator<C: Cell = crate::Tile> {
+    layers: Vec<(Box<dyn Algorithm<C> + Send + Sync>, BlendMode)>,
 }
 
-impl LayeredGenerator {
+impl<C: Cell> LayeredGenerator<C> {
     /// Creates an empty layered generator.
     pub fn new() -> Self {
         Self { layers: Vec::new() }
     }
 
     /// Sets the base layer (replaces).
-    pub fn base<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
+    pub fn base<A: Algorithm<C> + Send + Sync + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Replace));
         self
     }
 
     /// Adds a union layer.
-    pub fn union<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
+    pub fn union<A: Algorithm<C> + Send + Sync + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Union));
         self
     }
 
     /// Adds an intersection layer.
-    pub fn intersect<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
+    pub fn intersect<A: Algorithm<C> + Send + Sync + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Intersect));
         self
     }
 
     /// Adds a difference layer.
-    pub fn difference<A: Algorithm<Tile> + 'static>(mut self, algo: A) -> Self {
+    pub fn difference<A: Algorithm<C> + Send + Sync + 'static>(mut self, algo: A) -> Self {
         self.layers.push((Box::new(algo), BlendMode::Difference));
         self
     }
 
     /// Adds a layer with the specified blend mode.
-    pub fn add<A: Algorithm<Tile> + 'static>(mut self, algo: A, mode: BlendMode) -> Self {
+    pub fn add<A: Algorithm<C> + Send + Sync + 'static>(
+        mut self,
+        algo: A,
+        mode: BlendMode,
+    ) -> Self {
         self.layers.push((Box::new(algo), mode));
         self
     }
 }
 
-impl Default for LayeredGenerator {
+impl<C: Cell> Default for LayeredGenerator<C> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Algorithm<Tile> for LayeredGenerator {
-    fn generate(&self, grid: &mut Grid<Tile>, seed: u64) {
+impl<C: Cell + 'static> Algorithm<C> for LayeredGenerator<C> {
+    fn generate(&self, grid: &mut Grid<C>, seed: u64) {
         for (i, (algo, mode)) in self.layers.iter().enumerate() {
             let layer_seed = seed.wrapping_add(i as u64 * 1000);
 
@@ -78,8 +86,8 @@ impl Algorithm<Tile> for LayeredGenerator {
                     algo.generate(&mut layer, layer_seed);
                     for y in 0..grid.height() {
                         for x in 0..grid.width() {
-                            if layer[(x, y)].is_floor() {
-                                grid.set(x as i32, y as i32, Tile::Floor);
+                            if layer[(x, y)].is_passable() {
+                                grid[(x, y)].set_passable();
                             }
                         }
                     }
@@ -89,8 +97,8 @@ impl Algorithm<Tile> for LayeredGenerator {
                     algo.generate(&mut layer, layer_seed);
                     for y in 0..grid.height() {
                         for x in 0..grid.width() {
-                            if !layer[(x, y)].is_floor() {
-                                grid.set(x as i32, y as i32, Tile::Wall);
+                            if !layer[(x, y)].is_passable() {
+                                grid.set(x as i32, y as i32, C::default());
                             }
                         }
                     }
@@ -100,8 +108,8 @@ impl Algorithm<Tile> for LayeredGenerator {
                     algo.generate(&mut layer, layer_seed);
                     for y in 0..grid.height() {
                         for x in 0..grid.width() {
-                            if layer[(x, y)].is_floor() {
-                                grid.set(x as i32, y as i32, Tile::Wall);
+                            if layer[(x, y)].is_passable() {
+                                grid.set(x as i32, y as i32, C::default());
                             }
                         }
                     }
@@ -111,8 +119,8 @@ impl Algorithm<Tile> for LayeredGenerator {
                     algo.generate(&mut mask, layer_seed);
                     for y in 0..grid.height() {
                         for x in 0..grid.width() {
-                            if !mask[(x, y)].is_floor() {
-                                grid.set(x as i32, y as i32, Tile::Wall);
+                            if !mask[(x, y)].is_passable() {
+                                grid.set(x as i32, y as i32, C::default());
                             }
                         }
                     }

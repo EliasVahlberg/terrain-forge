@@ -1,6 +1,7 @@
 use crate::{Algorithm, Grid, Rng, Tile};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Configuration for cellular automata cave generation.
 pub struct CellularConfig {
     /// Probability of a cell starting as floor. Default: 0.45.
@@ -24,7 +25,7 @@ impl Default for CellularConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Cellular automata cave generator.
 pub struct CellularAutomata {
     config: CellularConfig,

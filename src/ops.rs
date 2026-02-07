@@ -100,7 +100,10 @@ pub fn generate_with_semantic(
 
 /// Build an algorithm instance from a name + optional params.
 /// Builds an algorithm instance from a name and optional params.
-pub fn build_algorithm(name: &str, params: Option<&Params>) -> OpResult<Box<dyn Algorithm<Tile> + Send + Sync>> {
+pub fn build_algorithm(
+    name: &str,
+    params: Option<&Params>,
+) -> OpResult<Box<dyn Algorithm<Tile> + Send + Sync>> {
     let name = name.trim();
     match name {
         "bsp" => {
