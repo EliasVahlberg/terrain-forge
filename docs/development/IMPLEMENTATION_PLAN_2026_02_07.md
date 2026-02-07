@@ -4,7 +4,7 @@ Phased plan to address issues from `REVIEW_NOTES.md`, prioritized for usability 
 
 References are `RN#N` = REVIEW_NOTES item N.
 
-> **Status (2026-02-07):** Phases 1–6 complete and committed. 109 tests pass, clippy clean, demo verified.
+> **Status (2026-02-07):** All 8 phases complete. 109 tests pass, clippy clean, demo verified.
 >
 > | Phase | Status | Commit |
 > |-------|--------|--------|
@@ -14,8 +14,8 @@ References are `RN#N` = REVIEW_NOTES item N.
 > | 4 — Trait & API | ✅ Done | `123e266` |
 > | 5 — Documentation | ✅ Done | `fad8d31` |
 > | 6 — Testing | ✅ Done | `fad8d31` |
-> | 7 — Feature Additions | ✅ Done | — |
-> | 8 — Performance | ⬜ Pending | — |
+> | 7 — Feature Additions | ✅ Done | `32d34a4` |
+> | 8 — Performance | ✅ Done | — |
 
 ---
 
@@ -327,7 +327,9 @@ Add `#[deprecated(note = "Use spatial::distance_field instead")]` to `effects::d
 
 ---
 
-## Phase 8 — Performance
+## Phase 8 — Performance ✅
+
+> Completed. 8a: bridge_gaps now filters to perimeter cells before closest-pair search, reducing O(area²) to O(perimeter²). 8b: Graph::diameter reduced from O(V² · Dijkstra) to O(V · Dijkstra) by running single-source Dijkstra per vertex instead of per pair. Added complexity doc comment.
 
 Only pursue if profiling shows these are actual bottlenecks.
 

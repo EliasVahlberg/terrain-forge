@@ -1,6 +1,6 @@
 //! Connectivity effects
 
-use crate::grid::line_points;
+use crate::grid::{line_points, Cell};
 use crate::semantic::{MarkerType, SemanticLayers};
 use crate::spatial::{shortest_path, PathfindingConstraints};
 use crate::{Grid, Rng, Tile};
@@ -189,9 +189,30 @@ pub fn bridge_gaps(grid: &mut Grid<Tile>, max_distance: usize) {
         return;
     }
 
-    for r1 in 0..regions.len() {
-        for r2 in (r1 + 1)..regions.len() {
-            if let Some((x1, y1, x2, y2)) = find_closest(&regions[r1], &regions[r2], max_distance) {
+    // Pre-filter to perimeter cells only (adjacent to at least one wall).
+    // This reduces O(n·m) comparisons dramatically since perimeter ≪ area.
+    let perimeters: Vec<Vec<(usize, usize)>> = regions
+        .iter()
+        .map(|region| {
+            region
+                .iter()
+                .copied()
+                .filter(|&(x, y)| {
+                    [(-1i32, 0), (1, 0), (0, -1), (0, 1)].iter().any(|&(dx, dy)| {
+                        !grid
+                            .get(x as i32 + dx, y as i32 + dy)
+                            .is_some_and(|c| c.is_passable())
+                    })
+                })
+                .collect()
+        })
+        .collect();
+
+    for r1 in 0..perimeters.len() {
+        for r2 in (r1 + 1)..perimeters.len() {
+            if let Some((x1, y1, x2, y2)) =
+                find_closest(&perimeters[r1], &perimeters[r2], max_distance)
+            {
                 carve_line(grid, x1, y1, x2, y2);
             }
         }

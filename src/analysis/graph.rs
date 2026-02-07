@@ -256,17 +256,41 @@ impl Graph {
         sum / self.vertices.len() as f32
     }
 
+    /// Longest shortest-path distance between any two connected vertices.
+    ///
+    /// Runs Dijkstra from each vertex once: O(V · (V + E) log V).
     pub fn diameter(&self) -> f32 {
+        let n = self.vertices.len();
         let mut max_distance: f32 = 0.0;
 
-        for i in 0..self.vertices.len() {
-            for j in (i + 1)..self.vertices.len() {
-                if let Some(path) = self.shortest_path(i, j) {
-                    let mut distance = 0.0;
-                    for k in 0..(path.len() - 1) {
-                        distance += self.vertices[path[k]].distance_to(&self.vertices[path[k + 1]]);
+        for i in 0..n {
+            // Single-source Dijkstra from vertex i
+            let mut dist = vec![f32::INFINITY; n];
+            let mut visited = vec![false; n];
+            dist[i] = 0.0;
+
+            let mut queue = std::collections::BinaryHeap::new();
+            queue.push(std::cmp::Reverse((0u32, i)));
+
+            while let Some(std::cmp::Reverse((_, v))) = queue.pop() {
+                if visited[v] {
+                    continue;
+                }
+                visited[v] = true;
+
+                for &nb in self.neighbors(v) {
+                    let w = self.vertices[v].distance_to(&self.vertices[nb]);
+                    let nd = dist[v] + w;
+                    if nd < dist[nb] {
+                        dist[nb] = nd;
+                        queue.push(std::cmp::Reverse(((nd * 1000.0) as u32, nb)));
                     }
-                    max_distance = max_distance.max(distance);
+                }
+            }
+
+            for d in &dist {
+                if d.is_finite() {
+                    max_distance = max_distance.max(*d);
                 }
             }
         }
